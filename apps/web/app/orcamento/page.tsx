@@ -73,10 +73,27 @@ export default function OrcamentoPage() {
                     console.error('Erro no share nativo', err);
                 }
             } else {
-                await navigator.clipboard.writeText(shareLink);
+                try {
+                    await navigator.clipboard.writeText(shareLink);
+                    alert('O link foi copiado!');
+                } catch (err) {
+                    // Fallback para conexões não-seguras (HTTP)
+                    const textArea = document.createElement("textarea");
+                    textArea.value = shareLink;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        alert('O link foi copiado! (via fallback)');
+                    } catch (err) {
+                        console.error('Falha ao copiar', err);
+                        prompt('Copie o link abaixo:', shareLink);
+                    }
+                    document.body.removeChild(textArea);
+                }
+
                 const whatsappUrl = `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
-                alert('O link foi copiado!');
             }
 
             // Limpar carrinho e resetar campos
@@ -139,8 +156,11 @@ export default function OrcamentoPage() {
                         <span className="text-sm text-gray-500">{items.length} itens</span>
                     </div>
                     {items.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
-                            Seu carrinho está vazio. Adicione produtos primeiro.
+                        <div className="p-8 text-center text-gray-500 flex flex-col items-center gap-4">
+                            <span>Seu carrinho está vazio. Adicione produtos primeiro.</span>
+                            <Link href="/" className="text-blue-600 font-bold hover:underline">
+                                Ir para Catálogo
+                            </Link>
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-100">

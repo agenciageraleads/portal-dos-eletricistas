@@ -34,5 +34,6 @@ export class SyncController {
     async getSyncStatus() {
         return this.syncService.getStatus();
     }
+}
 
 

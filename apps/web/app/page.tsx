@@ -6,7 +6,7 @@ import { Product } from './types/product';
 import { ProductCard } from './components/ProductCard';
 import { ProductSearch } from './components/ProductSearch';
 import { CartSummary } from './components/CartSummary';
-import { PackageSearch, User } from 'lucide-react';
+import { PackageSearch, User, FileText } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Link from 'next/link';
 
@@ -156,14 +156,14 @@ export default function Home() {
                                     key={cat.id}
                                     onClick={() => handleCategoryClick(cat.id)}
                                     className={`
-                                        flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors border
+                                        flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap transition-colors border shadow-sm
                                         ${selectedCategory === cat.id
-                                            ? 'bg-blue-600 text-white border-blue-600'
-                                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-blue-200'
+                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}
                                     `}
                                 >
-                                    <span>{cat.icon}</span>
-                                    <span className="font-medium text-sm">{cat.label}</span>
+                                    <span className="text-xl">{cat.icon}</span>
+                                    <span className="font-bold text-base">{cat.label}</span>
                                 </button>
                             ))}
                         </div>

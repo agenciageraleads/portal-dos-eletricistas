@@ -20,16 +20,21 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 > **Objetivo:** Permitir que um eletricista parceiro faça uma venda completa (Do orçamento ao Pix).
 
 *   [x] Definição de Arquitetura e Tech Stack.
-*   [ ] **API Core:**
-    *   Auth (Login/Cadastro).
-    *   Sync básico de Produtos (Sankhya -> Portal).
-    *   Orçamentos (CRUD).
-*   [ ] **Frontend Web:**
-    *   Catálogo de Produtos.
-    *   Carrinho/Orçamentador.
-    *   Checkout com Split de Pagamento.
+*   [x] **API Core:**
+    *   [x] Auth (Login/Cadastro).
+    *   [x] Sync básico de Produtos (Sankhya -> Portal).
+    *   [x] Orçamentos (CRUD).
+*   [x] **Frontend Web:**
+    *   [x] Catálogo de Produtos.
+    *   [x] Carrinho/Orçamentador.
+    *   [ ] Checkout com Split de Pagamento.
+    *   [ ] **Polimento (Feedback):**
+        *   [ ] Fix: Compartilhamento de Link (Clipboard).
+        *   [ ] UX: Botão Voltar em Detalhes.
+        *   [ ] UX: Fluxo de Novo Orçamento.
+        *   [ ] UI: Tamanho de categorias mobile.
 *   [ ] **Integração:**
-    *   Escrita de Pedido no Sankhya (via Fila).
+    *   [ ] Escrita de Pedido no Sankhya (via Fila).
 
 ### 🚀 Marco 2: Gestão & Retenção
 > **Objetivo:** Dar ferramentas para o eletricista gerir seu negócio e aumentar recorrência.
