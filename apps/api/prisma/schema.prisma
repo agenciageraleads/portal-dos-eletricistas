@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------
+// 👤 Usuários (Eletricistas & Admins)
+// --------------------------------------
+
+enum Role {
+  ADMIN
+  ELETRICISTA
+  CLIENTE
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String     // Será hasheada
+  name      String
+  role      Role       @default(ELETRICISTA)
+  status    UserStatus @default(PENDING)
+  cpf_cnpj  String?
+  phone     String?
+  
+  // Dados de Pagamento (Split)
+  // Armazena o ID do recebedor no Gateway (Pagar.me/Asaas)
+  gateway_recipient_id String? 
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  budgets   Budget[]
+  
+  @@map("users")
+}
+
+// --------------------------------------
+// 📦 Catálogo de Produtos (Sync Sankhya)
+// --------------------------------------
+
+model Product {
+  id            String   @id @default(uuid())
+  sankhya_code  Int      @unique // Código original no ERP
+  name          String
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  unit          String?  // UN, M, CX
+  image_url     String?
+  category      String?
+  brand         String?
+  
+  // Controle de Estoque Simplificado
+  is_available  Boolean  @default(true)
+  
+  updatedAt     DateTime @updatedAt  // Para saber quando foi a última sync
+
+  budgetItems   BudgetItem[]
+  feedbacks     Feedback[]
+
+  @@map("products")
+}
+
+// --------------------------------------
+// 📝 Orçamentos (Carrinho Técnico)
+// --------------------------------------
+
+enum BudgetStatus {
+  DRAFT      // Em rascunho
+  SHARED     // Enviado ao cliente
+  APPROVED   // Cliente aceitou
+  CONVERTED  // Virou Pedido (Pago)
+  EXPIRED    // Passou do prazo
+}
+
+model Budget {
+  id              String       @id @default(uuid())
+  
+  // Relacionamentos
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  
+  client_name     String?
+  client_phone    String?
+  
+  status          BudgetStatus @default(DRAFT)
+  expiresAt       DateTime?
+
+  // Totais (Calculados)
+  total_materials Decimal      @default(0) @db.Decimal(10, 2)
+  total_labor     Decimal      @default(0) @db.Decimal(10, 2) // Mão de obra (Split)
+  total_price     Decimal      @default(0) @db.Decimal(10, 2)
+
+  items           BudgetItem[]
+  order           Order?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("budgets")
+}
+
+model BudgetItem {
+  id        String   @id @default(uuid())
+  
+  budgetId  String
+  budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2) // Preço "congelado" no momento do orçamento
+
+  @@map("budget_items")
+}
+
+// --------------------------------------
+// 💳 Pedidos (Pós-Pagamento)
+// --------------------------------------
+
+enum OrderStatus {
+  PENDING_SYNC  // Pago, mas não enviado ao Sankhya
+  SYNCED        // Enviado ao Sankhya com sucesso
+  ERROR_SYNC    // Erro ao enviar
+}
+
+model Order {
+  id                    String      @id @default(uuid())
+  
+  budgetId              String      @unique
+  budget                Budget      @relation(fields: [budgetId], references: [id])
+
+  gateway_id            String?     // ID da transação no Gateway
+  sankhya_order_id      Int?        // ID do pedido criado no Sankhya
+  
+  status                OrderStatus @default(PENDING_SYNC)
+  
+  paidAt                DateTime    @default(now())
+
+  @@map("orders")
+}
+
+// --------------------------------------
+// 📢 Feedback & Report
+// --------------------------------------
+
+enum FeedbackType {
+  GENERAL
+  PRODUCT_REPORT
+}
+
+model Feedback {
+  id        String       @id @default(uuid())
+  type      FeedbackType
+  message   String
+  productId String?      // Opcional: só se for report de produto
+  product   Product?     @relation(fields: [productId], references: [id])
+  
+  userEmail String?      // Opcional: se quisermos saber quem mandou (futuro)
+  
+  createdAt DateTime     @default(now())
+  
+  @@map("feedbacks")
+}

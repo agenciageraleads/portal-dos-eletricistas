@@ -1,0 +1,217 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import { ArrowLeft, Trash2, Share2, Loader2, LogIn } from 'lucide-react';
+import api from '@/lib/api';
+import Link from 'next/link';
+
+export default function OrcamentoPage() {
+    const { items, total, removeFromCart, updateQuantity, clearCart } = useCart();
+    const { user, loading: authLoading } = useAuth();
+
+    // Client inputs (meaning the end-customer, wait. No. "Seus Dados" = Electrician Info)
+    // The previous code said "Seus Dados (Para o Cliente)". That implies Electrician info.
+    // However, the backend now stores `client_name` and `client_phone` which are the END CUSTOMER.
+    // AND the `userId` is the electrician.
+    // So the input "Seus Dados" in the previous code was actually mimicking the "Electrician who is using the app as a Guest".
+    // NOW that we have login, "Seus Dados" are implied by the logged in user.
+    // WE NEED INPUTS FOR THE CUSTOMER (CLIENT) DATA. "Dados do Cliente".
+
+    // Let's rename the state variables to avoid confusion.
+    const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [laborValue, setLaborValue] = useState<string>('0');
+    const [loading, setLoading] = useState(false);
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+        }).format(price);
+    };
+
+    const labor = parseFloat(laborValue) || 0;
+    const grandTotal = total + labor;
+
+    const handleFinish = async () => {
+        if (!user) return; // Should not happen due to UI check
+
+        if (!customerName) {
+            alert('Por favor, informe o nome do cliente.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const payload = {
+                clientName: customerName,
+                clientPhone: customerPhone,
+                items: items.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity,
+                    price: parseFloat(item.price)
+                })),
+                laborValue: labor
+            };
+
+            const response = await api.post('/budgets', payload);
+            const budgetId = response.data.id;
+            const shareLink = `${window.location.origin}/o/${budgetId}`;
+
+            const message = `Olá ${customerName}! Aqui está o orçamento do *Portal do Eletricista*:\n\nMateriais: ${formatPrice(total)}\nMão de Obra: ${formatPrice(labor)}\nTotal: ${formatPrice(grandTotal)}\n\nAcesse no link abaixo:\n${shareLink}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Orçamento Portal do Eletricista',
+                        text: message,
+                        url: shareLink
+                    });
+                } catch (err) {
+                    console.error('Erro no share nativo', err);
+                }
+            } else {
+                await navigator.clipboard.writeText(shareLink);
+                const whatsappUrl = `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+                alert('O link foi copiado!');
+            }
+
+        } catch (error: any) {
+            console.error('Erro ao salvar orçamento:', error);
+            alert('Erro ao salvar orçamento.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (authLoading) return <div className="p-8 text-center">Carregando...</div>;
+
+    if (!user) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center space-y-4">
+                <LogIn size={48} className="text-gray-300" />
+                <h1 className="text-xl font-bold text-gray-800">Faça login para criar orçamentos</h1>
+                <p className="text-gray-500 max-w-xs">Você precisa estar logado para salvar orçamentos e enviar aos seus clientes.</p>
+                <div className="flex gap-4">
+                    <Link href="/login" className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold">
+                        Entrar
+                    </Link>
+                    <Link href="/register" className="border border-blue-600 text-blue-600 px-6 py-2 rounded-full font-bold">
+                        Cadastrar
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 pb-40">
+            <header className="bg-white shadow-sm sticky top-0 z-10">
+                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
+                    <Link href="/" className="p-2 hover:bg-gray-100 rounded-full">
+                        <ArrowLeft size={24} className="text-gray-600" />
+                    </Link>
+                    <h1 className="text-lg font-bold text-gray-800">Novo Orçamento</h1>
+                </div>
+            </header>
+
+            <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+                {/* 1. Materiais */}
+                <section className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h2 className="font-semibold text-gray-700">1. Materiais Selecionados</h2>
+                        <span className="text-sm text-gray-500">{items.length} itens</span>
+                    </div>
+                    {items.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500">
+                            Seu carrinho está vazio. Adicione produtos primeiro.
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-gray-100">
+                            {items.map((item) => (
+                                <div key={item.id} className="p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">IMG</div>
+                                    <div className="flex-1">
+                                        <h3 className="font-medium text-gray-800 text-sm">{item.name}</h3>
+                                        <p className="text-xs text-gray-500">{item.quantity}x {formatPrice(parseFloat(item.price))}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <div className="p-4 bg-gray-50 flex justify-between items-center border-t border-gray-100">
+                        <span className="text-gray-600 font-medium">Subtotal Materiais</span>
+                        <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                    </div>
+                </section>
+
+                {/* 2. Mão de Obra */}
+                <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+                    <h2 className="font-bold text-gray-800 mb-2">2. Valor da sua Mão de Obra</h2>
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">R$</span>
+                        <input
+                            type="number"
+                            value={laborValue}
+                            onChange={(e) => setLaborValue(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 text-2xl font-bold text-gray-900 bg-gray-50 rounded-xl border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                    </div>
+                </section>
+
+                {/* 3. Dados do Cliente */}
+                <section className="bg-white rounded-xl shadow-sm p-6">
+                    <h2 className="font-bold text-gray-800 mb-4">3. Dados do Cliente (Para quem é?)</h2>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Cliente</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: Dona Maria"
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp do Cliente (Opcional)</label>
+                            <input
+                                type="tel"
+                                placeholder="Ex: 11999999999"
+                                value={customerPhone}
+                                onChange={(e) => setCustomerPhone(e.target.value)}
+                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom">
+                <div className="max-w-5xl mx-auto flex flex-col gap-4">
+                    <div className="flex justify-between items-end">
+                        <span className="text-sm text-gray-500">Total do Orçamento</span>
+                        <span className="text-3xl font-bold text-blue-600">{formatPrice(grandTotal)}</span>
+                    </div>
+
+                    <button
+                        onClick={handleFinish}
+                        disabled={loading || items.length === 0}
+                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+                    >
+                        {loading ? <Loader2 className="animate-spin" /> : <Share2 size={24} />}
+                        {loading ? 'Salvando...' : 'Gerar Link do Orçamento'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
