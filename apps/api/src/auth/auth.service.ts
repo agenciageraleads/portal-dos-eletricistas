@@ -10,8 +10,17 @@ export class AuthService {
         private jwtService: JwtService,
     ) { }
 
-    async validateUser(email: string, pass: string): Promise<any> {
-        const user = await this.prisma.user.findUnique({ where: { email } });
+    async validateUser(username: string, pass: string): Promise<any> {
+        // Busca por email OU cpf_cnpj
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: username },
+                    { cpf_cnpj: username }
+                ]
+            }
+        });
+
         if (user && (await bcrypt.compare(pass, user.password))) {
             const { password, ...result } = user;
             return result;
@@ -28,17 +37,43 @@ export class AuthService {
     }
 
     async register(data: any) {
-        const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
-        if (existing) {
-            throw new ConflictException('Email already exists');
+        // Se não vier email, gera um dummy baseado no CPF/CNPJ
+        // Formato dummy: cpf@usuario.portal
+        let emailToUse = data.email;
+
+        if (!emailToUse && data.cpf_cnpj) {
+            const cleanCpf = data.cpf_cnpj.replace(/\D/g, '');
+            emailToUse = `${cleanCpf}@usuario.portal`;
+        }
+
+        if (!emailToUse) {
+            throw new ConflictException('Email ou CPF é obrigatório');
+        }
+
+        // Verifica duplicidade de Email
+        const existingEmail = await this.prisma.user.findUnique({ where: { email: emailToUse } });
+        if (existingEmail) {
+            throw new ConflictException('Usuário já existe (Email/CPF duplicado)');
+        }
+
+        // Verifica duplicidade de CPF (se fornecido)
+        if (data.cpf_cnpj) {
+            const existingCpf = await this.prisma.user.findFirst({ where: { cpf_cnpj: data.cpf_cnpj } });
+            if (existingCpf) {
+                throw new ConflictException('CPF/CNPJ já cadastrado');
+            }
         }
 
         const hashedPassword = await bcrypt.hash(data.password, 10);
+
+        const userData = {
+            ...data,
+            email: emailToUse,
+            password: hashedPassword,
+        };
+
         const user = await this.prisma.user.create({
-            data: {
-                ...data,
-                password: hashedPassword,
-            },
+            data: userData,
         });
 
         const { password, ...result } = user;

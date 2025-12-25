@@ -40,6 +40,11 @@ model User {
   // Armazena o ID do recebedor no Gateway (Pagar.me/Asaas)
   gateway_recipient_id String? 
 
+  // Perfil Profissional
+  bio         String?   @db.Text
+  skills      String?   // JSON string ou Lista separada por vírgula
+  photo_url   String?
+
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

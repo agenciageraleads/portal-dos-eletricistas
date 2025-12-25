@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+    const [cpf, setCpf] = useState(''); // Renomeando estado para clareza
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
@@ -16,7 +16,7 @@ export default function RegisterPage() {
         try {
             await axios.post('http://localhost:3333/auth/register', {
                 name,
-                email,
+                cpf_cnpj: cpf, // Envia como cpf_cnpj
                 phone,
                 password
             });
@@ -40,16 +40,18 @@ export default function RegisterPage() {
                             onChange={(e) => setName(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
+                            placeholder="Ex: João da Silva"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-sm font-medium text-gray-700">CPF ou CNPJ</label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            value={cpf}
+                            onChange={(e) => setCpf(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
+                            placeholder="Apenas números"
                         />
                     </div>
                     <div>
@@ -60,6 +62,7 @@ export default function RegisterPage() {
                             onChange={(e) => setPhone(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
+                            placeholder="(11) 99999-9999"
                         />
                     </div>
                     <div>

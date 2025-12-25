@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const { login } = useAuth();
     const router = useRouter();
@@ -15,7 +15,7 @@ export default function LoginPage() {
         e.preventDefault();
         try {
             const { data } = await axios.post('http://localhost:3333/auth/login', {
-                email,
+                username,
                 password
             });
             login(data.access_token, data.user);
@@ -31,13 +31,14 @@ export default function LoginPage() {
                 <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Login Eletricista</h1>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-sm font-medium text-gray-700">Email ou CPF/CNPJ</label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
+                            placeholder="Digite seu email ou CPF"
                         />
                     </div>
                     <div>

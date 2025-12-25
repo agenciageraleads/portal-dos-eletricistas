@@ -7,10 +7,17 @@ export class AuthController {
     constructor(private authService: AuthService) { }
 
     @Post('login')
+    @Post('login')
     async login(@Body() req: any) {
-        const user = await this.authService.validateUser(req.email, req.password);
+        // Aceita email, cpf_cnpj, ou um campo genérico 'username'
+        const identifier = req.email || req.cpf_cnpj || req.username;
+        if (!identifier) {
+            throw new UnauthorizedException('Email ou CPF obrigatório');
+        }
+
+        const user = await this.authService.validateUser(identifier, req.password);
         if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Credenciais inválidas');
         }
         return this.authService.login(user);
     }

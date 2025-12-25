@@ -6,7 +6,9 @@ import { Product } from './types/product';
 import { ProductCard } from './components/ProductCard';
 import { ProductSearch } from './components/ProductSearch';
 import { CartSummary } from './components/CartSummary';
-import { PackageSearch } from 'lucide-react';
+import { PackageSearch, User } from 'lucide-react';
+import { useAuth } from './contexts/AuthContext';
+import Link from 'next/link';
 
 export default function Home() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -15,6 +17,7 @@ export default function Home() {
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const { user } = useAuth();
 
     const CATEGORIES = [
         { id: 'Acabamento', label: 'Acabamento', icon: '🏠' },
@@ -120,8 +123,22 @@ export default function Home() {
                             <span className="hidden sm:inline">Dar Feedback</span>
                             <span className="sm:hidden">Feedback</span>
                         </button>
-                        <div className="text-sm text-gray-500 hidden sm:block">
-                            Olá, <span className="font-medium text-gray-900">João da Silva</span>
+                        <div className="text-sm hidden sm:flex items-center gap-4">
+                            {user ? (
+                                <>
+                                    <Link href="/orcamentos" className="text-gray-500 hover:text-blue-600 transition-colors">
+                                        Meus Orçamentos
+                                    </Link>
+                                    <div className="flex items-center gap-2 text-gray-900 font-medium">
+                                        <User size={16} />
+                                        <span>Olá, {user.name}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <Link href="/login" className="text-blue-600 font-medium hover:underline">
+                                    Entrar / Cadastrar
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

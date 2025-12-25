@@ -35,18 +35,4 @@ export class SyncController {
         return this.syncService.getStatus();
     }
 
-    /**
-     * Testa download de imagem de um produto específico
-     */
-    @Get('test-image/:codprod')
-    async testImageDownload(@Param('codprod') codprod: string) {
-        const imageUrl = await this.sankhyaImageService.downloadAndSaveProductImage(parseInt(codprod));
 
-        return {
-            success: !!imageUrl,
-            codprod: parseInt(codprod),
-            imageUrl,
-            message: imageUrl ? 'Imagem baixada com sucesso' : 'Produto não possui imagem',
-        };
-    }
-}

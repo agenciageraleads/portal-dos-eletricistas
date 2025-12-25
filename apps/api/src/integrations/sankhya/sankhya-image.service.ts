@@ -25,35 +25,30 @@ export class SankhyaImageService {
         try {
             await this.sankhyaClient.authenticate();
 
-            // Tenta primeiro o endpoint padrão
-            // URL do endpoint de imagem: /mge/dbimage.sbr?entity=Produto&pk=CODPROD=<codigo>
-            let url = `/mge/dbimage.sbr?entity=Produto&pk=CODPROD=${codprod}`;
+            // Tenta o endpoint exatamente como na documentação oficial
+            // Padrão: /gateway/v1/mge/Produto@IMAGEM@CODPROD=<CODPROD>.dbimage
+            // const url = `/gateway/v1/mge/Produto@IMAGEM@CODPROD=${codprod}.dbimage`;
 
-            this.logger.debug(`Baixando imagem do produto ${codprod}...`);
+            // URL direta fornecida pelo usuário (Host específico)
+            // http://portal.snk.ativy.com:40235/mge/Produto@IMAGEM@CODPROD=12351.dbimage
+            const directUrl = `http://portal.snk.ativy.com:40235/mge/Produto@IMAGEM@CODPROD=${codprod}.dbimage`;
 
-            let response = await this.sankhyaClient['httpClient'].get(url, {
+            this.logger.debug(`Baixando imagem do produto ${codprod} via Direct Host...`);
+
+            // Usar axios diretamente aqui para não depender do baseURL do cliente padrão
+            // É necessário passar o cookie JSESSIONID para autenticação? O teste com curl funcionou sem.
+            // Mas o curl retornou Set-Cookie. Pode ser que exija autenticação ou seja público.
+            // Vamos tentar passar os headers de auth por garantia, mas usar o axios do client pode forçar a baseURL errada se usarmos caminho relativo.
+            // O axios suporta URL absoluta, ignorando a baseURL.
+
+            const response = await this.sankhyaClient['httpClient'].get(directUrl, {
                 headers: {
                     'Authorization': `Bearer ${this.sankhyaClient['bearerToken']}`,
-                    'Content-Type': 'image/jpeg'
                 },
-                responseType: 'arraybuffer', // Importante para receber binário
-                validateStatus: (status) => status < 500, // Aceitar 404 como resposta válida
+                responseType: 'arraybuffer',
+                validateStatus: (status) => status < 500,
             });
 
-            // Fallback para URL Legada se a principal falhar (404)
-            if (response.status === 404) {
-                const legacyUrl = `/mge/Produto@IMAGEM@CODPROD=${codprod}.dbimage`;
-                this.logger.debug(`Tentando URL legada: ${legacyUrl}...`);
-
-                response = await this.sankhyaClient['httpClient'].get(legacyUrl, {
-                    headers: {
-                        'Authorization': `Bearer ${this.sankhyaClient['bearerToken']}`,
-                        'Content-Type': 'image/jpeg'
-                    },
-                    responseType: 'arraybuffer',
-                    validateStatus: (status) => status < 500,
-                });
-            }
 
             // Validar se é realmente uma imagem
             const contentType = response.headers['content-type'];

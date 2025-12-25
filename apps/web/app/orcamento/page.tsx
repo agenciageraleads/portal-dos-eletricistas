@@ -47,13 +47,13 @@ export default function OrcamentoPage() {
         try {
             const payload = {
                 clientName: customerName,
-                clientPhone: customerPhone,
+                clientPhone: customerPhone.replace(/\D/g, ''), // Garante números apenas
                 items: items.map(item => ({
                     productId: item.id,
-                    quantity: item.quantity,
-                    price: parseFloat(item.price)
+                    quantity: Number(item.quantity), // Garante número
+                    price: Number(item.price) // Garante número
                 })),
-                laborValue: labor
+                laborValue: Number(labor) // Garante número
             };
 
             const response = await api.post('/budgets', payload);
@@ -79,9 +79,21 @@ export default function OrcamentoPage() {
                 alert('O link foi copiado!');
             }
 
+            // Limpar carrinho e resetar campos
+            clearCart();
+            setCustomerName('');
+            setCustomerPhone('');
+            setLaborValue('0');
+
         } catch (error: any) {
             console.error('Erro ao salvar orçamento:', error);
-            alert('Erro ao salvar orçamento.');
+            // Mostra mensagem detalhada do backend se houver (ex: validação)
+            const serverMessage = error.response?.data?.message;
+            if (Array.isArray(serverMessage)) {
+                alert(`Erro: ${serverMessage.join(', ')}`);
+            } else {
+                alert(`Erro ao salvar orçamento: ${serverMessage || error.message}`);
+            }
         } finally {
             setLoading(false);
         }

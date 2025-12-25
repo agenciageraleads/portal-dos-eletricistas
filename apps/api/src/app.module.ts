@@ -9,6 +9,7 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { APP_GUARD } from '@nestjs/core';
       ttl: 60000,
       limit: 100,
     }]),
+    UsersModule,
   ], controllers: [AppController],
   providers: [
     AppService,
