@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SankhyaClient } from './sankhya.client';
+import { S3Service } from '../../common/s3.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import sharp = require('sharp');
@@ -10,11 +11,20 @@ export class SankhyaImageService {
     private readonly logger = new Logger(SankhyaImageService.name);
     private readonly imagesPath = path.join(process.cwd(), '../web/public/products');
 
-    constructor(private readonly sankhyaClient: SankhyaClient) {
-        // Garantir que a pasta de imagens existe
+    constructor(
+        private readonly sankhyaClient: SankhyaClient,
+        private readonly s3Service: S3Service,
+    ) {
+        // Garantir que a pasta de imagens existe (fallback para armazenamento local)
         if (!fs.existsSync(this.imagesPath)) {
             fs.mkdirSync(this.imagesPath, { recursive: true });
             this.logger.log(`Pasta de imagens criada: ${this.imagesPath}`);
+        }
+
+        if (this.s3Service.isEnabled()) {
+            this.logger.log('S3/MinIO habilitado para armazenamento de imagens');
+        } else {
+            this.logger.log('Usando armazenamento local para imagens');
         }
     }
 
@@ -78,12 +88,11 @@ export class SankhyaImageService {
     }
 
     /**
-     * Salva a imagem do produto localmente (converte para WebP para melhor performance)
+     * Salva a imagem do produto (S3/MinIO ou localmente)
      */
     async saveProductImage(codprod: number, imageBuffer: Buffer): Promise<string | null> {
         try {
             const filename = `${codprod}.webp`;
-            const filepath = path.join(this.imagesPath, filename);
 
             // Processar a imagem com Sharp
             const image = sharp(imageBuffer);
@@ -93,7 +102,7 @@ export class SankhyaImageService {
             const targetSize = 800;
 
             // Aplicar resize com padding (contain) para manter todo o conteúdo
-            await image
+            const processedBuffer = await image
                 .resize(targetSize, targetSize, {
                     fit: 'contain', // Mantém toda a imagem, adiciona padding se necessário
                     background: { r: 255, g: 255, b: 255, alpha: 1 } // Fundo branco
@@ -102,10 +111,27 @@ export class SankhyaImageService {
                     quality: 85, // Qualidade 85 = bom balanço
                     effort: 4 // Effort 4 = boa compressão sem ser muito lento
                 })
-                .toFile(filepath);
+                .toBuffer();
+
+            // Se S3/MinIO está habilitado, fazer upload
+            if (this.s3Service.isEnabled()) {
+                const s3Key = `products/${filename}`;
+                const publicUrl = await this.s3Service.uploadBuffer(
+                    processedBuffer,
+                    s3Key,
+                    'image/webp'
+                );
+
+                this.logger.debug(`✅ Imagem enviada para S3: ${filename} (${(processedBuffer.length / 1024).toFixed(2)} KB)`);
+                return publicUrl;
+            }
+
+            // Fallback: salvar localmente
+            const filepath = path.join(this.imagesPath, filename);
+            await fs.promises.writeFile(filepath, processedBuffer);
 
             const stats = fs.statSync(filepath);
-            this.logger.debug(`✅ Imagem salva: ${filename} (${(stats.size / 1024).toFixed(2)} KB, ${targetSize}x${targetSize}px)`);
+            this.logger.debug(`✅ Imagem salva localmente: ${filename} (${(stats.size / 1024).toFixed(2)} KB)`);
 
             return `/products/${filename}`;
         } catch (error: any) {
