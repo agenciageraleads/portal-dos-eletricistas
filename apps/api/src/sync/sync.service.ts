@@ -63,42 +63,41 @@ export class SyncService {
 
             this.logger.log(`✅ Sincronização de catálogo finalizada: ${updated} produtos processados, ${errors} falhas`);
 
-            // 3. Baixar imagens dos produtos (apenas os que não têm)
-            this.logger.log('📸 Iniciando download de imagens...');
-            const codprods = products.map(p => p.sankhya_code);
+            // 3. Baixar imagens dos produtos e atualizar URLs no banco
+            this.logger.log('📸 Iniciando download de imagens e atualização de URLs...');
 
-            const imageResult = await this.sankhyaImageService.downloadProductImages(
-                codprods,
-                (current, total) => {
-                    if (current % 100 === 0) {
-                        this.logger.log(`📸 Progresso: ${current}/${total} imagens processadas`);
-                    }
-                }
-            );
-
-            this.logger.log(`✅ Imagens: ${imageResult.success} baixadas, ${imageResult.failed} sem imagem`);
-
-            // 3.1 ATUALIZAÇÃO DE URLS NO BANCO
-            // Agora que garantimos que as imagens estão baixadas, vamos atualizar o campo image_url
-            // para todos os produtos que possuem imagem local.
-            this.logger.log('🔗 Vinculando imagens aos produtos no banco...');
             let linkedImages = 0;
+            let failedImages = 0;
 
-            for (const product of products) {
-                // Se temos a imagem localmente
-                if (this.sankhyaImageService.hasLocalImage(product.sankhya_code)) {
-                    const imageUrl = `/products/${product.sankhya_code}.webp`;
+            for (let i = 0; i < products.length; i++) {
+                const product = products[i];
 
-                    // Se o produto no banco ainda não tem essa URL, atualizamos
-                    // (Otimização: poderíamos verificar antes, mas o update é rápido o suficiente)
-                    await this.prisma.product.update({
-                        where: { sankhya_code: product.sankhya_code },
-                        data: { image_url: imageUrl }
-                    });
-                    linkedImages++;
+                try {
+                    // downloadAndSaveProductImage retorna a URL completa (MinIO ou local)
+                    const imageUrl = await this.sankhyaImageService.downloadAndSaveProductImage(product.sankhya_code);
+
+                    if (imageUrl) {
+                        // Atualizar o produto com a URL da imagem
+                        await this.prisma.product.update({
+                            where: { sankhya_code: product.sankhya_code },
+                            data: { image_url: imageUrl }
+                        });
+                        linkedImages++;
+                    } else {
+                        failedImages++;
+                    }
+                } catch (err: any) {
+                    this.logger.error(`Erro ao processar imagem do produto ${product.sankhya_code}: ${err.message}`);
+                    failedImages++;
+                }
+
+                // Log de progresso a cada 100 produtos
+                if ((i + 1) % 100 === 0) {
+                    this.logger.log(`📸 Progresso: ${i + 1}/${products.length} produtos processados (${linkedImages} com imagem)`);
                 }
             }
-            this.logger.log(`🔗 Total de produtos com imagem vinculada: ${linkedImages}`);
+
+            this.logger.log(`✅ Imagens: ${linkedImages} vinculadas, ${failedImages} sem imagem`);
 
             // 4. Limpeza (Soft Delete): Desativar produtos que não foram atualizados nesta sincronização
             this.logger.log('🧹 Iniciando limpeza de produtos órfãos...');
@@ -133,7 +132,8 @@ export class SyncService {
                 totalProducts: products.length,
                 created,
                 updated,
-                images: imageResult,
+                imagesLinked: linkedImages,
+                imagesFailed: failedImages,
                 lastSync: this.lastSyncDate,
             };
         } catch (error: any) {

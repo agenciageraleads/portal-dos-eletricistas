@@ -6,56 +6,65 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 
 ## 🧭 Linha do Tempo Macro (High-Level Timeline)
 
-| Fase | Período (Estimado) | Foco Principal | Status |
+| Fase | Período | Foco Principal | Status |
 | :--- | :--- | :--- | :--- |
-| **Q4 2025** | Dezembro | **Fundação & MVP** (Core Business) | 🟡 Em Progresso |
-| **Q1 2026** | Janeiro - Fevereiro | **Estabilização & Expansão** (Apps & Dashboards) | ⚪️ Planejado |
-| **Q2 2026** | Março - Abril | **Escala & Fidelização** (Programa de Pontos) | ⚪️ Planejado |
+| **Q4 2025** | Dezembro 2025 | **Fundação & MVP** (Core Business) | ✅ **LANÇADO** |
+| **Q1 2026** | Janeiro - Março 2026 | **Polimento & Expansão** (UX + Integrações) | 🟡 Em Progresso |
+| **Q2 2026** | Abril - Junho 2026 | **Escala & Fidelização** (Programa de Pontos) | ⚪️ Planejado |
 
 ---
 
 ## 📍 Detalhamento dos Marcos (Milestones)
 
-### 🏁 Marco 1: MVP (Lançamento Piloto)
+### ✅ Marco 1: MVP (Lançamento Piloto) - **CONCLUÍDO**
 > **Objetivo:** Permitir que um eletricista parceiro faça uma venda completa (Do orçamento ao Pix).
+> **Status:** 🚀 **EM PRODUÇÃO** (URL Pública Ativa)
 
 *   [x] Definição de Arquitetura e Tech Stack.
 *   [x] **API Core:**
     *   [x] Auth (Login/Cadastro).
     *   [x] Sync básico de Produtos (Sankhya -> Portal).
     *   [x] Orçamentos (CRUD).
+    *   [x] Sistema de Feedback.
 *   [x] **Frontend Web:**
-    *   [x] Catálogo de Produtos.
+    *   [x] Catálogo de Produtos com busca.
     *   [x] Carrinho/Orçamentador.
-    *   [ ] Checkout com Split de Pagamento.
-    *   [ ] **Polimento (Feedback):**
-        *   [ ] Fix: Compartilhamento de Link (Clipboard).
-        *   [ ] UX: Botão Voltar em Detalhes.
-        *   [ ] UX: Fluxo de Novo Orçamento.
-        *   [ ] UI: Tamanho de categorias mobile.
-*   [ ] **Integração:**
-    *   [ ] Escrita de Pedido no Sankhya (via Fila).
+    *   [x] Compartilhamento de Orçamento (Link público).
+    *   [x] Dashboard do Eletricista.
+    *   [x] Perfil de Usuário.
 
-### 🚀 Marco 2: Gestão & Retenção
-> **Objetivo:** Dar ferramentas para o eletricista gerir seu negócio e aumentar recorrência.
+### 🟡 Marco 2: Polimento & Expansão (Q1 2026)
+> **Objetivo:** Melhorar UX baseado em feedback dos eletricistas e completar integrações críticas.
 
+**Prioridade Alta (Feedback dos Usuários):**
+*   [ ] **UX: Botão Voltar** em páginas de detalhes.
+*   [ ] **UX: Fluxo de Novo Orçamento** mais intuitivo.
+*   [ ] **UI: Tamanho de categorias mobile** (melhor visualização).
+*   [ ] **Fix: Compartilhamento de Link** (Clipboard API).
+
+**Integrações & Backend:**
+*   [ ] **Checkout com Split de Pagamento** (Gateway).
+*   [ ] **Escrita de Pedido no Sankhya** (via Fila).
+*   [ ] **Busca Fuzzy:** Tolerância a erros de digitação.
+
+**Gestão:**
 *   [ ] **Dashboard Financeiro:** "Quanto ganhei esse mês?".
-*   [ ] **PDF Profissional:** Gerador de propostas em PDF com logo personalizada.
-*   [ ] **Notificações:** WhatsApp Gateway (Status de entrega).
-*   [ ] **Painel Admin:** Gestão de usuários e aprovações manuais.
-*   [ ] **Busca Fuzzy:** Tolerância a erros de digitação (ex: "LUMINARA" encontra "LUMINARIA").
+*   [ ] **Painel Admin:** Gestão de usuários e aprovações.
 
-### 💎 Marco 3: Escala & Fidelidade
+### 💎 Marco 3: Escala & Fidelidade (Q2 2026)
 > **Objetivo:** Transformar o parceiro em um advogado da marca.
 
+*   [ ] **PDF Profissional:** Gerador de propostas com logo personalizada.
+*   [ ] **Notificações WhatsApp:** Status de entrega.
 *   [ ] **Clube de Vantagens:** Gamificação (Pontos por Venda).
-*   [ ] **App Nativo:** Avaliar necessidade de iOS/Android nativo.
-*   [ ] **Marketplace de Serviços:** Conectar cliente final direto ao eletricista (Uberização).
+*   [ ] **App Nativo:** Avaliar necessidade de iOS/Android.
+*   [ ] **Marketplace de Serviços:** Conectar cliente final direto ao eletricista.
 
 ---
 
 ## ⚠️ Riscos e Dependências
 
-1.  **Acesso API Sankhya:** Bloqueador crítico para o sync de produtos.
+1.  ~~**Acesso API Sankhya:**~~ ✅ **RESOLVIDO** - Sync de produtos funcionando.
 2.  **Aprovação Gateway Pagamento:** Burocracia para criar conta PJ e habilitar Split pode demorar.
 3.  **Adoção:** Necessário plano de treinamento para os primeiros eletricistas.
+4.  **Performance:** Monitorar carga do servidor com aumento de usuários.
