@@ -4,17 +4,16 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files
+# Como o contexto já é apps/api (defino no Railway), copiamos localmente
 COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
 
 # Install dependencies
 RUN npm ci
 
-# Copy source code
-COPY apps/api ./apps/api
+# Copy source code relative to current directory
+COPY . .
 
 # Generate Prisma Client
-WORKDIR /app/apps/api
 RUN npx prisma generate
 
 # Build the application
@@ -27,20 +26,17 @@ WORKDIR /app
 
 # Copy package files
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/apps/api/package*.json ./apps/api/
 
 # Install production dependencies only
 RUN npm ci --omit=dev
 
 # Copy built application and Prisma files
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Create uploads directory
-RUN mkdir -p /app/apps/api/uploads
-
-WORKDIR /app/apps/api
+RUN mkdir -p uploads
 
 # Expose port
 EXPOSE 3001
