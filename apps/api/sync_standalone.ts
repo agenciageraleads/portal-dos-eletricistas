@@ -28,7 +28,7 @@ async function downloadProductImage(codprod: number): Promise<Buffer | null> {
 
         const response = await axios.get(directUrl, {
             responseType: 'arraybuffer',
-            validateStatus: (status) => status < 500,
+            validateStatus: (status: number) => status < 500,
             timeout: 30000,
         });
 

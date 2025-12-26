@@ -44,7 +44,7 @@ export class SankhyaImageService {
                     })
                 },
                 responseType: 'arraybuffer',
-                validateStatus: (status) => status < 500,
+                validateStatus: (status: number) => status < 500,
                 timeout: 30000,
             });
 
