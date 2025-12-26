@@ -63,7 +63,7 @@ export class S3Service {
                     Key: key,
                     Body: fileStream,
                     ContentType: contentType,
-                    ACL: 'public-read', // Torna o arquivo público
+                    // ACL removido - usar política do bucket MinIO
                 },
             });
 
@@ -94,7 +94,7 @@ export class S3Service {
                 Key: key,
                 Body: buffer,
                 ContentType: contentType,
-                ACL: 'public-read',
+                // ACL removido - usar política do bucket MinIO
             });
 
             await this.s3Client.send(command);
