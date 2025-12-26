@@ -3,14 +3,52 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
-import { ArrowLeft, Check, MessageCircle, PackageOpen } from 'lucide-react';
+import { ArrowLeft, Check, MessageCircle, PackageOpen, Share2, Edit, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
+import { useRouter } from 'next/navigation';
 
 export default function BudgetViewPage() {
     const params = useParams();
+    const router = useRouter();
     const id = params.id as string;
+    const { user } = useAuth();
+    const { loadBudgetIntoCart } = useCart();
     const [budget, setBudget] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+
+    const isOwner = user && budget && user.id === budget.userId;
+
+    const handleEdit = () => {
+        if (!budget) return;
+        loadBudgetIntoCart(budget.items);
+        router.push(`/orcamento?edit=${id}`);
+    };
+
+    const handleShare = async () => {
+        const shareLink = window.location.href;
+        const message = `Olá! Segue o orçamento atualizado: ${shareLink}`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'Orçamento', text: message, url: shareLink });
+            } catch (err) { console.error(err); }
+        } else {
+            // Fallback para conexões não-seguras (HTTP)
+            const textArea = document.createElement("textarea");
+            textArea.value = shareLink;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('Link copiado para a área de transferência!');
+            } catch (err) {
+                prompt('Copie o link:', shareLink);
+            }
+            document.body.removeChild(textArea);
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -20,7 +58,7 @@ export default function BudgetViewPage() {
 
     const fetchBudget = async () => {
         try {
-            const { data } = await axios.get(`http://localhost:3333/budgets/${id}`);
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/budgets/${id}`);
             setBudget(data);
         } catch (error) {
             console.error('Erro ao buscar orçamento', error);
@@ -97,21 +135,40 @@ export default function BudgetViewPage() {
                 {/* Ações */}
                 <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:static md:bg-transparent md:border-t-0 md:p-0">
                     <div className="max-w-3xl mx-auto flex flex-col gap-3">
-                        <button
-                            className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-lg shadow-green-200 active:scale-95"
-                            onClick={() => {
-                                const msg = `Olá! Vi o orçamento #${budget.id.slice(0, 5)} no valor de ${formatPrice(budget.total_price)}. Poderíamos agendar?`;
-                                const phone = electrician?.phone?.replace(/\D/g, '');
-                                if (phone) {
-                                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                                } else {
-                                    alert('Telefone do eletricista não disponível.');
-                                }
-                            }}
-                        >
-                            <MessageCircle size={24} />
-                            Falar com Eletricista (Aprovar)
-                        </button>
+                        {isOwner ? (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleEdit}
+                                    className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+                                >
+                                    <Edit size={20} />
+                                    Editar
+                                </button>
+                                <button
+                                    onClick={handleShare}
+                                    className="flex-1 bg-blue-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                >
+                                    <Share2 size={20} />
+                                    Enviar para Cliente
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-lg shadow-green-200 active:scale-95"
+                                onClick={() => {
+                                    const msg = `Olá! Vi o orçamento #${budget.id.slice(0, 5)} no valor de ${formatPrice(budget.total_price)}. Poderíamos agendar?`;
+                                    const phone = electrician?.phone?.replace(/\D/g, '');
+                                    if (phone) {
+                                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                    } else {
+                                        alert('Telefone do eletricista não disponível.');
+                                    }
+                                }}
+                            >
+                                <MessageCircle size={24} />
+                                Falar com Eletricista (Aprovar)
+                            </button>
+                        )}
                     </div>
                 </div>
 

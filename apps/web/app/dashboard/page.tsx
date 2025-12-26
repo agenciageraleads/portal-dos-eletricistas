@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
     const fetchBudgets = async () => {
         try {
-            const { data } = await axios.get('http://localhost:3333/budgets');
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/budgets`);
             setBudgets(data);
         } catch (error) {
             console.error('Erro ao buscar orçamentos', error);
@@ -88,7 +88,7 @@ export default function DashboardPage() {
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${budget.status === 'SHARED' ? 'bg-blue-100 text-blue-700' :
-                                                budget.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                            budget.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                                             }`}>
                                             {budget.status === 'SHARED' ? 'Enviado' : budget.status}
                                         </span>

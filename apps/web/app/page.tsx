@@ -48,7 +48,7 @@ export default function Home() {
             if (query) params.q = query;
             if (category) params.category = category;
 
-            const response = await axios.get('http://localhost:3333/products', { params });
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/products`, { params });
             const newProducts = response.data.data;
 
             if (reset) {
@@ -108,7 +108,7 @@ export default function Home() {
                                 const msg = prompt('Como podemos melhorar? Digite sua sugestão:');
                                 if (msg) {
                                     try {
-                                        await axios.post('http://localhost:3333/feedback', {
+                                        await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/feedback`, {
                                             type: 'GENERAL',
                                             message: msg,
                                         });
@@ -123,14 +123,16 @@ export default function Home() {
                             <span className="hidden sm:inline">Dar Feedback</span>
                             <span className="sm:hidden">Feedback</span>
                         </button>
-                        <div className="text-sm hidden sm:flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4 ml-2">
                             {user ? (
                                 <>
-                                    <Link href="/orcamentos" className="text-gray-500 hover:text-blue-600 transition-colors">
-                                        Meus Orçamentos
+                                    <Link href="/orcamentos" className="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+                                        <FileText size={22} className="sm:hidden" />
+                                        <span className="hidden sm:inline">Meus Orçamentos</span>
                                     </Link>
                                     <div className="flex items-center gap-2 text-gray-900 font-medium">
-                                        <User size={16} />
+                                        <User size={22} className="sm:hidden" />
+                                        <User size={16} className="hidden sm:inline" />
                                         <span>Olá, {user.name}</span>
                                     </div>
                                 </>

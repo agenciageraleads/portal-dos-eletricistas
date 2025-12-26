@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
+import { UpdateBudgetDto } from './dto/update-budget.dto';
 
 @Injectable()
 export class BudgetsService {
@@ -65,6 +66,53 @@ export class BudgetsService {
                 },
                 user: true,
             },
+        });
+    }
+
+    async update(id: string, userId: string, updateBudgetDto: UpdateBudgetDto) {
+        const { clientName, clientPhone, items, laborValue } = updateBudgetDto;
+
+        // 1. Verify ownership
+        const budget = await this.prisma.budget.findUnique({ where: { id } });
+        if (!budget) throw new NotFoundException('Orçamento não encontrado');
+        if (budget.userId !== userId) throw new ForbiddenException('Você não tem permissão para editar este orçamento');
+
+        // 2. Calculate totals
+        const totalMaterials = items ? items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) : budget.total_materials;
+
+        // If laborValue is present, use it, else use old.
+        // Prisma returns Decimal for totals. We need to handle this.
+        const currentLabor = Number(laborValue !== undefined ? laborValue : budget.total_labor);
+        const currentMaterials = Number(items ? items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) : budget.total_materials);
+        const totalPrice = currentMaterials + currentLabor;
+
+        return this.prisma.$transaction(async (prisma) => {
+            // Update Header
+            const updatedBudget = await prisma.budget.update({
+                where: { id },
+                data: {
+                    client_name: clientName,
+                    client_phone: clientPhone,
+                    total_materials: currentMaterials,
+                    total_labor: currentLabor,
+                    total_price: totalPrice,
+                }
+            });
+
+            // Update Items (Delete All + Re-create) if items provided
+            if (items) {
+                await prisma.budgetItem.deleteMany({ where: { budgetId: id } });
+                await prisma.budgetItem.createMany({
+                    data: items.map((item: any) => ({
+                        budgetId: id,
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.price,
+                    }))
+                });
+            }
+
+            return updatedBudget;
         });
     }
 }

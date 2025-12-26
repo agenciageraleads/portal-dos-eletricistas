@@ -78,7 +78,27 @@ export class SyncService {
 
             this.logger.log(`✅ Imagens: ${imageResult.success} baixadas, ${imageResult.failed} sem imagem`);
 
-            this.logger.log(`✅ Imagens: ${imageResult.success} baixadas, ${imageResult.failed} sem imagem`);
+            // 3.1 ATUALIZAÇÃO DE URLS NO BANCO
+            // Agora que garantimos que as imagens estão baixadas, vamos atualizar o campo image_url
+            // para todos os produtos que possuem imagem local.
+            this.logger.log('🔗 Vinculando imagens aos produtos no banco...');
+            let linkedImages = 0;
+
+            for (const product of products) {
+                // Se temos a imagem localmente
+                if (this.sankhyaImageService.hasLocalImage(product.sankhya_code)) {
+                    const imageUrl = `/products/${product.sankhya_code}.webp`;
+
+                    // Se o produto no banco ainda não tem essa URL, atualizamos
+                    // (Otimização: poderíamos verificar antes, mas o update é rápido o suficiente)
+                    await this.prisma.product.update({
+                        where: { sankhya_code: product.sankhya_code },
+                        data: { image_url: imageUrl }
+                    });
+                    linkedImages++;
+                }
+            }
+            this.logger.log(`🔗 Total de produtos com imagem vinculada: ${linkedImages}`);
 
             // 4. Limpeza (Soft Delete): Desativar produtos que não foram atualizados nesta sincronização
             this.logger.log('🧹 Iniciando limpeza de produtos órfãos...');

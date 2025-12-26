@@ -14,7 +14,7 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:3333/auth/register', {
+            await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/register`, {
                 name,
                 cpf_cnpj: cpf, // Envia como cpf_cnpj
                 phone,
