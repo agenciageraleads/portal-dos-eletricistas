@@ -14,16 +14,36 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            // Remove formatação do CPF/CNPJ antes de enviar
+            const cleanCpf = cpf.replace(/\D/g, '');
+
+            console.log('[REGISTER] Enviando dados:', { name, cpf_cnpj: cleanCpf, phone });
+
             await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/register`, {
                 name,
-                cpf_cnpj: cpf, // Envia como cpf_cnpj
+                cpf_cnpj: cleanCpf, // Envia sem formatação
                 phone,
                 password
             });
             alert('Cadastro realizado com sucesso! Faça login.');
             router.push('/login');
-        } catch (error) {
-            alert('Erro ao cadastrar. Tente novamente.');
+        } catch (error: any) {
+            console.error('[REGISTER] Erro:', error);
+
+            // Mensagens de erro mais específicas
+            let errorMessage = 'Erro ao cadastrar. Tente novamente.';
+
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.status === 409) {
+                errorMessage = 'CPF/CNPJ ou email já cadastrado. Tente fazer login.';
+            } else if (error.response?.status === 400) {
+                errorMessage = 'Dados inválidos. Verifique os campos e tente novamente.';
+            } else if (!error.response) {
+                errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+            }
+
+            alert(errorMessage);
         }
     };
 
