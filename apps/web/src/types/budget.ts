@@ -1,5 +1,7 @@
 
+// Force Vercel Rebuild - Manual Fix
 // import { Product } from './product';
+
 
 export interface Product {
     id: string;
