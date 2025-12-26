@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save } from 'lucide-react';
@@ -8,7 +8,7 @@ import api from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function OrcamentoPage() {
+function OrcamentoContent() {
     const { items, total, removeFromCart, updateQuantity, clearCart } = useCart();
     const { user, loading: authLoading } = useAuth();
 
@@ -306,5 +306,13 @@ export default function OrcamentoPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function OrcamentoPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center">Carregando...</div>}>
+            <OrcamentoContent />
+        </Suspense>
     );
 }
