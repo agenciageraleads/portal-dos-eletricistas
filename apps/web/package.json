@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.3.1",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",

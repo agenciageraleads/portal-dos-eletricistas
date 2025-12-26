@@ -25,7 +25,7 @@ export class BudgetsService {
                 total_materials: totalMaterials,
                 total_labor: laborValue,
                 total_price: totalPrice,
-                status: 'SHARED',
+                status: (createBudgetDto.status as any) || 'SHARED',
                 items: {
                     create: items.map((item) => ({
                         productId: item.productId,
@@ -70,7 +70,7 @@ export class BudgetsService {
     }
 
     async update(id: string, userId: string, updateBudgetDto: UpdateBudgetDto) {
-        const { clientName, clientPhone, items, laborValue } = updateBudgetDto;
+        const { clientName, clientPhone, items, laborValue, status } = updateBudgetDto;
 
         // 1. Verify ownership
         const budget = await this.prisma.budget.findUnique({ where: { id } });
@@ -96,6 +96,7 @@ export class BudgetsService {
                     total_materials: currentMaterials,
                     total_labor: currentLabor,
                     total_price: totalPrice,
+                    status: (status as any) || budget.status,
                 }
             });
 

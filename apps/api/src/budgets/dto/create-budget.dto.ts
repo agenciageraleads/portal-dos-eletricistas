@@ -1,5 +1,5 @@
 import { Type, Transform } from 'class-transformer';
-import { IsArray, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateNested, Matches } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateNested, Matches, IsOptional } from 'class-validator';
 
 export class CreateBudgetItemDto {
     @IsString()
@@ -34,4 +34,8 @@ export class CreateBudgetDto {
     @IsNumber()
     @Min(0)
     laborValue: number;
+
+    @IsString()
+    @IsOptional()
+    status?: 'DRAFT' | 'SHARED';
 }

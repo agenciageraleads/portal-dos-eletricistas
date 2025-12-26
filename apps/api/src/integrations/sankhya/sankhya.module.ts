@@ -5,6 +5,6 @@ import { SankhyaImageService } from './sankhya-image.service';
 
 @Module({
     providers: [SankhyaClient, SankhyaService, SankhyaImageService],
-    exports: [SankhyaService, SankhyaImageService],
+    exports: [SankhyaClient, SankhyaService, SankhyaImageService], // Exportar SankhyaClient também
 })
 export class SankhyaModule { }

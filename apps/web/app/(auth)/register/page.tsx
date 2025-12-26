@@ -48,10 +48,24 @@ export default function RegisterPage() {
                         <input
                             type="text"
                             value={cpf}
-                            onChange={(e) => setCpf(e.target.value)}
+                            onChange={(e) => {
+                                let v = e.target.value.replace(/\D/g, '');
+                                if (v.length <= 11) {
+                                    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                                    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                                    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                                } else {
+                                    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+                                    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                                    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                                    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+                                }
+                                setCpf(v);
+                            }}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
-                            placeholder="Apenas números"
+                            placeholder="CPF ou CNPJ"
+                            maxLength={18}
                         />
                     </div>
                     <div>
@@ -59,10 +73,16 @@ export default function RegisterPage() {
                         <input
                             type="tel"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            onChange={(e) => {
+                                let v = e.target.value.replace(/\D/g, '');
+                                v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+                                v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+                                setPhone(v);
+                            }}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
                             placeholder="(11) 99999-9999"
+                            maxLength={15}
                         />
                     </div>
                     <div>

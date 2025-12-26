@@ -4,8 +4,8 @@ import axios, { AxiosInstance } from 'axios';
 @Injectable()
 export class SankhyaClient {
     private readonly logger = new Logger(SankhyaClient.name);
-    private readonly httpClient: AxiosInstance;
-    private bearerToken: string | null = null;
+    public readonly httpClient: AxiosInstance;  // Tornado público para SankhyaImageService
+    public bearerToken: string | null = null;    // Tornado público para SankhyaImageService
     private tokenExpiresAt: number = 0;
 
     constructor() {

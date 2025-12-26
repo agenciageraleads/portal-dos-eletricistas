@@ -123,22 +123,20 @@ export default function Home() {
                             <span className="hidden sm:inline">Dar Feedback</span>
                             <span className="sm:hidden">Feedback</span>
                         </button>
-                        <div className="flex items-center gap-3 sm:gap-4 ml-2">
+                        <div className="flex items-center gap-2 sm:gap-3 ml-2">
                             {user ? (
                                 <>
-                                    <Link href="/orcamentos" className="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
-                                        <FileText size={22} className="sm:hidden" />
-                                        <span className="hidden sm:inline">Meus Orçamentos</span>
+                                    <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Meus Orçamentos">
+                                        <FileText size={22} className="text-gray-600" />
                                     </Link>
-                                    <div className="flex items-center gap-2 text-gray-900 font-medium">
-                                        <User size={22} className="sm:hidden" />
-                                        <User size={16} className="hidden sm:inline" />
-                                        <span>Olá, {user.name}</span>
-                                    </div>
+                                    <Link href="/perfil" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors">
+                                        <User size={22} className="text-gray-600" />
+                                        <span className="hidden sm:inline text-gray-900 font-medium">{user.name}</span>
+                                    </Link>
                                 </>
                             ) : (
                                 <Link href="/login" className="text-blue-600 font-medium hover:underline">
-                                    Entrar / Cadastrar
+                                    Entrar
                                 </Link>
                             )}
                         </div>

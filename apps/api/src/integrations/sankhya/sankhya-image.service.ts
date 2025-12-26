@@ -3,6 +3,7 @@ import { SankhyaClient } from './sankhya.client';
 import * as fs from 'fs';
 import * as path from 'path';
 import sharp = require('sharp');
+import axios from 'axios';
 
 @Injectable()
 export class SankhyaImageService {
@@ -23,30 +24,28 @@ export class SankhyaImageService {
      */
     async downloadProductImage(codprod: number): Promise<Buffer | null> {
         try {
-            await this.sankhyaClient.authenticate();
-
-            // Tenta o endpoint exatamente como na documentação oficial
-            // Padrão: /gateway/v1/mge/Produto@IMAGEM@CODPROD=<CODPROD>.dbimage
-            // const url = `/gateway/v1/mge/Produto@IMAGEM@CODPROD=${codprod}.dbimage`;
+            // Autenticar primeiro (se sankhyaClient estiver disponível)
+            if (this.sankhyaClient) {
+                await this.sankhyaClient.authenticate();
+            }
 
             // URL direta fornecida pelo usuário (Host específico)
-            // http://portal.snk.ativy.com:40235/mge/Produto@IMAGEM@CODPROD=12351.dbimage
+            // http://portal.snk.ativy.com:40235/mge/Produto@IMAGEM@CODPROD=15744.dbimage
             const directUrl = `http://portal.snk.ativy.com:40235/mge/Produto@IMAGEM@CODPROD=${codprod}.dbimage`;
 
             this.logger.debug(`Baixando imagem do produto ${codprod} via Direct Host...`);
 
-            // Usar axios diretamente aqui para não depender do baseURL do cliente padrão
-            // É necessário passar o cookie JSESSIONID para autenticação? O teste com curl funcionou sem.
-            // Mas o curl retornou Set-Cookie. Pode ser que exija autenticação ou seja público.
-            // Vamos tentar passar os headers de auth por garantia, mas usar o axios do client pode forçar a baseURL errada se usarmos caminho relativo.
-            // O axios suporta URL absoluta, ignorando a baseURL.
-
-            const response = await this.sankhyaClient['httpClient'].get(directUrl, {
+            // Usar axios diretamente com configuração mínima
+            const response = await axios.get(directUrl, {
                 headers: {
-                    'Authorization': `Bearer ${this.sankhyaClient['bearerToken']}`,
+                    // Tentar usar bearer token se disponível
+                    ...(this.sankhyaClient?.bearerToken && {
+                        'Authorization': `Bearer ${this.sankhyaClient.bearerToken}`
+                    })
                 },
                 responseType: 'arraybuffer',
                 validateStatus: (status) => status < 500,
+                timeout: 30000,
             });
 
 

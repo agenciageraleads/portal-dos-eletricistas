@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useRouter } from 'next/navigation';
+import { DownloadBudgetButton } from '../../components/DownloadBudgetButton';
 
 export default function BudgetViewPage() {
     const params = useParams();
@@ -18,7 +19,12 @@ export default function BudgetViewPage() {
     const [budget, setBudget] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    const isOwner = user && budget && user.id === budget.userId;
+    // Fix: JWT payload usually returns 'sub' as ID, but our interface expects 'id'. 
+    // We check both to be safe.
+    const userId = user?.id || (user as any)?.sub;
+    const isOwner = userId && budget && userId === budget.userId;
+
+
 
     const handleEdit = () => {
         if (!budget) return;
@@ -87,8 +93,15 @@ export default function BudgetViewPage() {
                     <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <ArrowLeft size={24} className="text-gray-600" />
                     </Link>
-                    <div className="flex-1 text-center pr-10"> {/* pr-10 balances the left button */}
-                        <h1 className="text-lg font-bold text-gray-800">Detalhes do Orçamento</h1>
+                    <div className="flex-1 text-center pr-10 flex flex-col items-center">
+                        <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            Detalhes do Orçamento
+                            {budget.status === 'DRAFT' && (
+                                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full font-bold border border-yellow-200">
+                                    Rascunho
+                                </span>
+                            )}
+                        </h1>
                         <p className="text-xs text-gray-500">
                             {budget.client_name}
                         </p>
@@ -97,6 +110,25 @@ export default function BudgetViewPage() {
             </header>
 
             <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+                {/* Identidade do Eletricista (NOVO) */}
+                <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg p-6 text-white text-center sm:text-left sm:flex items-center gap-6">
+                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold border-4 border-white/30 shrink-0 mx-auto sm:mx-0 overflow-hidden">
+                        {electrician?.logo_url ? (
+                            <img src={electrician.logo_url} alt={electrician.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <span>{electrician?.name?.charAt(0).toUpperCase()}</span>
+                        )}
+                    </div>
+                    <div className="flex-1">
+                        <span className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1 block">Orçamento enviado por:</span>
+                        <h2 className="text-2xl font-bold mb-1">{electrician?.name || 'Eletricista'}</h2>
+                        {electrician?.bio && <p className="text-blue-100 text-sm italic">"{electrician.bio}"</p>}
+                    </div>
+                    <div className="mt-4 sm:mt-0">
+                        {/* Optional CTA here if needed */}
+                    </div>
+                </div>
 
                 {/* Resumo */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -136,38 +168,44 @@ export default function BudgetViewPage() {
                 <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:static md:bg-transparent md:border-t-0 md:p-0">
                     <div className="max-w-3xl mx-auto flex flex-col gap-3">
                         {isOwner ? (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleEdit}
-                                    className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-                                >
-                                    <Edit size={20} />
-                                    Editar
-                                </button>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex gap-2 w-full"> {/* Container for Edit/Share */}
+                                    <button
+                                        onClick={handleEdit}
+                                        className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <Edit size={20} />
+                                        Editar
+                                    </button>
+                                    <DownloadBudgetButton budget={budget} />
+                                </div>
                                 <button
                                     onClick={handleShare}
-                                    className="flex-1 bg-blue-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                    className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
                                 >
                                     <Share2 size={20} />
                                     Enviar para Cliente
                                 </button>
                             </div>
                         ) : (
-                            <button
-                                className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-lg shadow-green-200 active:scale-95"
-                                onClick={() => {
-                                    const msg = `Olá! Vi o orçamento #${budget.id.slice(0, 5)} no valor de ${formatPrice(budget.total_price)}. Poderíamos agendar?`;
-                                    const phone = electrician?.phone?.replace(/\D/g, '');
-                                    if (phone) {
-                                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                                    } else {
-                                        alert('Telefone do eletricista não disponível.');
-                                    }
-                                }}
-                            >
-                                <MessageCircle size={24} />
-                                Falar com Eletricista (Aprovar)
-                            </button>
+                            <div className="flex flex-col gap-3">
+                                <DownloadBudgetButton budget={budget} />
+                                <button
+                                    className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-lg shadow-green-200 active:scale-95"
+                                    onClick={() => {
+                                        const msg = `Olá! Vi o orçamento #${budget.id.slice(0, 5)} no valor de ${formatPrice(budget.total_price)}. Poderíamos agendar?`;
+                                        const phone = electrician?.phone?.replace(/\D/g, '');
+                                        if (phone) {
+                                            window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(msg)}`, '_blank');
+                                        } else {
+                                            alert('Telefone do eletricista não disponível.');
+                                        }
+                                    }}
+                                >
+                                    <MessageCircle size={24} />
+                                    Falar com Eletricista (Aprovar)
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>

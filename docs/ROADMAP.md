@@ -43,6 +43,7 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 *   [ ] **PDF Profissional:** Gerador de propostas em PDF com logo personalizada.
 *   [ ] **Notificações:** WhatsApp Gateway (Status de entrega).
 *   [ ] **Painel Admin:** Gestão de usuários e aprovações manuais.
+*   [ ] **Busca Fuzzy:** Tolerância a erros de digitação (ex: "LUMINARA" encontra "LUMINARIA").
 
 ### 💎 Marco 3: Escala & Fidelidade
 > **Objetivo:** Transformar o parceiro em um advogado da marca.

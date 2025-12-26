@@ -25,6 +25,7 @@ export default function OrcamentoPage() {
     const [customerPhone, setCustomerPhone] = useState('');
     const [laborValue, setLaborValue] = useState<string>('0');
     const [loading, setLoading] = useState(false);
+    const router = useRouter();
     const params = useSearchParams();
     const editId = params.get('edit');
     const [isEditMode, setIsEditMode] = useState(!!editId);
@@ -64,8 +65,8 @@ export default function OrcamentoPage() {
     const labor = parseFloat(laborValue) || 0;
     const grandTotal = total + labor;
 
-    const handleFinish = async () => {
-        if (!user) return; // Should not happen due to UI check
+    const handleFinish = async (status: 'DRAFT' | 'SHARED' = 'SHARED') => {
+        if (!user) return;
 
         if (!customerName) {
             alert('Por favor, informe o nome do cliente.');
@@ -76,19 +77,35 @@ export default function OrcamentoPage() {
         try {
             const payload = {
                 clientName: customerName,
-                clientPhone: customerPhone.replace(/\D/g, ''), // Garante números apenas
+                clientPhone: customerPhone.replace(/\D/g, ''),
                 items: items.map(item => ({
                     productId: item.id,
-                    quantity: Number(item.quantity), // Garante número
-                    price: Number(item.price) // Garante número
+                    quantity: Number(item.quantity),
+                    price: Number(item.price)
                 })),
-                laborValue: Number(labor) // Garante número
+                laborValue: Number(labor),
+                status: status
             };
 
-            const response = await api.post('/budgets', payload);
-            const budgetId = response.data.id;
-            const shareLink = `${window.location.origin}/o/${budgetId}`;
+            let budgetId = editId;
 
+            if (isEditMode && editId) {
+                await api.patch(`/budgets/${editId}`, payload);
+            } else {
+                const response = await api.post('/budgets', payload);
+                budgetId = response.data.id;
+            }
+
+            // Se for Rascunho, só avisa e redireciona
+            if (status === 'DRAFT') {
+                alert('Rascunho salvo com sucesso!');
+                clearCart();
+                router.push(`/o/${budgetId}`);
+                return;
+            }
+
+            // Se for SHARED, faz o fluxo de compartilhar
+            const shareLink = `${window.location.origin}/o/${budgetId}`;
             const message = `Olá ${customerName}! Aqui está o orçamento do *Portal do Eletricista*:\n\nMateriais: ${formatPrice(total)}\nMão de Obra: ${formatPrice(labor)}\nTotal: ${formatPrice(grandTotal)}\n\nAcesse no link abaixo:\n${shareLink}`;
 
             if (navigator.share) {
@@ -115,25 +132,23 @@ export default function OrcamentoPage() {
                         document.execCommand('copy');
                         alert('O link foi copiado! (via fallback)');
                     } catch (err) {
-                        console.error('Falha ao copiar', err);
                         prompt('Copie o link abaixo:', shareLink);
                     }
                     document.body.removeChild(textArea);
                 }
 
-                const whatsappUrl = `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=55${customerPhone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
             }
 
-            // Limpar carrinho e resetar campos
             clearCart();
             setCustomerName('');
             setCustomerPhone('');
             setLaborValue('0');
+            router.push(`/o/${budgetId}`);
 
         } catch (error: any) {
             console.error('Erro ao salvar orçamento:', error);
-            // Mostra mensagem detalhada do backend se houver (ex: validação)
             const serverMessage = error.response?.data?.message;
             if (Array.isArray(serverMessage)) {
                 alert(`Erro: ${serverMessage.join(', ')}`);
@@ -245,9 +260,15 @@ export default function OrcamentoPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp do Cliente (Opcional)</label>
                             <input
                                 type="tel"
-                                placeholder="Ex: 11999999999"
+                                placeholder="Ex: (11) 99999-9999"
                                 value={customerPhone}
-                                onChange={(e) => setCustomerPhone(e.target.value)}
+                                onChange={(e) => {
+                                    let v = e.target.value.replace(/\D/g, '');
+                                    v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+                                    v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+                                    setCustomerPhone(v);
+                                }}
+                                maxLength={15}
                                 className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                             />
                         </div>
@@ -263,14 +284,25 @@ export default function OrcamentoPage() {
                         <span className="text-3xl font-bold text-blue-600">{formatPrice(grandTotal)}</span>
                     </div>
 
-                    <button
-                        onClick={handleFinish}
-                        disabled={loading || items.length === 0}
-                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
-                    >
-                        {loading ? <Loader2 className="animate-spin" /> : (isEditMode ? <Save size={24} /> : <Share2 size={24} />)}
-                        {loading ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Gerar Link do Orçamento')}
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                            onClick={() => handleFinish('DRAFT')}
+                            disabled={loading || items.length === 0}
+                            className="w-full sm:flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+                        >
+                            {loading ? <Loader2 className="animate-spin" /> : <Save size={24} />}
+                            {loading ? '...' : 'Salvar Rascunho'}
+                        </button>
+
+                        <button
+                            onClick={() => handleFinish('SHARED')}
+                            disabled={loading || items.length === 0}
+                            className="w-full sm:flex-[2] bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+                        >
+                            {loading ? <Loader2 className="animate-spin" /> : (isEditMode ? <Save size={24} /> : <Share2 size={24} />)}
+                            {loading ? 'Salvando...' : (isEditMode ? 'Salvar e Gerar Link' : 'Gerar Link do Orçamento')}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
