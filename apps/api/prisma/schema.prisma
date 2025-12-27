@@ -41,6 +41,10 @@ model User {
   logo_url  String?
   pix_key   String?
   
+  // Password Reset
+  reset_token          String?
+  reset_token_expires  DateTime?
+  
   // Dados de Pagamento (Split)
   // Armazena o ID do recebedor no Gateway (Pagar.me/Asaas)
   gateway_recipient_id String?

@@ -3,9 +3,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import api from '@/lib/api';
 import { ArrowLeft, Save, User as UserIcon, Phone, FileText, Upload, CreditCard, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import ImageCropModal from '../components/ImageCropModal';
 
 export default function PerfilPage() {
     const { user } = useAuth();
@@ -19,6 +20,10 @@ export default function PerfilPage() {
     const [pixKey, setPixKey] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Crop modal states
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [tempImageSrc, setTempImageSrc] = useState('');
+
     useEffect(() => {
         if (!user) {
             router.push('/login');
@@ -28,7 +33,7 @@ export default function PerfilPage() {
         // Fetch current profile data
         const fetchProfile = async () => {
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/users/profile`);
+                const response = await api.get('/users/profile');
                 const profile = response.data;
                 setName(profile.name || '');
                 setPhone(profile.phone || '');
@@ -37,26 +42,38 @@ export default function PerfilPage() {
                 setPixKey(profile.pix_key || '');
             } catch (error) {
                 console.error('Erro ao carregar perfil:', error);
+                // Non-blocking error
             }
         };
 
-        fetchProfile();
+        if (user) {
+            fetchProfile();
+        }
     }, [user, router]);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Read file and show crop modal
+        const reader = new FileReader();
+        reader.onload = () => {
+            setTempImageSrc(reader.result as string);
+            setShowCropModal(true);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleCropSave = async (croppedBlob: Blob) => {
         setUploading(true);
+        setShowCropModal(false);
+
         const formData = new FormData();
-        formData.append('logo', file);
+        // Modal always outputs WEBP (most efficient format)
+        formData.append('logo', croppedBlob, 'logo.webp');
 
         try {
-            const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/users/upload-logo`,
-                formData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
-            );
+            const response = await api.post('/users/upload-logo', formData);
             setLogoUrl(response.data.logo_url);
             alert('Logo atualizada com sucesso!');
         } catch (error) {
@@ -70,9 +87,17 @@ export default function PerfilPage() {
     const handleSave = async () => {
         setLoading(true);
         try {
-            await axios.patch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/users/profile`,
-                { name, phone, bio, pix_key: pixKey }
+            // Clean empty strings to undefined to avoid sending invalid data
+            const payload = {
+                name: name || undefined,
+                phone: phone || undefined,
+                bio: bio || undefined,
+                pix_key: pixKey || undefined
+            };
+
+            await api.patch(
+                '/users/profile',
+                payload
             );
             alert('Perfil atualizado com sucesso!');
         } catch (error) {
@@ -108,7 +133,7 @@ export default function PerfilPage() {
                         >
                             {logoUrl ? (
                                 <img
-                                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${logoUrl}`}
+                                    src={logoUrl.startsWith('http') ? logoUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${logoUrl}`}
                                     alt="Logo"
                                     className="w-full h-full object-cover"
                                 />
@@ -120,7 +145,7 @@ export default function PerfilPage() {
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
-                            onChange={handleFileUpload}
+                            onChange={handleFileSelect}
                             className="hidden"
                         />
                         <button
@@ -206,18 +231,27 @@ export default function PerfilPage() {
             </main>
 
             {/* Save Button */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+            <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-20 pb-safe">
                 <div className="max-w-3xl mx-auto">
                     <button
                         onClick={handleSave}
                         disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95 shadow-lg"
                     >
                         <Save size={24} />
                         {loading ? 'Salvando...' : 'Salvar Perfil'}
                     </button>
                 </div>
             </div>
+
+            {/* Crop Modal */}
+            {showCropModal && (
+                <ImageCropModal
+                    imageSrc={tempImageSrc}
+                    onSave={handleCropSave}
+                    onCancel={() => setShowCropModal(false)}
+                />
+            )}
         </div>
     );
 }

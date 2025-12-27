@@ -49,7 +49,10 @@ export class SyncService {
                     // Upsert: Cria ou Atualiza em uma única operação atômica
                     await this.prisma.product.upsert({
                         where: { sankhya_code: product.sankhya_code },
-                        update: product,
+                        update: {
+                            ...product,
+                            updatedAt: new Date(), // Força atualização do timestamp para o cleanup funcionar
+                        },
                         create: product,
                     });
 

@@ -2,9 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    // Removed default Content-Type to allow axios to set it automatically (needed for FormData)
 });
 
 // Interceptor para adicionar token automaticamente

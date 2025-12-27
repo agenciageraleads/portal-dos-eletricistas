@@ -12,6 +12,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { HealthModule } from './health/health.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { join } from 'path';
       limit: 100,
     }]),
     UsersModule,
+    HealthModule,
+    AdminModule,
   ], controllers: [AppController],
   providers: [
     AppService,

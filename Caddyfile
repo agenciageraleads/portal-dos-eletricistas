@@ -1,0 +1,25 @@
+{
+    email seu-email@exemplo.com
+}
+
+# Frontend (Next.js)
+portal.gera-leads.com {
+    reverse_proxy web:3000
+    encode gzip
+}
+
+# Backend API (NestJS)
+api.portal.gera-leads.com {
+    reverse_proxy api:3333
+    encode gzip
+}
+
+# MinIO Console (Optional)
+minio.portal.gera-leads.com {
+    reverse_proxy minio:9001
+}
+
+# MinIO API (Optional)
+s3.portal.gera-leads.com {
+    reverse_proxy minio:9000
+}

@@ -36,7 +36,7 @@ export class ProductMapper {
             is_available: ativo === 'S' && (estoque || 0) > 0,
             category: this.mapCategory(categoria_macro) || this.inferCategory(descrprod),
             description: null,
-            image_url: null, // Será definido pelo serviço de sync após download da imagem
+            // image_url não é retornado aqui para não sobrescrever com null durante o update
         };
     }
 

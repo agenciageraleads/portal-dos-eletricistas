@@ -6,7 +6,7 @@ import { Product } from './types/product';
 import { ProductCard } from './components/ProductCard';
 import { ProductSearch } from './components/ProductSearch';
 import { CartSummary } from './components/CartSummary';
-import { PackageSearch, User, FileText } from 'lucide-react';
+import { PackageSearch, User, FileText, TriangleAlert, LogOut } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ export default function Home() {
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
 
     const CATEGORIES = [
         { id: 'Acabamento', label: 'Acabamento', icon: '🏠' },
@@ -103,46 +103,64 @@ export default function Home() {
                     </div>
                     <div className="flex items-center gap-4">
                         <button
-                            className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
+                            className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors border border-yellow-200"
                             onClick={async () => {
-                                const msg = prompt('Como podemos melhorar? Digite sua sugestão:');
+                                const msg = prompt('Encontrou algum erro ou tem uma sugestão? Conte para nós:');
                                 if (msg) {
                                     try {
                                         await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/feedback`, {
                                             type: 'GENERAL',
                                             message: msg,
                                         });
-                                        alert('Obrigado pelo seu feedback!');
+                                        alert('Obrigado! Seu feedback é muito importante.');
                                     } catch (error) {
                                         console.error(error);
                                         alert('Erro ao enviar feedback.');
                                     }
                                 }
                             }}
+                            title="Reportar problema ou sugerir melhoria"
                         >
-                            <span className="hidden sm:inline">Dar Feedback</span>
-                            <span className="sm:hidden">Feedback</span>
+                            <TriangleAlert size={18} />
+                            <span className="hidden sm:inline">Reportar</span>
                         </button>
-                        <div className="flex items-center gap-2 sm:gap-3 ml-2">
-                            {user ? (
-                                <>
-                                    <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Meus Orçamentos">
-                                        <FileText size={22} className="text-gray-600" />
-                                    </Link>
-                                    <Link href="/perfil" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors">
-                                        <User size={22} className="text-gray-600" />
-                                        <span className="hidden sm:inline text-gray-900 font-medium">{user.name}</span>
-                                    </Link>
-                                </>
-                            ) : (
-                                <Link href="/login" className="text-blue-600 font-medium hover:underline">
-                                    Entrar
+                        {user ? (
+                            <>
+                                <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Meus Orçamentos">
+                                    <FileText size={22} className="text-gray-600" />
                                 </Link>
-                            )}
-                        </div>
+                                <Link href="/perfil" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors">
+                                    {user.logo_url ? (
+                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                                            <img
+                                                src={user.logo_url.startsWith('http') ? user.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${user.logo_url}`}
+                                                alt={user.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <User size={22} className="text-gray-600" />
+                                    )}
+                                    <span className="hidden sm:inline text-gray-900 font-medium">{user.name}</span>
+                                </Link>
+                                <button
+                                    onClick={() => logout()}
+                                    className="flex items-center gap-2 hover:bg-red-50 px-3 py-2 rounded-full transition-colors text-red-600"
+                                    title="Sair"
+                                >
+                                    <LogOut size={20} />
+                                    <span className="hidden sm:inline font-medium">Sair</span>
+                                </button>
+                            </>
+                        ) : (
+                            <Link href="/login" className="text-blue-600 font-medium hover:underline">
+                                Entrar
+                            </Link>
+                        )}
                     </div>
                 </div>
-            </header>
+
+            </header >
 
             <main className="max-w-5xl mx-auto px-4 py-6">
                 <ProductSearch onSearch={handleSearch} />
@@ -207,6 +225,6 @@ export default function Home() {
             </main>
 
             <CartSummary />
-        </div>
+        </div >
     );
 }

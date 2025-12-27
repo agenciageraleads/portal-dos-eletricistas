@@ -58,14 +58,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <div className="flex-1 relative">
                 <div className="flex flex-wrap gap-2 mb-2 pr-6">
-                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
-                        Cód: {product.sankhya_code}
-                    </span>
-                    {product.brand && (
-                        <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full border border-purple-100">
-                            {product.brand}
-                        </span>
-                    )}
+                    {/* Código Sankhya removido conforme solicitado */}
                 </div>
 
                 <button
@@ -95,22 +88,27 @@ export function ProductCard({ product }: ProductCardProps) {
                     </svg>
                 </button>
 
-                <h3 className="font-semibold text-gray-800 line-clamp-2 min-h-[3rem] text-sm leading-snug">
+                <h3 className="font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem] text-sm leading-snug">
                     {product.name}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">Unidade: {product.unit}</p>
+                {product.brand && (
+                    <p className="text-xs text-gray-500 mt-1 font-medium">Marca: {product.brand}</p>
+                )}
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-2">
-                <div>
-                    <p className="text-xs text-gray-500">Preço tabela</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{formatPrice(product.price)}</p>
+            <div className="mt-2 text-right">
+                <div className="flex items-baseline justify-end gap-1">
+                    <p className="text-xl font-bold text-gray-900 tracking-tight">{formatPrice(product.price)}</p>
+                    <span className="text-xs text-gray-500 font-medium">/{product.unit?.toLowerCase() || 'un'}</span>
                 </div>
+            </div>
+
+            <div className="mt-2 flex flex-col gap-2">
 
                 {quantity > 0 ? (
-                    <div className="flex items-center bg-gray-100 rounded-lg h-10">
+                    <div className="flex items-center bg-gray-100 rounded-lg h-10 w-full">
                         <button
-                            className="px-3 h-full text-gray-600 hover:bg-gray-200 rounded-l-lg font-bold flex items-center justify-center"
+                            className="px-3 h-full text-gray-600 hover:bg-gray-200 rounded-l-lg font-bold flex items-center justify-center flex-1"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 updateQuantity(product.id, quantity - 1);
@@ -118,9 +116,9 @@ export function ProductCard({ product }: ProductCardProps) {
                         >
                             -
                         </button>
-                        <span className="px-1 font-medium text-sm w-8 text-center">{quantity}</span>
+                        <span className="px-1 font-medium text-sm w-12 text-center">{quantity}</span>
                         <button
-                            className="px-3 h-full text-blue-600 hover:bg-blue-100 rounded-r-lg font-bold flex items-center justify-center"
+                            className="px-3 h-full text-blue-600 hover:bg-blue-100 rounded-r-lg font-bold flex items-center justify-center flex-1"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 updateQuantity(product.id, quantity + 1);
@@ -131,14 +129,14 @@ export function ProductCard({ product }: ProductCardProps) {
                     </div>
                 ) : (
                     <button
-                        className="bg-blue-600 text-white h-10 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg shadow-blue-200"
+                        className="bg-blue-600 text-white h-10 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-md w-full"
                         onClick={(e) => {
                             e.stopPropagation();
                             addToCart(product);
                         }}
                     >
-                        <ShoppingCart size={22} className="stroke-2" />
-                        <span className="font-semibold hidden sm:inline">Adicionar</span>
+                        <ShoppingCart size={20} className="stroke-2" />
+                        <span className="font-semibold text-sm">Adicionar</span>
                     </button>
                 )}
             </div>

@@ -36,6 +36,33 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 ### 🟡 Marco 2: Polimento & Expansão (Q1 2026)
 > **Objetivo:** Melhorar UX baseado em feedback dos eletricistas e completar integrações críticas.
 
+**🚀 Prioridade Imediata (Semana 1-2):**
+*   [ ] **PWA (Progressive Web App):** Transformar em app instalável
+    *   [ ] Service Worker para cache offline
+    *   [ ] Manifest.json com ícones
+    *   [ ] Instalável no mobile (Add to Home Screen)
+    *   [ ] Notificações push (preparação)
+*   [ ] **Exibição de Estoque em Faixas:** Proteger informações sensíveis
+    *   [ ] Implementar badges: 1000+, 100+, 50+, 10+, "Últimas unidades"
+    *   [ ] Sistema de cores (verde/amarelo/vermelho)
+    *   [ ] Atualizar API e frontend
+
+**📊 Validação de Mercado (Semana 3-6):**
+*   [ ] Deploy VPS em produção
+*   [ ] Onboarding primeiros 5-10 eletricistas
+*   [ ] Coleta de feedback estruturado:
+    *   [ ] Produtos duplicados incomodam?
+    *   [ ] Preferências de marca
+    *   [ ] Pontos de fricção no fluxo
+*   [ ] Análise de métricas de uso
+
+**🎯 Features Avançadas (Pós-Validação):**
+*   [ ] **Sistema de Agrupamento de Produtos** (Se validado)
+    *   [ ] IA para pré-agrupar produtos similares
+    *   [ ] Modal de seleção de marca
+    *   [ ] Sugestão de alternativas (estoque insuficiente)
+    *   [ ] Manter rastreabilidade de SKU para Sankhya
+
 **Prioridade Alta (Feedback dos Usuários):**
 *   [ ] **UX: Botão Voltar** em páginas de detalhes.
 *   [ ] **UX: Fluxo de Novo Orçamento** mais intuitivo.

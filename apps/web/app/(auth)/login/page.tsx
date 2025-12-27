@@ -4,15 +4,18 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Spinner } from '../../components/Spinner';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         try {
             const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/login`, {
                 username,
@@ -22,6 +25,8 @@ export default function LoginPage() {
             router.push('/');
         } catch (error) {
             alert('Falha no login. Verifique suas credenciais.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -50,9 +55,19 @@ export default function LoginPage() {
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
                         />
+                        <div className="mt-1 text-right">
+                            <Link href="/esqueci-senha" className="text-sm text-blue-600 hover:text-blue-700">
+                                Esqueci minha senha
+                            </Link>
+                        </div>
                     </div>
-                    <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">
-                        Entrar
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                    >
+                        {loading && <Spinner />}
+                        {loading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </form>
                 <div className="mt-4 text-center text-sm">

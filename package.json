@@ -8,8 +8,13 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
+    "dev:api": "cd apps/api && npm run dev",
+    "dev:web": "cd apps/web && npm run dev",
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "verify:local": "./scripts/verify-local.sh",
+    "db:reset": "cd apps/api && npx prisma migrate reset --force",
+    "db:migrate": "cd apps/api && npx prisma migrate dev"
   },
   "devDependencies": {
     "turbo": "latest"

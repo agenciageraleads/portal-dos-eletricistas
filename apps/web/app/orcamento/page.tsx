@@ -27,8 +27,13 @@ function OrcamentoContent() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const params = useSearchParams();
+
     const editId = params.get('edit');
     const [isEditMode, setIsEditMode] = useState(!!editId);
+
+    // Success Modal State
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [shareData, setShareData] = useState<{ whatsappUrl: string; shareLink: string } | null>(null);
 
     useEffect(() => {
         if (editId) {
@@ -108,43 +113,24 @@ function OrcamentoContent() {
             const shareLink = `${window.location.origin}/o/${budgetId}`;
             const message = `Olá ${customerName}! Aqui está o orçamento do *Portal do Eletricista*:\n\nMateriais: ${formatPrice(total)}\nMão de Obra: ${formatPrice(labor)}\nTotal: ${formatPrice(grandTotal)}\n\nAcesse no link abaixo:\n${shareLink}`;
 
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Orçamento Portal do Eletricista',
-                        text: message,
-                        url: shareLink
-                    });
-                } catch (err) {
-                    console.error('Erro no share nativo', err);
-                }
-            } else {
-                try {
-                    await navigator.clipboard.writeText(shareLink);
-                    alert('O link foi copiado!');
-                } catch (err) {
-                    // Fallback para conexões não-seguras (HTTP)
-                    const textArea = document.createElement("textarea");
-                    textArea.value = shareLink;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        alert('O link foi copiado! (via fallback)');
-                    } catch (err) {
-                        prompt('Copie o link abaixo:', shareLink);
-                    }
-                    document.body.removeChild(textArea);
-                }
+            // Removed navigator.share and auto-copy to standardize UX via Modal
+            // This ensures we always generate the correct WhatsApp full message
 
-                const whatsappUrl = `https://api.whatsapp.com/send?phone=55${customerPhone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-            }
 
+            const whatsappText = encodeURIComponent(message);
+            // Ensure country code 55 for Brazil if not present
+            const phoneDigits = customerPhone.replace(/\D/g, '');
+            const finalPhone = phoneDigits.length <= 11 ? `55${phoneDigits}` : phoneDigits;
+
+            // Use api.whatsapp.com for consistency with Public View as requested
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${whatsappText}`;
+
+            // Direct open as requested
+            window.open(whatsappUrl, '_blank');
+
+            // Clear cart and redirect to details view
             clearCart();
-            setCustomerName('');
-            setCustomerPhone('');
-            setLaborValue('0');
+            // Optional: reset form if needed, but we are redirecting
             router.push(`/o/${budgetId}`);
 
         } catch (error: any) {
@@ -181,7 +167,7 @@ function OrcamentoContent() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-40">
+        <div className="min-h-screen bg-gray-50 pb-32">
             <header className="bg-white shadow-sm sticky top-0 z-10">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
                     <Link href="/" className="p-2 hover:bg-gray-100 rounded-full">
@@ -210,13 +196,54 @@ function OrcamentoContent() {
                         <div className="divide-y divide-gray-100">
                             {items.map((item) => (
                                 <div key={item.id} className="p-4 flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">IMG</div>
-                                    <div className="flex-1">
-                                        <h3 className="font-medium text-gray-800 text-sm">{item.name}</h3>
-                                        <p className="text-xs text-gray-500">{item.quantity}x {formatPrice(parseFloat(item.price))}</p>
+                                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200">
+                                        {item.image_url ? (
+                                            <img
+                                                src={
+                                                    item.image_url.startsWith('http')
+                                                        ? item.image_url
+                                                        : item.image_url.startsWith('/products')
+                                                            ? item.image_url
+                                                            : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${item.image_url}`
+                                                }
+                                                alt={item.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <span className="text-xs">Sem foto</span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="text-right">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                                className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-600 font-bold active:bg-gray-300 transition-colors"
+                                            >
+                                                -
+                                            </button>
+                                            <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-600 font-bold active:bg-gray-300 transition-colors"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="text-right flex flex-col justify-between h-16 py-1">
                                         <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
+                                        <button
+                                            onClick={() => removeFromCart(item.id)}
+                                            className="text-red-500 p-1 hover:bg-red-50 rounded-full self-end"
+                                            title="Remover item"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -277,7 +304,9 @@ function OrcamentoContent() {
 
             </main>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom">
+
+
+            <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom z-30 shadow-lg">
                 <div className="max-w-5xl mx-auto flex flex-col gap-4">
                     <div className="flex justify-between items-end">
                         <span className="text-sm text-gray-500">Total do Orçamento</span>
@@ -305,7 +334,57 @@ function OrcamentoContent() {
                     </div>
                 </div>
             </div>
-        </div>
+
+
+            {/* Success Modal */}
+            {
+                showSuccessModal && shareData && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative">
+                            <div className="bg-green-100 p-6 flex flex-col items-center justify-center text-center gap-2">
+                                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white mb-2 shadow-lg shadow-green-200">
+                                    <Share2 size={32} />
+                                </div>
+                                <h2 className="text-xl font-bold text-green-900">Orçamento Pronto!</h2>
+                                <p className="text-green-800 text-sm">Seu orçamento foi salvo com sucesso.</p>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <a
+                                    href={shareData.whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-green-200"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.231-.298.347-.497.116-.198.058-.371-.029-.544-.087-.174-.775-1.867-1.066-2.559-.282-.67-.568-.58-.783-.591-.202-.011-.433-.013-.665-.013-.232 0-.608.087-.926.432-.318.346-1.214 1.187-1.214 2.895 0 1.708 1.243 3.359 1.417 3.593.174.235 2.45 3.737 5.935 5.241.83.358 1.476.571 1.983.732 1.05.334 2.007.288 2.771.174.847-.126 1.758-.718 2.005-1.411.248-.694.248-1.289.174-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                    </svg>
+                                    Enviar no WhatsApp
+                                </a>
+
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(shareData.shareLink)
+                                            .then(() => alert('Link copiado!'))
+                                            .catch(() => prompt('Copie o link:', shareData.shareLink));
+                                    }}
+                                    className="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                                >
+                                    <Share2 size={20} />
+                                    Copiar Link
+                                </button>
+
+                                <button
+                                    onClick={() => router.push(`/o/${editId}`)}
+                                    className="w-full text-gray-500 hover:text-gray-700 text-sm font-medium py-2"
+                                >
+                                    Fechar e ver Orçamento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }
 

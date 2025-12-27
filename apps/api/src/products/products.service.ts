@@ -1,49 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { getVariations, STOPWORDS } from './search-engineering';
 
 @Injectable()
 export class ProductsService {
 
-    private readonly STOPWORDS = new Set(['DE', 'DA', 'DO', 'PARA', 'COM', 'EM', 'P/', 'O', 'A', 'OS', 'AS']);
-
-    private readonly ABBREVIATIONS: Record<string, string[]> = {
-        // Core Categories
-        'TOMADA': ['TOM', 'TOM.'], 'MODULO': ['MOD', 'MOD.', 'MÓDULO'],
-        'CAIXA': ['CX', 'CX.', 'CXA'], 'QUADRO': ['QD', 'QD.', 'QDR', 'QUAD'],
-        'QUADRADA': ['QUAD', 'QD', 'QDR'], 'QUADRADO': ['QUAD', 'QD', 'QDR'],
-        'DISJUNTOR': ['DISJ', 'DISJ.', 'DISJUN', 'DR'], 'INTERRUPTOR': ['INT', 'INT.', 'INTER'],
-        'PLACA': ['PL', 'PL.', 'ESPELHO'], 'CABO': ['CB', 'CAB', 'FIO'],
-        'FIO': ['CABO'], 'EMBUTIR': ['EMB', 'EMB.'], 'SOBREPOR': ['SOB', 'SOB.', 'EXTERNO'],
-        'LUMINARIA': ['LUM', 'LUMIN'], 'LAMPADA': ['LAMP'], 'ALUMINIO': ['ALUM'],
-        'GALVANIZADO': ['GALV'], 'ZINCADO': ['ZINC'], 'FLEXIVEL': ['FLEX'], 'ELETRODUTO': ['ELET'],
-        'ABRACADEIRA': ['ABRAC'], 'REFLETOR': ['REF'], 'DISTRIBUICAO': ['DIST'],
-        'ARANDELA': ['ARAND'], 'ISOLANTE': ['ISOL'],
-
-        // Synonyms
-        'MONOFASICO': ['MONOPOLAR', 'MONO'], 'MONOPOLAR': ['MONOFASICO', 'MONO'],
-        'BIFASICO': ['BIPOLAR'], 'BIPOLAR': ['BIFASICO'],
-        'TRIFASICO': ['TRIPOLAR'], 'TRIPOLAR': ['TRIFASICO'],
-
-        // Colors
-        'BRANCO': ['BC'], 'PRETO': ['PT'], 'VERMELHO': ['VM'],
-        'VERDE': ['VD'], 'AMARELO': ['AM'], 'AZUL': ['AZ'], 'CINZA': ['CZ'],
-    };
-
-    private readonly REVERSE_ABBREVIATIONS: Record<string, string[]> = {};
-
-    constructor(private prisma: PrismaService) {
-        // Initialize Reverse Map
-        Object.entries(this.ABBREVIATIONS).forEach(([full, abbrevs]) => {
-            abbrevs.forEach(abbr => {
-                if (!this.REVERSE_ABBREVIATIONS[abbr]) this.REVERSE_ABBREVIATIONS[abbr] = [];
-                this.REVERSE_ABBREVIATIONS[abbr].push(full);
-            });
-        });
-    }
+    constructor(private prisma: PrismaService) { }
 
     async findAll(query?: string, page: number = 1, limit: number = 20, category?: string) {
-        const where: Prisma.ProductWhereInput = {};
+        const where: Prisma.ProductWhereInput = {
+            is_available: true,
+        };
 
         if (category) {
             where.category = { equals: category, mode: 'insensitive' };
@@ -57,33 +25,13 @@ export class ProductsService {
 
             // 1. Tokenize & Filter Stopwords
             const tokens = normalizedQuery.split(/\s+/)
-                .filter(t => !this.STOPWORDS.has(t));
+                .filter(t => !STOPWORDS.has(t));
 
             const andConditions: Prisma.ProductWhereInput[] = [];
 
             if (tokens.length > 0) {
                 tokens.forEach(token => {
-                    const tokenVariations = new Set<string>();
-                    tokenVariations.add(token);
-
-                    if (this.ABBREVIATIONS[token]) {
-                        this.ABBREVIATIONS[token].forEach(v => tokenVariations.add(v));
-                    }
-                    if (this.REVERSE_ABBREVIATIONS[token]) {
-                        this.REVERSE_ABBREVIATIONS[token].forEach(v => tokenVariations.add(v));
-                    }
-
-                    // Partial Match Expansion (New):
-                    // If user types "VERME", it should match "VERMELHO" key and expand to "VM".
-                    // Only for tokens length >= 3 to avoid noise.
-                    if (token.length >= 3) {
-                        Object.keys(this.ABBREVIATIONS).forEach(key => {
-                            if (key.startsWith(token)) {
-                                this.ABBREVIATIONS[key].forEach(v => tokenVariations.add(v));
-                                tokenVariations.add(key);
-                            }
-                        });
-                    }
+                    const tokenVariations = getVariations(token);
 
                     const tokenOrConditions: Prisma.ProductWhereInput[] = [];
                     tokenVariations.forEach(term => {
@@ -129,21 +77,15 @@ export class ProductsService {
 
             // Re-generate expanded tokens for scoring
             const normalizedQ = query ? query.toUpperCase().trim() : '';
-            const searchTokens = normalizedQ.split(/\s+/).filter(t => !this.STOPWORDS.has(t));
+            const searchTokens = normalizedQ.split(/\s+/).filter(t => !STOPWORDS.has(t));
             const allVariations = new Set<string>();
 
             // Add original full query for exact matching
             if (normalizedQ) allVariations.add(normalizedQ);
 
             searchTokens.forEach(t => {
-                allVariations.add(t);
-                if (this.ABBREVIATIONS[t]) this.ABBREVIATIONS[t].forEach(v => allVariations.add(v));
-                if (this.REVERSE_ABBREVIATIONS[t]) this.REVERSE_ABBREVIATIONS[t].forEach(v => allVariations.add(v));
-
-                // Add Synonyms to sorting too! (Forgot this in ABBREVIATIONS step?)
-                // Actually ABBREVIATIONS dictionary includes synonyms logic like FIO->CABO in my code?
-                // Wait, dictionary in file: 'FIO': ['CABO'], 'CABO': ['CB', 'CAB', 'FIO'].
-                // Yes, it acts as synonym map.
+                const vars = getVariations(t);
+                vars.forEach(v => allVariations.add(v));
             });
             // Add Synonyms logic explicitly if separated (It is in SYNONYMS dict in class but unused in previous sort?)
             // The class has SYNONYMS dict but findAll code structure integrated it? 

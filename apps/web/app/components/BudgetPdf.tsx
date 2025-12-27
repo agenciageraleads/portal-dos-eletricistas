@@ -159,6 +159,12 @@ const formatPhone = (phone?: string) => {
     return phone;
 };
 
+const getImageUrl = (url?: string) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${url}`;
+};
+
 export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
     const totalMaterials = Number(budget.total_materials);
     const totalLabor = Number(budget.total_labor);
@@ -170,8 +176,8 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.logoSection}>
-                        {budget.user?.logo_url ? (
-                            <Image src={budget.user.logo_url} style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 5 }} />
+                        {budget.user?.logo_url && getImageUrl(budget.user.logo_url) ? (
+                            <Image src={getImageUrl(budget.user.logo_url)!} style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 5 }} />
                         ) : (
                             <Text style={styles.logoText}>PORTAL DO ELETRICISTA</Text>
                         )}
@@ -231,8 +237,8 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                     {budget.items.map((item: any, i: number) => (
                         <View key={i} style={styles.tableRow}>
                             <View style={[styles.tableCol, { width: '10%', padding: 2 }]}>
-                                {item.product.image_url ? (
-                                    <Image src={item.product.image_url} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                {item.product.image_url && getImageUrl(item.product.image_url) ? (
+                                    <Image src={getImageUrl(item.product.image_url)!} style={{ width: 30, height: 30, objectFit: 'contain' }} />
                                 ) : (
                                     <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
                                 )}
@@ -241,7 +247,10 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                                 <Text style={styles.tableCell}>{item.product.sankhya_code}</Text>
                             </View>
                             <View style={[styles.tableColDesc, { width: '35%' }]}>
-                                <Text style={styles.tableCell}>{item.product.name}</Text>
+                                <Text style={styles.tableCell}>
+                                    {item.product.name}
+                                    {item.product.brand && ` - ${item.product.brand}`}
+                                </Text>
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
                                 <Text style={styles.tableCell}>{item.product.unit || 'UN'}</Text>

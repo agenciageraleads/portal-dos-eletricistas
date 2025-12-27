@@ -3,25 +3,30 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Spinner } from '../../components/Spinner';
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
-    const [cpf, setCpf] = useState(''); // Renomeando estado para clareza
+    const [email, setEmail] = useState('');
+    const [cpf, setCpf] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         try {
             // Remove formatação do CPF/CNPJ antes de enviar
             const cleanCpf = cpf.replace(/\D/g, '');
 
-            console.log('[REGISTER] Enviando dados:', { name, cpf_cnpj: cleanCpf, phone });
+            console.log('[REGISTER] Enviando dados:', { name, email, cpf_cnpj: cleanCpf, phone });
 
             await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/register`, {
                 name,
-                cpf_cnpj: cleanCpf, // Envia sem formatação
+                email,
+                cpf_cnpj: cleanCpf,
                 phone,
                 password
             });
@@ -44,6 +49,8 @@ export default function RegisterPage() {
             }
 
             alert(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -61,6 +68,17 @@ export default function RegisterPage() {
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                             required
                             placeholder="Ex: João da Silva"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            required
+                            placeholder="seu@email.com"
                         />
                     </div>
                     <div>
@@ -115,8 +133,13 @@ export default function RegisterPage() {
                             required
                         />
                     </div>
-                    <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">
-                        Criar Conta
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                    >
+                        {loading && <Spinner />}
+                        {loading ? 'Criando conta...' : 'Criar Conta'}
                     </button>
                 </form>
                 <div className="mt-4 text-center text-sm">

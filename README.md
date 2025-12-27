@@ -18,12 +18,51 @@ Toda a documentação técnica e de planejamento está na pasta [`docs/`](./docs
 *   `apps/api`: Backend (NestJS) - ✅ **Em Produção**
 
 ## 🚀 Como Rodar Localmente
-> **Pré-requisitos:** Node.js 18+ e Docker.
 
-1.  Instale as dependências: `npm install`
-2.  Configure variáveis de ambiente (`.env`)
-3.  Suba os serviços: `docker-compose up -d`
-4.  Execute localmente: `npm run dev`
+> **📖 Guia Completo:** Veja o [LOCAL_SETUP.md](./LOCAL_SETUP.md) para instruções detalhadas passo a passo.
+
+### Quick Start
+
+1. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure o ambiente:**
+   ```bash
+   # Inicie o PostgreSQL
+   docker-compose up -d
+   
+   # Configure variáveis de ambiente
+   cp apps/api/.env.example apps/api/.env
+   cp apps/web/.env.local.example apps/web/.env.local
+   
+   # Execute migrações
+   cd apps/api && npx prisma migrate dev && cd ../..
+   ```
+
+3. **Execute a aplicação:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Verifique se tudo está OK:**
+   ```bash
+   npm run verify:local
+   ```
+
+### 🔍 Verificação de Saúde
+
+Após iniciar, você pode verificar o status do sistema:
+
+- **Script de Verificação:** `npm run verify:local`
+- **Health Check API:** http://localhost:3333/health
+- **Frontend:** http://localhost:3000
+- **Backend:** http://localhost:3333
+
+### 📋 Antes de Fazer Deploy
+
+Antes de fazer deploy em produção, siga o [DEPLOY_CHECKLIST.md](./DEPLOY_CHECKLIST.md) para garantir que tudo está funcionando perfeitamente.
 
 ---
 *Desenvolvido em parceria com Antigravity AI.*

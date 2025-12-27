@@ -32,27 +32,19 @@ export default function BudgetViewPage() {
         router.push(`/orcamento?edit=${id}`);
     };
 
-    const handleShare = async () => {
+    const handleShare = () => {
         const shareLink = window.location.href;
-        const message = `Olá! Segue o orçamento atualizado: ${shareLink}`;
+        const message = `Olá ${budget.client_name}! Seu orçamento está pronto. Acesse: ${shareLink}`;
+        const phone = budget.client_phone?.replace(/\D/g, '');
 
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: 'Orçamento', text: message, url: shareLink });
-            } catch (err) { console.error(err); }
+        if (phone) {
+            const finalPhone = phone.length <= 11 ? `55${phone}` : phone;
+            window.open(`https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(message)}`, '_blank');
         } else {
-            // Fallback para conexões não-seguras (HTTP)
-            const textArea = document.createElement("textarea");
-            textArea.value = shareLink;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                alert('Link copiado para a área de transferência!');
-            } catch (err) {
-                prompt('Copie o link:', shareLink);
-            }
-            document.body.removeChild(textArea);
+            // Fallback se não tiver telefone: copia o link
+            navigator.clipboard.writeText(shareLink)
+                .then(() => alert('Link copiado! Cole no WhatsApp do cliente.'))
+                .catch(() => prompt('Copie o link:', shareLink));
         }
     };
 
@@ -115,7 +107,17 @@ export default function BudgetViewPage() {
                 <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg p-6 text-white text-center sm:text-left sm:flex items-center gap-6">
                     <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold border-4 border-white/30 shrink-0 mx-auto sm:mx-0 overflow-hidden">
                         {electrician?.logo_url ? (
-                            <img src={electrician.logo_url} alt={electrician.name} className="w-full h-full object-cover" />
+                            <img
+                                src={
+                                    electrician.logo_url.startsWith('http')
+                                        ? electrician.logo_url
+                                        : electrician.logo_url.startsWith('/products')
+                                            ? electrician.logo_url
+                                            : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${electrician.logo_url}`
+                                }
+                                alt={electrician.name}
+                                className="w-full h-full object-cover"
+                            />
                         ) : (
                             <span>{electrician?.name?.charAt(0).toUpperCase()}</span>
                         )}
@@ -149,12 +151,37 @@ export default function BudgetViewPage() {
                     </div>
                     <div className="divide-y divide-gray-100">
                         {budget.items.map((item: any) => (
-                            <div key={item.id} className="p-4 flex justify-between items-center">
-                                <div>
-                                    <div className="font-medium text-gray-800">{item.product.name}</div>
+                            <div key={item.id} className="p-4 flex items-center gap-4">
+                                {/* Product Image - Left Side */}
+                                {item.product.image_url && (
+                                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                                        <img
+                                            src={
+                                                item.product.image_url.startsWith('http')
+                                                    ? item.product.image_url
+                                                    : item.product.image_url.startsWith('/products')
+                                                        ? item.product.image_url
+                                                        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${item.product.image_url}`
+                                            }
+                                            alt={item.product.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Product Info - Middle */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-gray-800">
+                                        {item.product.name}
+                                        {item.product.brand && (
+                                            <span className="text-gray-500"> - {item.product.brand}</span>
+                                        )}
+                                    </div>
                                     <div className="text-xs text-gray-500">{item.quantity}x {formatPrice(item.price)}</div>
                                 </div>
-                                <div className="font-bold text-gray-700">{formatPrice((item.price * item.quantity).toString())}</div>
+
+                                {/* Price - Right Side */}
+                                <div className="font-bold text-gray-700 flex-shrink-0">{formatPrice((item.price * item.quantity).toString())}</div>
                             </div>
                         ))}
                     </div>
