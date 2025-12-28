@@ -5,7 +5,7 @@ FROM node:18-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
-COPY apps/api/package.json apps/api/package.json
+COPY apps ./apps
 RUN npm ci
 
 # Builder stage
@@ -18,6 +18,7 @@ WORKDIR /app/apps/api
 RUN npx prisma generate
 WORKDIR /app
 # Build API
+RUN npm install -g @nestjs/cli
 RUN npm run build --workspace=apps/api
 
 # Runner stage
