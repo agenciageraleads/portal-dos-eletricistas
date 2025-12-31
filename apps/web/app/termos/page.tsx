@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default function TermosPage() {
   return (
     <div className="container mx-auto py-10 px-4 max-w-4xl">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Termos de Uso e Política de Privacidade</h1>
-        <Link href="/">
-          <Button variant="outline">Voltar para Home</Button>
+        <Link href="/" className="px-4 py-2 border border-slate-200 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">
+          Voltar para Home
         </Link>
       </div>
 

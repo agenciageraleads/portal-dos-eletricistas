@@ -11,10 +11,13 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Orçamento**: Input de quantidade editável e campo de descrição de mão de obra.
 - **Micro-Dashboard**: Exibição de totais e ticket médio na lista de orçamentos.
 - **Feedback de Busca**: Botão "Não encontrei" para reportar falhas na busca.
+- **LGPD**: Nova página `/termos` e checkbox de consentimento obrigatório no cadastro.
+- **Segurança**: Hardening de credenciais e remoção de segredos hardcoded do docker-compose.
 
 ### Correções
 - **UX**: Remoção do ícone de bandeira nos cards.
 - **PDF**: Correção de URLs de imagem para geração do PDF.
+- **Build**: Correção de dependência na página de Termos de Uso.
 
 ## [1.0.0] - 2025-12-31
 ### Adicionado
