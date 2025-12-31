@@ -8,12 +8,9 @@ export class ProductsService {
 
     constructor(private prisma: PrismaService) { }
 
-    @Injectable()
-    export class ProductsService {
 
-    constructor(private prisma: PrismaService) { }
 
-    async findAll(query ?: string, page: number = 1, limit: number = 20, category ?: string) {
+    async findAll(query?: string, page: number = 1, limit: number = 20, category?: string) {
         const where: Prisma.ProductWhereInput = {
             is_available: true,
         };
@@ -69,7 +66,7 @@ export class ProductsService {
                     }
                 });
             } else if (normalizedQ.length > 0) {
-                andConditions.push({ name: { contains: normalizedQuery, mode: 'insensitive' } });
+                andConditions.push({ name: { contains: normalizedQ, mode: 'insensitive' } });
             }
 
             // Fallback for exact code match on full query

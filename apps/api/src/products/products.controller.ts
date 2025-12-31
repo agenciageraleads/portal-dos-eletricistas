@@ -27,3 +27,5 @@ export class ProductsController {
         }
         return { status: 'ok' };
     }
+}
+
