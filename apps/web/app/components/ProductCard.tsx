@@ -61,32 +61,11 @@ export function ProductCard({ product }: ProductCardProps) {
                     {/* Código Sankhya removido conforme solicitado */}
                 </div>
 
-                <button
-                    className="absolute top-0 right-0 text-gray-300 hover:text-red-500 transition-colors p-1"
-                    title="Reportar erro no produto"
-                    onClick={async (e) => {
-                        e.stopPropagation();
-                        if (confirm('Este produto está aparecendo na busca errada?')) {
-                            try {
-                                const api = (await import('@/lib/api')).default;
-                                await api.post('/feedback', {
-                                    type: 'PRODUCT_REPORT',
-                                    message: 'Produto incorreto na busca',
-                                    productId: product.id
-                                });
-                                alert('Obrigado! Reportamos o erro.');
-                            } catch (error) {
-                                console.error(error);
-                                alert('Erro ao enviar report.');
-                            }
-                        }
-                    }}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                        <line x1="4" y1="22" x2="4" y2="15"></line>
-                    </svg>
-                </button>
+                <div className="flex flex-wrap gap-2 mb-2 pr-6">
+                    {/* Código Sankhya removido conforme solicitado */}
+                </div>
+
+                {/* Botão de Report removido (Feedback User: Atrapalhava o nome) */}
 
                 <h3 className="font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem] text-sm leading-snug">
                     {product.name}

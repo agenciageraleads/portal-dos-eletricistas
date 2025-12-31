@@ -1,5 +1,7 @@
 'use client';
 
+/* NO CHANGE HERE YET, WILL DO IN PAGE.TSX */
+
 import { Search, X } from 'lucide-react';
 import { useRef } from 'react';
 

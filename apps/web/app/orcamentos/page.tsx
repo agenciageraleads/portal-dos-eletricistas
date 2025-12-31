@@ -105,6 +105,29 @@ export default function MyBudgetsPage() {
             </header>
 
             <main className="max-w-5xl mx-auto px-4 py-6">
+
+                {/* Mini Dashboard v1.1.0 */}
+                {budgets.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h3 className="text-gray-500 text-sm font-medium mb-1">Total de Orçamentos</h3>
+                            <p className="text-2xl font-bold text-gray-900">{budgets.length}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h3 className="text-gray-500 text-sm font-medium mb-1">Valor Total (Vendido/Aberto)</h3>
+                            <p className="text-2xl font-bold text-blue-600">
+                                {formatCurrency(budgets.reduce((acc, curr) => acc + Number(curr.total_price), 0))}
+                            </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h3 className="text-gray-500 text-sm font-medium mb-1">Ticket Médio</h3>
+                            <p className="text-2xl font-bold text-green-600">
+                                {formatCurrency(budgets.reduce((acc, curr) => acc + Number(curr.total_price), 0) / budgets.length)}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {budgets.length === 0 ? (
                     <div className="text-center py-12">
                         <FileText size={48} className="mx-auto text-gray-300 mb-4" />

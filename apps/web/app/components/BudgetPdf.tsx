@@ -162,7 +162,14 @@ const formatPhone = (phone?: string) => {
 const getImageUrl = (url?: string) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${url}`;
+
+    // Ensure we don't double slash
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333').replace(/\/$/, '');
+    const path = url.startsWith('/') ? url : `/${url}`;
+
+    // React-PDF often struggles with mixed content or auth-protected images.
+    // Ideally these should be public S3/MinIO URLs.
+    return `${baseUrl}${path}`;
 };
 
 export const BudgetPdf = ({ budget }: BudgetPdfProps) => {

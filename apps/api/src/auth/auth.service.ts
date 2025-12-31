@@ -85,9 +85,17 @@ export class AuthService {
 
             const hashedPassword = await bcrypt.hash(data.password, 10);
 
+            // Tratamento LGPD
+            let termsDate = null;
+            if (data.termsAccepted) {
+                termsDate = new Date();
+                delete data.termsAccepted; // Remove para não quebrar o Prisma
+            }
+
             const userData = {
                 ...data,
                 password: hashedPassword,
+                terms_accepted_at: termsDate,
             };
 
             console.log('[REGISTER] Criando usuário:', { email: data.email, cpf_cnpj: data.cpf_cnpj });

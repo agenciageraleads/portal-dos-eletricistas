@@ -36,7 +36,8 @@ model User {
   cpf_cnpj  String?
   phone     String?
   
-  // Perfil Profissional
+  // LGPD - Consentimento
+  terms_accepted_at DateTime?
   bio       String?
   logo_url  String?
   pix_key   String?
@@ -75,12 +76,28 @@ model Product {
   // Controle de Estoque Simplificado
   is_available  Boolean  @default(true)
   
+  // Especificações Técnicas (Novo v1.1.0)
+  specs         Json?    // { "amperage": "32A", "curve": "C", "voltage": "750V" }
+
   updatedAt     DateTime @updatedAt  // Para saber quando foi a última sync
 
   budgetItems   BudgetItem[]
   feedbacks     Feedback[]
 
   @@map("products")
+}
+
+// --------------------------------------
+// 🔍 Buscas Falhas (Analytics) v1.1.0
+// --------------------------------------
+
+model FailedSearch {
+  id        String   @id @default(uuid())
+  query     String
+  userId    String?
+  createdAt DateTime @default(now())
+  
+  @@map("failed_searches")
 }
 
 // --------------------------------------
@@ -111,6 +128,7 @@ model Budget {
   // Totais (Calculados)
   total_materials Decimal      @default(0) @db.Decimal(10, 2)
   total_labor     Decimal      @default(0) @db.Decimal(10, 2) // Mão de obra (Split)
+  labor_description String?    // Descrição justificativa do serviço (Novo v1.1.0)
   total_price     Decimal      @default(0) @db.Decimal(10, 2)
 
   items           BudgetItem[]

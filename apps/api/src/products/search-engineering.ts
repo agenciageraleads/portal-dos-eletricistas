@@ -30,11 +30,12 @@ const RAW_SYNONYMS: Record<string, string[]> = {
     'QUADRADO': ['QUAD', 'QD', 'QDR'],
 
     // Dispositivos e Módulos
-    'DISJUNTOR': ['MINI DISJUNTOR', 'DPS', 'DR', 'DISJ', 'DISJ.', 'DISJUN'],
+    'DISJUNTOR': ['MINI DISJUNTOR', 'DPS', 'DR', 'DISJ', 'DISJ.', 'DISJUN', 'BREAKER'],
     'TOMADA': ['CONJUNTO', 'PLACA', 'TOM', 'TOM.'],
     'INTERRUPTOR': ['CONJUNTO', 'TECLA', 'INT', 'INT.', 'INTER'],
     'MODULO': ['MOD', 'MOD.', 'MÓDULO'],
     'PLACA': ['PL', 'PL.', 'ESPELHO'],
+    'DR': ['DIFERENCIAL', 'RESIDUAL'], // Feedback
 
     // Instalação
     'EMBUTIR': ['EMB', 'EMB.'],
@@ -96,14 +97,12 @@ export function getVariations(token: string): string[] {
     const variations = new Set<string>();
     variations.add(normalized);
 
-    // Match exato
+    // 1. Match exato em Sinônimos
     if (SEARCH_SYNONYMS[normalized]) {
         SEARCH_SYNONYMS[normalized].forEach(v => variations.add(v));
     }
 
-    // Match parcial (prefixo) para chaves longas (ex: "VERBE" -> "VERMELHO"?)
-    // Não, apenas prefixo da chave no mapa
-    // Ex: "VERM" -> match "VERMELHO" -> expand para "VM"
+    // 2. Match parcial (prefixo)
     if (normalized.length >= 3) {
         Object.keys(RAW_SYNONYMS).forEach(key => {
             if (key.startsWith(normalized)) {
@@ -115,17 +114,46 @@ export function getVariations(token: string): string[] {
         });
     }
 
-    // Match Patterns (S8 <-> S08) - Fixation Anchors
-    // Expands "S8" -> "S08" and "S08" -> "S8", but ignores "S10", "S12" (only single digit logic usually)
-    // Actually, user said "s8 é o mesmo que bucha s08 e isso vale para todas as buchas".
-    // Usually only relevant for single digits S4, S5, S6, S8, but maybe S10 is just S10.
-    // Regex: ^S0?(\d)$ matches S4, S04, S8, S08. Does not match S10.
-    const sMatch = normalized.match(/^S(0)?(\d)$/);
+    // 3. Match de Padrões
+    // S8 <-> S08
+    const sMatch = normalized.match(/^S(0)?(\d+)$/);
     if (sMatch) {
         const digit = sMatch[2];
-        variations.add(`S${digit}`);
-        variations.add(`S0${digit}`);
+        if (digit.length === 1) { // Só aplica para s8, s6, etc. s10 não muda
+            variations.add(`S${digit}`);
+            variations.add(`S0${digit}`);
+        } else {
+            variations.add(`S${digit}`); // s10 -> S10
+        }
     }
+
+    // Numbers: 2.5 <-> 2,5
+    if (normalized.includes('.') || normalized.includes(',')) {
+        const withDot = normalized.replace(',', '.');
+        const withComma = normalized.replace('.', ',');
+        variations.add(withDot);
+        variations.add(withComma);
+    }
+
+    // Units: 2.5mm -> 2.5
+    // Regex para pegar numero seguido de mm (ex: 2.5mm, 4mm)
+    const mmMatch = normalized.match(/^(\d+(?:[\.,]\d+)?)MM$/);
+    if (mmMatch) {
+        const numberPart = mmMatch[1];
+        variations.add(numberPart); // Adiciona "2.5"
+
+        // E suas variações de ponto/vírgula
+        const withDot = numberPart.replace(',', '.');
+        const withComma = numberPart.replace('.', ',');
+        variations.add(withDot);
+        variations.add(withComma);
+    }
+
+    // Se é só número, talvez adicionar variação com mm?
+    // Ex: "2.5" -> "2.5mm"? Perigoso (pode ser R$2.5). Melhor não.
+    // O contexto de busca "cabo 2.5" vai achar "cabo 2.5mm" se o produto tiver "2.5mm" no nome?
+    // Se produto tem "Cabo 2,5mm", e busco "2.5", o contains pega? Não necessariamente se "2.5" != "2,5".
+    // Mas agora adicionamos "2,5" como variação de "2.5". Então "contains(2,5)" vai pegar.
 
     return Array.from(variations);
 }

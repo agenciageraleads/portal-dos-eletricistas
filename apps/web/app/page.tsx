@@ -228,6 +228,52 @@ export default function Home() {
                         </button>
                     </div>
                 )}
+                {!loading && products.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 animate-in fade-in">
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center tex-4xl">
+                            🤔
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800">
+                            {searchQuery ? `Nenhum resultado para "${searchQuery}"` : 'Nenhum produto encontrado nesta categoria'}
+                        </h3>
+                        <p className="text-gray-500 max-w-sm">
+                            Tente buscar com outras palavras ou verifique a ortografia.
+                        </p>
+
+                        {searchQuery && (
+                            <button
+                                onClick={async (e) => {
+                                    const btn = e.currentTarget;
+                                    btn.disabled = true;
+                                    const originalText = btn.innerHTML;
+                                    btn.innerHTML = 'Enviando...';
+                                    try {
+                                        await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/products/failed-search`, {
+                                            params: { q: searchQuery }
+                                        });
+                                        btn.innerHTML = 'Obrigado! Vamos corrigir isso.';
+                                        btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+                                        btn.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+                                    } catch (err) {
+                                        console.error(err);
+                                        btn.innerHTML = 'Erro ao enviar. Tente novamente.';
+                                        btn.disabled = false;
+                                    }
+                                }}
+                                className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
+                            >
+                                Não achei o que procurava
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => handleSearch('')}
+                            className="text-blue-600 font-medium hover:underline mt-2"
+                        >
+                            Limpar busca e ver tudo
+                        </button>
+                    </div>
+                )}
             </main>
 
             <CartSummary />

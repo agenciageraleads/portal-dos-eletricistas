@@ -8,24 +8,37 @@ export class ProductsService {
 
     constructor(private prisma: PrismaService) { }
 
-    async findAll(query?: string, page: number = 1, limit: number = 20, category?: string) {
+    @Injectable()
+    export class ProductsService {
+
+    constructor(private prisma: PrismaService) { }
+
+    async findAll(query ?: string, page: number = 1, limit: number = 20, category ?: string) {
         const where: Prisma.ProductWhereInput = {
             is_available: true,
         };
 
+        // ... (Category logic remains)
         if (category) {
             where.category = { equals: category, mode: 'insensitive' };
         }
 
         let isSearch = false;
+        let searchTokens: string[] = [];
+        let normalizedQ = '';
 
         if (query) {
             isSearch = true;
-            let normalizedQuery = query.toUpperCase().trim();
+            normalizedQ = query.toUpperCase().trim();
 
             // 1. Tokenize & Filter Stopwords
-            const tokens = normalizedQuery.split(/\s+/)
+            // Improved regex to keep "2.5" together, but split "2.5mm" if space absent? 
+            // "search-engineering" variations handle "2.5mm" -> "2.5".
+            // So we just need to split by spaces generally.
+            const tokens = normalizedQ.split(/\s+/)
                 .filter(t => !STOPWORDS.has(t));
+
+            searchTokens = tokens;
 
             const andConditions: Prisma.ProductWhereInput[] = [];
 
@@ -42,8 +55,11 @@ export class ProductsService {
                             { category: { startsWith: term, mode: 'insensitive' } },
                         );
 
+                        // If term is purely numeric code
                         const code = parseInt(term);
-                        if (!isNaN(code)) {
+                        if (!isNaN(code) && String(code) === term) {
+                            // Only match code if exact match string to avoid "32" matching "3200" via contains (which is handled above)
+                            // But for `sankhya_code` it is Int, so equals.
                             tokenOrConditions.push({ sankhya_code: { equals: code } });
                         }
                     });
@@ -52,10 +68,11 @@ export class ProductsService {
                         andConditions.push({ OR: tokenOrConditions });
                     }
                 });
-            } else if (normalizedQuery.length > 0) {
+            } else if (normalizedQ.length > 0) {
                 andConditions.push({ name: { contains: normalizedQuery, mode: 'insensitive' } });
             }
 
+            // Fallback for exact code match on full query
             const fullQueryCode = parseInt(query);
             if (!isNaN(fullQueryCode) && (tokens.length <= 1)) {
                 andConditions.push({ sankhya_code: { equals: fullQueryCode } });
@@ -75,9 +92,13 @@ export class ProductsService {
                 take: poolLimit,
             });
 
+            // LOG FAILED SEARCH (v1.1.0)
+            if (results.length === 0 && query && query.length > 2) {
+                // Async logging, don't await to not block response
+                this.logFailedSearch(query).catch(err => console.error('Error logging failed search', err));
+            }
+
             // Re-generate expanded tokens for scoring
-            const normalizedQ = query ? query.toUpperCase().trim() : '';
-            const searchTokens = normalizedQ.split(/\s+/).filter(t => !STOPWORDS.has(t));
             const allVariations = new Set<string>();
 
             // Add original full query for exact matching
@@ -87,15 +108,6 @@ export class ProductsService {
                 const vars = getVariations(t);
                 vars.forEach(v => allVariations.add(v));
             });
-            // Add Synonyms logic explicitly if separated (It is in SYNONYMS dict in class but unused in previous sort?)
-            // The class has SYNONYMS dict but findAll code structure integrated it? 
-            // Previous code ONLY used ABBREVIATIONS and REVERSE.
-            // Let's ensure we use SYNONYMS if they exist in the class.
-            // *Check class definition*: SYNONYMS was removed in my previous `replace_file_content` call? 
-            // *Reviewing file content*: I see ABBREVIATIONS and REVERSE_ABBREVIATIONS. I see 'MONOFASICO' in ABBREVIATIONS.
-            // I REMOVED `SYNONYMS` property in step 171/179?
-            // Yes, I merged them into ABBREVIATIONS in the plan.
-            // So iterating ABBREVIATIONS is sufficient.
 
             const sorted = results.sort((a, b) => {
                 const nameA = a.name.toUpperCase();
@@ -103,19 +115,14 @@ export class ProductsService {
 
                 function calculateScore(name: string): number {
                     let score = 0;
-                    // Check against ALL variations
-                    // We want to prioritize based on the BEST match among variations.
 
                     // 1. Exact Match to Full Query
                     if (name === normalizedQ) score += 200;
 
                     // 2. Starts With (Any Token Variation) - Highest Priority
-                    // If matched "CABO", score 100.
                     let maxStartScore = 0;
                     allVariations.forEach(term => {
                         if (name.startsWith(term)) {
-                            // Boost longer terms? "CABOMETRO" vs "CABO".
-                            // Assume standard 100.
                             maxStartScore = Math.max(maxStartScore, 100);
                         }
                     });
@@ -123,13 +130,20 @@ export class ProductsService {
 
                     // 3. Word Match (Any Token Variation)
                     let maxWordScore = 0;
-                    const nameWords = name.split(/[\s\-\/\.]+/); // Split by common delimiters
+                    // Split name into words to match exact token presence
+                    const nameWords = name.split(/[\s\-\/\.]+/);
                     allVariations.forEach(term => {
                         if (nameWords.includes(term)) {
                             maxWordScore = Math.max(maxWordScore, 50);
+                        } else if (name.includes(term)) {
+                            // Partial match inside word (e.g. searching "FITA" finds "FITA-ISOLANTE")
+                            score += 10;
                         }
                     });
                     score += maxWordScore;
+
+                    // Boost based on availability? optional.
+                    if (!a.is_available) score -= 1000; // Push unavailable to bottom? No, maybe just less priority.
 
                     return score;
                 }
@@ -138,7 +152,7 @@ export class ProductsService {
                 const scoreB = calculateScore(nameB);
 
                 if (scoreA > scoreB) return -1;
-                if (scoreB > scoreA) return 1; // Corrected comparison for scoreB > scoreA
+                if (scoreB > scoreA) return 1;
 
                 // Fallback: Alphabetical
                 return nameA.localeCompare(nameB);
@@ -152,9 +166,9 @@ export class ProductsService {
             return {
                 data: paginatedData,
                 meta: {
-                    total, // Still DB total
+                    total: results.length, // Accurate count of filters
                     page,
-                    last_page: Math.ceil(total / limit),
+                    last_page: Math.ceil(results.length / limit),
                 },
             };
         } else {
@@ -172,5 +186,17 @@ export class ProductsService {
 
             return { data, meta: { total, page, last_page: Math.ceil(total / limit) } };
         }
+    }
+
+    // Capture failed searches
+    async logFailedSearch(query: string) {
+        // Check if we already logged this query recently to avoid spam? 
+        // For MVP, just log.
+        await this.prisma.failedSearch.create({
+            data: {
+                query: query,
+                // userId could be extracted if we passed context, but for now anonymous or we can add it later
+            }
+        });
     }
 }

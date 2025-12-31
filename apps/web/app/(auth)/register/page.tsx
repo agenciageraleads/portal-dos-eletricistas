@@ -11,11 +11,18 @@ export default function RegisterPage() {
     const [cpf, setCpf] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!acceptedTerms) {
+            alert('Você precisa aceitar os Termos de Uso para criar uma conta.');
+            return;
+        }
+
         setLoading(true);
         try {
             // Remove formatação do CPF/CNPJ antes de enviar
@@ -28,7 +35,8 @@ export default function RegisterPage() {
                 email,
                 cpf_cnpj: cleanCpf,
                 phone,
-                password
+                password,
+                termsAccepted: true
             });
             alert('Cadastro realizado com sucesso! Faça login.');
             router.push('/login');
@@ -133,10 +141,24 @@ export default function RegisterPage() {
                             required
                         />
                     </div>
+
+                    <div className="flex items-start space-x-2 pt-2">
+                        <input
+                            type="checkbox"
+                            id="terms"
+                            checked={acceptedTerms}
+                            onChange={(e) => setAcceptedTerms(e.target.checked)}
+                            className="w-4 h-4 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
+                            Li e concordo com os <Link href="/termos/page" target="_blank" className="text-blue-600 hover:underline">Termos de Uso</Link> e Política de Privacidade.
+                        </label>
+                    </div>
+
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 mt-4"
                     >
                         {loading && <Spinner />}
                         {loading ? 'Criando conta...' : 'Criar Conta'}

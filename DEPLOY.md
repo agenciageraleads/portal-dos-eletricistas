@@ -54,14 +54,7 @@ Acesse sua VPS e atualize os serviços.
 
 ## 3️⃣ Tarefas Pós-Deploy
 
-### Promover Usuário a Admin
 
-Como o banco de dados de produção é isolado, scripts locais não o afetam. Execute o comando abaixo **dentro da VPS** para promover um usuário:
-
-```bash
-# Substitua 'portal_db_1' pelo nome real do container do banco, se diferente
-docker exec -it portal_db_1 psql -U portal -d portal_eletricistas -c "UPDATE users SET role = 'ADMIN' WHERE email = 'lucasborgessb@gmail.com';"
-```
 
 ### Verificar Logs
 

@@ -7,7 +7,9 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    image: lucasborgessb/portal_dos_eletricistas:web-latest
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: lucasborgessb/portal_dos_eletricistas:web-1.0.1
     deploy:
       mode: replicated
       replicas: 1
@@ -21,7 +23,7 @@ services:
     environment:
       NODE_ENV: production
       # Aponta para o proxy interno do Traefik
-      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     networks:
       - portal_overlay
       - Portainer
@@ -32,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: lucasborgessb/portal_dos_eletricistas:api-latest
+    image: lucasborgessb/portal_dos_eletricistas:api-1.0.1
     command: >
       sh -c "npx prisma migrate deploy && node dist/src/main.js"
     deploy:
@@ -48,15 +50,15 @@ services:
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
-      PORT: 3000
-      JWT_SECRET: super_chave_secreta_mude_depois
-      DATABASE_URL: postgres://portal:portal_senha_forte@db:5432/portal_eletricistas?schema=public
+      PORT: ${PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
       # S3 / MinIO Configuration (Corrigido com nome do Bucket REAL)
-      S3_ENDPOINT: https://s3.gera-leads.com
-      S3_ACCESS_KEY: admin
-      S3_SECRET_KEY: Lucas132395
-      S3_BUCKET: portal-produtos # <--- Nome que está no seu print
-      S3_REGION: us-east-1
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
     networks:
       - portal_overlay
       - Portainer
@@ -70,9 +72,9 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: portal
-      POSTGRES_PASSWORD: portal_senha_forte
-      POSTGRES_DB: portal_eletricistas
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     deploy:
       mode: replicated
       replicas: 1
