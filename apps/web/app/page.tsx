@@ -6,7 +6,7 @@ import { Product } from './types/product';
 import { ProductCard } from './components/ProductCard';
 import { ProductSearch } from './components/ProductSearch';
 import { CartSummary } from './components/CartSummary';
-import { PackageSearch, User, FileText, TriangleAlert, LogOut } from 'lucide-react';
+import { PackageSearch, User, FileText, TriangleAlert, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Link from 'next/link';
 
@@ -122,13 +122,18 @@ export default function Home() {
                             title="Reportar problema ou sugerir melhoria"
                         >
                             <TriangleAlert size={18} />
-                            <span className="hidden sm:inline">Reportar</span>
                         </button>
                         {user ? (
                             <>
                                 <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Meus Orçamentos">
                                     <FileText size={22} className="text-gray-600" />
                                 </Link>
+                                {user.role === 'ADMIN' && (
+                                    <Link href="/admin" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors group" title="Painel Admin">
+                                        <ShieldCheck size={22} className="text-blue-600 group-hover:text-blue-700" />
+                                        <span className="text-gray-900 font-medium">Admin</span>
+                                    </Link>
+                                )}
                                 <Link href="/perfil" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors">
                                     {user.logo_url ? (
                                         <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">

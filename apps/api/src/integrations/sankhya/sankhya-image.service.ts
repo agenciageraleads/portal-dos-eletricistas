@@ -15,15 +15,19 @@ export class SankhyaImageService {
         private readonly sankhyaClient: SankhyaClient,
         private readonly s3Service: S3Service,
     ) {
-        // Garantir que a pasta de imagens existe (fallback para armazenamento local)
-        if (!fs.existsSync(this.imagesPath)) {
-            fs.mkdirSync(this.imagesPath, { recursive: true });
-            this.logger.log(`Pasta de imagens criada: ${this.imagesPath}`);
-        }
-
         if (this.s3Service.isEnabled()) {
             this.logger.log('S3/MinIO habilitado para armazenamento de imagens');
         } else {
+            // Apenas cria a pasta local se o S3 NÃO estiver habilitado
+            // Garantir que a pasta de imagens existe (fallback para armazenamento local)
+            if (!fs.existsSync(this.imagesPath)) {
+                try {
+                    fs.mkdirSync(this.imagesPath, { recursive: true });
+                    this.logger.log(`Pasta de imagens criada: ${this.imagesPath}`);
+                } catch (error) {
+                    this.logger.warn(`Não foi possível criar pasta de imagens local: ${error.message}`);
+                }
+            }
             this.logger.log('Usando armazenamento local para imagens');
         }
     }

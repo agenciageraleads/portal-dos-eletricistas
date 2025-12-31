@@ -1,5 +1,5 @@
 # Base stage
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Dependencies stage
 FROM base AS deps
@@ -18,9 +18,11 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# Argument for API URL (Required for Next.js build time inlining)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build Web
-# Note: NEXT_PUBLIC_API_URL should be provided at build time or runtime
-# For Docker build, we often need it at build time for SSG, or use public runtime config
 RUN npm run build --workspace=apps/web
 
 # Runner stage

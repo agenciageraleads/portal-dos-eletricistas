@@ -9,17 +9,25 @@ import { ProductMapper } from './src/integrations/sankhya/mappers/product.mapper
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
+import { S3Service } from './src/common/s3.service';
 import sharp from 'sharp';
 
 const prisma = new PrismaClient();
 const sankhyaClient = new SankhyaClient();
+const s3Service = new S3Service();
 
 const imagesPath = path.join(process.cwd(), '../web/public/products');
 
-// Garantir que a pasta existe
-if (!fs.existsSync(imagesPath)) {
-    fs.mkdirSync(imagesPath, { recursive: true });
-    console.log(`📁 Pasta de imagens criada: ${imagesPath}`);
+// Garantir que a pasta existe (apenas se S3 não estiver ativo)
+if (!s3Service.isEnabled()) {
+    if (!fs.existsSync(imagesPath)) {
+        try {
+            fs.mkdirSync(imagesPath, { recursive: true });
+            console.log(`📁 Pasta de imagens criada: ${imagesPath}`);
+        } catch (e) {
+            console.warn(`⚠️ Não foi possível criar pasta local: ${e.message}`);
+        }
+    }
 }
 
 async function downloadProductImage(codprod: number): Promise<Buffer | null> {
@@ -55,15 +63,27 @@ async function downloadProductImage(codprod: number): Promise<Buffer | null> {
 async function saveProductImage(codprod: number, imageBuffer: Buffer): Promise<string | null> {
     try {
         const filename = `${codprod}.webp`;
-        const filepath = path.join(imagesPath, filename);
 
-        await sharp(imageBuffer)
+        // 1. Processar imagem com Sharp
+        const processedBuffer = await sharp(imageBuffer)
             .resize(800, 800, {
                 fit: 'contain',
                 background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
             .webp({ quality: 85, effort: 4 })
-            .toFile(filepath);
+            .toBuffer();
+
+
+        // 2. Se S3 estiver ativado, fazer upload
+        if (s3Service.isEnabled()) {
+            const s3Key = `products/${filename}`;
+            const publicUrl = await s3Service.uploadBuffer(processedBuffer, s3Key, 'image/webp');
+            return publicUrl;
+        }
+
+        // 3. Fallback: Salvar localmente
+        const filepath = path.join(imagesPath, filename);
+        await fs.promises.writeFile(filepath, processedBuffer);
 
         return `/products/${filename}`;
     } catch (error: any) {
@@ -73,6 +93,9 @@ async function saveProductImage(codprod: number, imageBuffer: Buffer): Promise<s
 }
 
 function hasLocalImage(codprod: number): boolean {
+    // Se usar S3, não verificamos localmente (assumimos que precisa baixar, ou poderíamos checar no banco)
+    if (s3Service.isEnabled()) return false;
+
     const filename = `${codprod}.webp`;
     const filepath = path.join(imagesPath, filename);
     return fs.existsSync(filepath);
@@ -116,42 +139,51 @@ async function main() {
         let imageSuccess = 0;
         let imageFailed = 0;
         let imageSkipped = 0;
-
         for (let i = 0; i < portalProducts.length; i++) {
             const product = portalProducts[i];
+            let imageUrl: string | null = null;
+            let isNewImage = false;
 
-            // Pular se já tem imagem local
+            // 1. Verificar se já tem imagem local
             if (hasLocalImage(product.sankhya_code)) {
+                // Se existe localmente, definimos a URL
+                imageUrl = `/products/${product.sankhya_code}.webp`;
                 imageSkipped++;
-                continue;
-            }
+            } else {
+                // 2. Se não tem, tentar baixar
+                const imageBuffer = await downloadProductImage(product.sankhya_code);
 
-            const imageBuffer = await downloadProductImage(product.sankhya_code);
-
-            if (imageBuffer) {
-                const imageUrl = await saveProductImage(product.sankhya_code, imageBuffer);
-
-                if (imageUrl) {
-                    // Atualizar image_url no banco
-                    await prisma.product.update({
-                        where: { sankhya_code: product.sankhya_code },
-                        data: { image_url: imageUrl }
-                    });
-                    imageSuccess++;
+                if (imageBuffer) {
+                    imageUrl = await saveProductImage(product.sankhya_code, imageBuffer);
+                    if (imageUrl) {
+                        isNewImage = true;
+                        imageSuccess++;
+                    } else {
+                        imageFailed++;
+                    }
                 } else {
                     imageFailed++;
                 }
-            } else {
-                imageFailed++;
+            }
+
+            // 3. Atualizar no banco se tivermos uma URL (nova ou existente)
+            if (imageUrl) {
+                // Otimização: Só update se for nova, ou podemos forçar update para garantir consistência
+                // Como queremos corrigir o caso dos nulos, vamos fazer o update.
+
+                await prisma.product.update({
+                    where: { sankhya_code: product.sankhya_code },
+                    data: { image_url: imageUrl }
+                });
             }
 
             // Progresso a cada 100 imagens
             if ((i + 1) % 100 === 0) {
-                console.log(`   Progresso: ${i + 1}/${portalProducts.length} (✅ ${imageSuccess} | ⏭️ ${imageSkipped} | ❌ ${imageFailed})`);
+                console.log(`   Progresso: ${i + 1}/${portalProducts.length} (✅ ${imageSuccess} novas | ⏭️ ${imageSkipped} locais | ❌ ${imageFailed})`);
             }
 
-            // Delay para não sobrecarregar
-            if (i < portalProducts.length - 1) {
+            // Delay para não sobrecarregar (só se baixou algo, se foi local é rápido)
+            if (isNewImage && i < portalProducts.length - 1) {
                 await new Promise(resolve => setTimeout(resolve, 200));
             }
         }

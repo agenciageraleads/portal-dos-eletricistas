@@ -22,7 +22,8 @@ const RAW_SYNONYMS: Record<string, string[]> = {
 
     // Infraestrutura
     'ELETRODUTO': ['CONDUITE', 'TUBO', 'ELET'],
-    'CONDUITE': ['ELETRODUTO', 'TUBO', 'MANGUEIRA'],
+    'CONDUITE': ['ELETRODUTO', 'TUBO', 'MANGUEIRA', 'MANGUEIRA CORRUGADA', 'ELETRODUTO CORRUGADO'],
+    'CONDULETE': ['CAIXA MULTIPLA', 'CX MULTIPLA'],
     'CAIXA': ['CX', 'CX.', 'CXA'],
     'QUADRO': ['QD', 'QD.', 'QDR', 'QUAD'],
     'QUADRADA': ['QUAD', 'QD', 'QDR'],

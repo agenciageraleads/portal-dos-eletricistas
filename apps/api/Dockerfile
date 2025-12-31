@@ -1,5 +1,7 @@
 # Base stage
-FROM node:18-alpine AS base
+FROM node:20-slim AS base
+
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 
 # Dependencies stage
 FROM base AS deps
@@ -19,6 +21,7 @@ RUN npx prisma generate
 WORKDIR /app
 # Build API
 RUN npm install -g @nestjs/cli
+RUN npm install dotenv @types/dotenv
 RUN npm run build --workspace=apps/api
 
 # Runner stage
@@ -38,4 +41,4 @@ COPY --from=builder /app/apps/api/prisma ./prisma
 
 EXPOSE 3333
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

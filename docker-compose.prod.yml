@@ -1,56 +1,87 @@
-version: '3.8'
-
+version: "3.8"
 services:
-  # Backend API
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: portal_api
-    restart: unless-stopped
-    ports:
-      - "3333:3333"
-    environment:
-      # CONFIGURAR: IP do host ou nome do container do banco existente
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}?schema=public
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: 3333
-      FRONTEND_URL: ${FRONTEND_URL}
-      NODE_ENV: production
-      # S3 / MinIO
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-portal-produtos}
-      AWS_ENDPOINT: ${AWS_ENDPOINT}
-      AWS_PUBLIC_URL: ${AWS_PUBLIC_URL}
-    # Se o banco estiver em outra rede Docker, descomente e ajuste:
-    # networks:
-    #   - portal_network
-    #   - sua_rede_banco_existente
-
-    # Frontend Web
+  # ==========================================
+  # 1. FRONTEND WEB (Exposto via Traefik)
+  # ==========================================
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: portal_web
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+    image: lucasborgessb/portal_dos_eletricistas:web-latest
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.portal_web.rule=Host(`app.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_web.entrypoints=websecure"
+        - "traefik.http.routers.portal_web.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_web.loadbalancer.server.port=3000"
+        - "traefik.docker.network=Portainer"
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY}
-      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST}
       NODE_ENV: production
+      # Aponta para o proxy interno do Traefik
+      NEXT_PUBLIC_API_URL: /api
+    networks:
+      - portal_overlay
+      - Portainer
+  # ==========================================
+  # 2. BACKEND API (Interno + Rota /api)
+  # ==========================================
+  api:
+    image: lucasborgessb/portal_dos_eletricistas:api-latest
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/src/main.js"
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        # Regra: Pega tudo que vier com /api
+        - "traefik.http.routers.portal_api.rule=Host(`app.portaleletricos.com.br`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.portal_api.entrypoints=websecure"
+        - "traefik.http.routers.portal_api.tls.certresolver=letsencryptresolver"
+        # Middleware: Remove o /api antes de entregar pro backend
+        - "traefik.http.middlewares.api_strip.stripprefix.prefixes=/api"
+        - "traefik.http.routers.portal_api.middlewares=api_strip"
+        - "traefik.http.services.portal_api.loadbalancer.server.port=3000"
+        - "traefik.docker.network=Portainer"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: super_chave_secreta_mude_depois
+      DATABASE_URL: postgres://portal:portal_senha_forte@db:5432/portal_eletricistas?schema=public
+      # S3 / MinIO Configuration (Corrigido com nome do Bucket REAL)
+      S3_ENDPOINT: https://s3.gera-leads.com
+      S3_ACCESS_KEY: admin
+      S3_SECRET_KEY: Lucas132395
+      S3_BUCKET: portal-produtos # <--- Nome que está no seu print
+      S3_REGION: us-east-1
+    networks:
+      - portal_overlay
+      - Portainer
     depends_on:
-      - api
-    # Labels para Traefik (Exemplo - Ajuste conforme sua config)
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.portal.rule=Host(`portal.seudominio.com`)"
-    #   - "traefik.http.routers.portal.entrypoints=websecure"
-
-    # networks:
-    #   portal_network:
-    #     driver: bridge
+      - db
+  # ==========================================
+  # 3. POSTGRES 14 (BANCO DEDICADO)
+  # ==========================================
+  db:
+    image: postgres:14
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal_senha_forte
+      POSTGRES_DB: portal_eletricistas
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - portal_overlay
+# ==========================================
+# REDES E VOLUMES
+# ==========================================
+networks:
+  portal_overlay:
+    driver: overlay
+  Portainer:
+    external: true
+volumes:
+  db_data:
