@@ -4,6 +4,9 @@ services:
   # 1. FRONTEND WEB (Exposto via Traefik)
   # ==========================================
   web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
     image: lucasborgessb/portal_dos_eletricistas:web-latest
     deploy:
       mode: replicated
@@ -26,6 +29,9 @@ services:
   # 2. BACKEND API (Interno + Rota /api)
   # ==========================================
   api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     image: lucasborgessb/portal_dos_eletricistas:api-latest
     command: >
       sh -c "npx prisma migrate deploy && node dist/src/main.js"
@@ -34,13 +40,10 @@ services:
       replicas: 1
       labels:
         - "traefik.enable=true"
-        # Regra: Pega tudo que vier com /api
-        - "traefik.http.routers.portal_api.rule=Host(`app.portaleletricos.com.br`) && PathPrefix(`/api`)"
+        # Regra: Host Exclusivo para API
+        - "traefik.http.routers.portal_api.rule=Host(`api.portaleletricos.com.br`)"
         - "traefik.http.routers.portal_api.entrypoints=websecure"
         - "traefik.http.routers.portal_api.tls.certresolver=letsencryptresolver"
-        # Middleware: Remove o /api antes de entregar pro backend
-        - "traefik.http.middlewares.api_strip.stripprefix.prefixes=/api"
-        - "traefik.http.routers.portal_api.middlewares=api_strip"
         - "traefik.http.services.portal_api.loadbalancer.server.port=3000"
         - "traefik.docker.network=Portainer"
     environment:

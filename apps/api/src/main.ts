@@ -16,7 +16,15 @@ async function bootstrap() {
     forbidNonWhitelisted: false, // Don't block requests with extra fields yet
   }));
 
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'https://app.portaleletricos.com.br',
+      'https://www.app.portaleletricos.com.br',
+      'http://localhost:3000',
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
   await app.listen(process.env.PORT ?? 3333);
 }
 bootstrap();

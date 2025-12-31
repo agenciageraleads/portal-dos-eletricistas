@@ -6,6 +6,7 @@ import { Product } from './types/product';
 import { ProductCard } from './components/ProductCard';
 import { ProductSearch } from './components/ProductSearch';
 import { CartSummary } from './components/CartSummary';
+import { OnboardingModal } from './components/OnboardingModal';
 import { PackageSearch, User, FileText, TriangleAlert, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Link from 'next/link';
@@ -230,6 +231,7 @@ export default function Home() {
             </main>
 
             <CartSummary />
+            <OnboardingModal />
         </div >
     );
 }

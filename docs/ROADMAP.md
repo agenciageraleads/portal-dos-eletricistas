@@ -18,7 +18,7 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 
 ### ✅ Marco 1: MVP (Lançamento Piloto) - **CONCLUÍDO**
 > **Objetivo:** Permitir que um eletricista parceiro faça uma venda completa (Do orçamento ao Pix).
-> **Status:** 🚀 **EM PRODUÇÃO** (URL Pública Ativa)
+> **Status:** 🚀 **EM PRODUÇÃO** (https://app.portaleletricos.com.br)
 
 *   [x] Definição de Arquitetura e Tech Stack.
 *   [x] **API Core:**
@@ -37,18 +37,24 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 > **Objetivo:** Melhorar UX baseado em feedback dos eletricistas e completar integrações críticas.
 
 **🚀 Prioridade Imediata (Semana 1-2):**
-*   [ ] **PWA (Progressive Web App):** Transformar em app instalável
-    *   [ ] Service Worker para cache offline
-    *   [ ] Manifest.json com ícones
-    *   [ ] Instalável no mobile (Add to Home Screen)
+*   [ ] **Infra:** Configurar Certificado SSL (HTTPS).
+*   [x] **PWA (Progressive Web App):** Transformar em app instalável
+    *   [x] Service Worker para cache offline
+    *   [x] Manifest.json com ícones
+    *   [x] Instalável no mobile (Add to Home Screen)
     *   [ ] Notificações push (preparação)
 *   [ ] **Exibição de Estoque em Faixas:** Proteger informações sensíveis
     *   [ ] Implementar badges: 1000+, 100+, 50+, 10+, "Últimas unidades"
     *   [ ] Sistema de cores (verde/amarelo/vermelho)
     *   [ ] Atualizar API e frontend
 
+**🔍 Otimização de Busca (Polimento):**
+*   [x] **Smart Ranking:** Priorização de resultados exatos.
+*   [x] **Sinônimos:** "Conduite" = "Eletroduto", "S8" = "S08".
+
+
 **📊 Validação de Mercado (Semana 3-6):**
-*   [ ] Deploy VPS em produção
+*   [x] Deploy VPS em produção
 *   [ ] Onboarding primeiros 5-10 eletricistas
 *   [ ] Coleta de feedback estruturado:
     *   [ ] Produtos duplicados incomodam?
@@ -68,6 +74,9 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 *   [ ] **UX: Fluxo de Novo Orçamento** mais intuitivo.
 *   [ ] **UI: Tamanho de categorias mobile** (melhor visualização).
 *   [ ] **Fix: Compartilhamento de Link** (Clipboard API).
+*   [x] **UX: Botão Limpar na Busca.**
+*   [x] **UX: Input de Quantidade Editável.**
+*   [x] **UI: Visibilidade do ícone Admin.**
 
 **Integrações & Backend:**
 *   [ ] **Checkout com Split de Pagamento** (Gateway).
