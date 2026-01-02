@@ -73,6 +73,7 @@ Uma tarefa só é considerada **DONE** quando:
 1.  Código mergeado na `develop`.
 2.  Funcionalidade testada em ambiente local.
 3.  Documentação atualizada (se houve mudança de API ou Variáveis de Ambiente).
+4.  **GitHub Release criado** seguindo o [Processo de Release](./RELEASE_PROCESS.md).
 
 ---
 

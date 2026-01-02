@@ -270,6 +270,7 @@ Marque apenas quando TUDO estiver funcionando em produção:
 - [ ] ✅ Perfil de usuário funciona
 - [ ] ✅ Nenhum erro crítico nos logs
 - [ ] ✅ Performance aceitável (< 3s para carregar páginas)
+- [ ] ✅ **GitHub Release publicado** (v1.x.x)
 
 ---
 
