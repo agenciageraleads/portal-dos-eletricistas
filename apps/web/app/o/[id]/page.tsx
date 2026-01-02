@@ -127,17 +127,24 @@ export default function BudgetViewPage() {
                     </div>
                 </div>
 
-                {/* Resumo */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <span className="text-sm text-gray-500 block mb-1">Mão de Obra do Eletricista</span>
-                        <span className="text-2xl font-bold text-gray-800">{formatCurrency(budget.total_labor)}</span>
+                {/* Resumo (Condicional) */}
+                {budget.show_labor_total ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <span className="text-sm text-gray-500 block mb-1">Mão de Obra do Eletricista</span>
+                            <span className="text-2xl font-bold text-gray-800">{formatCurrency(budget.total_labor)}</span>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <span className="text-sm text-gray-500 block mb-1">Materiais Necessários (Loja)</span>
+                            <span className="text-2xl font-bold text-gray-800">{formatCurrency(budget.total_materials)}</span>
+                        </div>
                     </div>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <span className="text-sm text-gray-500 block mb-1">Materiais Necessários (Loja)</span>
-                        <span className="text-2xl font-bold text-gray-800">{formatCurrency(budget.total_materials)}</span>
+                ) : (
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <span className="text-sm text-gray-500 block mb-1">Valor Total do Orçamento</span>
+                        <span className="text-3xl font-bold text-gray-800">{formatCurrency(budget.total_price)}</span>
                     </div>
-                </div>
+                )}
 
                 {/* Lista de Itens */}
                 <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -185,7 +192,11 @@ export default function BudgetViewPage() {
                                         )}
                                     </div>
                                     <div className="text-xs text-gray-500">
-                                        {item.quantity}x {formatCurrency(item.price)}
+                                        {budget.show_unit_prices ? (
+                                            <>{item.quantity}x {formatCurrency(item.price)}</>
+                                        ) : (
+                                            <>{item.quantity} {item.product?.unit || 'un'}</>
+                                        )}
                                         {item.is_external && item.suggested_source && (
                                             <span className="block italic text-blue-500">Fonte sugerida: {item.suggested_source}</span>
                                         )}
@@ -193,10 +204,15 @@ export default function BudgetViewPage() {
                                 </div>
 
                                 {/* Price - Right Side */}
-                                <div className="font-bold text-gray-700 flex-shrink-0">{formatCurrency((item.price * item.quantity).toString())}</div>
+                                {budget.show_unit_prices && (
+                                    <div className="font-bold text-gray-700 flex-shrink-0">{formatCurrency((item.price * item.quantity).toString())}</div>
+                                )}
                             </div>
                         ))}
                     </div>
+                    {/* Only show bottom total block if we are showing breakdown, otherwise redundante with top total? 
+                        Actually nice to see total at bottom too.
+                    */}
                     <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
                         <span className="font-bold text-gray-800">Total Geral</span>
                         <span className="text-2xl font-bold text-blue-600">{formatCurrency(budget.total_price)}</span>

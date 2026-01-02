@@ -5,6 +5,17 @@ Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-02
+### Adicionado
+- **Calculadoras Embutidas**: Nova página `/ferramentas` com calculadoras de Bitola de Cabo (NBR 5410) e Dimensionamento de Disjuntor.
+- **Especificações Técnicas**: Exibição de Amperagem, Curva, Tensão e Bitola diretamente nos cards de produto (`ProductCard`).
+- **Observações do Orçamento**: Novos campos estruturados para Prazo de Execução, Validade, Garantia e Condições de Pagamento.
+- **Link Ferramentas**: Acesso rápido às ferramentas no header da aplicação.
+
+### Melhora
+- **Privacidade do Orçamento (Público)**: Lógica aprimorada na visualização pública (`/o/[id]`) para ocultar preços unitários e detalhamento de mão de obra quando configurado pelo eletricista.
+- **Feedback Visual**: Badges coloridos para facilitar leitura de especificações técnicas.
+
 ## [1.2.0] - 2025-12-31
 ### Adicionado
 - **Visibilidade Admin**: Nova página para administradores visualizarem todos os orçamentos do sistema.

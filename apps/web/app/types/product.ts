@@ -8,4 +8,13 @@ export interface Product {
     is_available: boolean;
     brand?: string;
     category?: string;
+    specs?: {
+        amperage?: string;
+        curve?: string;
+        voltage?: string;
+        poles?: string;
+        gauge?: string;
+        color?: string;
+        [key: string]: any;
+    };
 }

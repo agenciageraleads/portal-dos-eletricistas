@@ -73,6 +73,42 @@ export function ProductCard({ product }: ProductCardProps) {
                 {product.brand && (
                     <p className="text-xs text-gray-500 mt-1 font-medium">Marca: {product.brand}</p>
                 )}
+
+                {/* Especificações Técnicas (v1.2.1) */}
+                {product.specs && (
+                    <div className="flex flex-wrap gap-1 mt-2 mb-1">
+                        {product.specs.amperage && (
+                            <span className="text-[10px] font-semibold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 uppercase">
+                                {product.specs.amperage}
+                            </span>
+                        )}
+                        {product.specs.curve && (
+                            <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200 uppercase">
+                                Curva {product.specs.curve}
+                            </span>
+                        )}
+                        {product.specs.poles && (
+                            <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200 uppercase">
+                                {product.specs.poles}
+                            </span>
+                        )}
+                        {product.specs.gauge && (
+                            <span className="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 uppercase">
+                                {product.specs.gauge}
+                            </span>
+                        )}
+                        {product.specs.voltage && (
+                            <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200 uppercase">
+                                {product.specs.voltage}
+                            </span>
+                        )}
+                        {product.specs.color && (
+                            <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200 uppercase">
+                                {product.specs.color}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="mt-2 text-right">

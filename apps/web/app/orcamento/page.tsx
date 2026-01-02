@@ -26,6 +26,13 @@ function OrcamentoContent() {
     const [laborValue, setLaborValue] = useState<string>('0');
     const [laborDescription, setLaborDescription] = useState('');
     const [notes, setNotes] = useState('');
+
+    // Condition Fields State (v1.2.1)
+    const [executionTime, setExecutionTime] = useState('');
+    const [paymentTerms, setPaymentTerms] = useState('');
+    const [validity, setValidity] = useState('');
+    const [warranty, setWarranty] = useState('');
+
     const [showUnitPrices, setShowUnitPrices] = useState(true);
     const [showLaborTotal, setShowLaborTotal] = useState(true);
     const [loading, setLoading] = useState(false);
@@ -57,17 +64,41 @@ function OrcamentoContent() {
                     setCustomerPhone(data.client_phone);
                     setLaborValue(data.total_labor.toString());
                     setLaborDescription(data.labor_description || '');
-                    setNotes(data.notes || '');
+
+                    // Parse Notes (v1.2.1)
+                    if (data.notes) {
+                        const fullNotes = data.notes;
+                        if (fullNotes.includes('[Condições Comerciais]')) {
+                            const execMatch = fullNotes.match(/Prazo de Execução: (.*)/);
+                            if (execMatch) setExecutionTime(execMatch[1]);
+
+                            const paymentMatch = fullNotes.match(/Forma de Pagamento: (.*)/);
+                            if (paymentMatch) setPaymentTerms(paymentMatch[1]);
+
+                            const validityMatch = fullNotes.match(/Validade da Proposta: (.*)/);
+                            if (validityMatch) setValidity(validityMatch[1]);
+
+                            const warrantyMatch = fullNotes.match(/Garantia: (.*)/);
+                            if (warrantyMatch) setWarranty(warrantyMatch[1]);
+
+                            // Extract General Notes
+                            if (fullNotes.includes('[Observações Gerais]')) {
+                                const parts = fullNotes.split('[Observações Gerais]');
+                                setNotes(parts[1].trim());
+                            } else {
+                                // Fallback if format is slightly off but has header 1
+                                setNotes('');
+                            }
+                        } else {
+                            // Legacy format (just text)
+                            setNotes(fullNotes);
+                        }
+                    } else {
+                        setNotes('');
+                    }
+
                     setShowUnitPrices(data.show_unit_prices ?? true);
                     setShowLaborTotal(data.show_labor_total ?? true);
-                    // Note: Items should ideally be loaded into cart via context before hitting this page,
-                    // BUT if user refreshes, we might lose context state if not persisted perfectly or if we rely solely on context call from Details page.
-                    // The plan said "Redirect to /orcamento?edit=ID and load items". 
-                    // Best approach: Verify if items are in cart. If not, load them? 
-                    // Or trust that the Details page called loadBudgetIntoCart.
-                    // Let's rely on Details page for now to keep it simple, or re-fetch here if needed?
-                    // Re-fetching here is safer for refresh.
-                    // Let's assume CartContext loadBudgetIntoCart handles it.
                 } catch (error) {
                     console.error('Erro ao carregar orçamento para edição', error);
                 }
@@ -96,6 +127,24 @@ function OrcamentoContent() {
 
         setLoading(true);
         try {
+            // Construct Consolidated Notes (v1.2.1)
+            let finalNotes = '';
+            const conditions = [];
+            if (executionTime) conditions.push(`Prazo de Execução: ${executionTime}`);
+            if (paymentTerms) conditions.push(`Forma de Pagamento: ${paymentTerms}`);
+            if (validity) conditions.push(`Validade da Proposta: ${validity}`);
+            if (warranty) conditions.push(`Garantia: ${warranty}`);
+
+            if (conditions.length > 0) {
+                finalNotes = '[Condições Comerciais]\n' + conditions.join('\n') + '\n\n';
+            }
+
+            if (notes) {
+                if (finalNotes) finalNotes += '[Observações Gerais]\n';
+                finalNotes += notes;
+            }
+
+
             const payload = {
                 clientName: customerName,
                 clientPhone: customerPhone.replace(/\D/g, ''),
@@ -110,7 +159,7 @@ function OrcamentoContent() {
                 })),
                 laborValue: Number(labor),
                 laborDescription: laborDescription,
-                notes: notes,
+                notes: finalNotes,
                 showUnitPrices: showUnitPrices,
                 showLaborTotal: showLaborTotal,
                 status: status
@@ -374,16 +423,61 @@ function OrcamentoContent() {
                     </div>
                 </section>
 
-                {/* 3. Observações (v1.2.0) */}
+                {/* 3. Observações e Condições */}
                 <section className="bg-white rounded-xl shadow-sm p-6">
-                    <h2 className="font-bold text-gray-800 mb-4">3. Observações e Condições</h2>
+                    <h2 className="font-bold text-gray-800 mb-4">3. Observações e Condições Comerciais</h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Prazo de Execução</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: 5 dias úteis"
+                                value={executionTime}
+                                onChange={(e) => setExecutionTime(e.target.value)}
+                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: 50% entrada + 50% final"
+                                value={paymentTerms}
+                                onChange={(e) => setPaymentTerms(e.target.value)}
+                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Validade do Orçamento</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: 7 dias"
+                                value={validity}
+                                onChange={(e) => setValidity(e.target.value)}
+                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Garantia (Mão de Obra)</label>
+                            <input
+                                type="text"
+                                placeholder="Ex: 90 dias"
+                                value={warranty}
+                                onChange={(e) => setWarranty(e.target.value)}
+                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Observações Gerais</label>
                     <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Observações gerais, condições de pagamento, prazo de validade, garantias..."
-                        className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]"
+                        placeholder="Outros detalhes..."
+                        className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
                     />
-                    <p className="text-xs text-gray-500 mt-2">Estas informações aparecerão no final do orçamento enviado ao cliente.</p>
+                    <p className="text-xs text-gray-500 mt-2">Todas as informações acima aparecerão no PDF e na visão do cliente.</p>
                 </section>
 
                 {/* 4. Dados do Cliente */}

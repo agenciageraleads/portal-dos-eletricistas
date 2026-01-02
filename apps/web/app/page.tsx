@@ -7,7 +7,7 @@ import { ProductCard } from './components/ProductCard';
 import { ProductSearch } from './components/ProductSearch';
 import { CartSummary } from './components/CartSummary';
 import { OnboardingModal } from './components/OnboardingModal';
-import { PackageSearch, User, FileText, TriangleAlert, LogOut, ShieldCheck } from 'lucide-react';
+import { PackageSearch, User, FileText, TriangleAlert, LogOut, ShieldCheck, Calculator } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Link from 'next/link';
 
@@ -19,6 +19,7 @@ export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const { user, logout } = useAuth();
+
 
     const CATEGORIES = [
         { id: 'Acabamento', label: 'Acabamento', icon: '🏠' },
@@ -126,6 +127,9 @@ export default function Home() {
                         </button>
                         {user ? (
                             <>
+                                <Link href="/ferramentas" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Ferramentas & Cálculos">
+                                    <Calculator size={22} className="text-gray-600" />
+                                </Link>
                                 <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Meus Orçamentos">
                                     <FileText size={22} className="text-gray-600" />
                                 </Link>
