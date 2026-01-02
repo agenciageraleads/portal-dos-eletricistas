@@ -148,6 +148,27 @@ export class SankhyaImageService {
      * Baixa e salva a imagem de um produto
      */
     async downloadAndSaveProductImage(codprod: number): Promise<string | null> {
+        // 1. Verificação de Existência (Otimização)
+        const filename = `${codprod}.webp`;
+
+        if (this.s3Service.isEnabled()) {
+            const s3Key = `products/${filename}`;
+            const exists = await this.s3Service.checkFileExists(s3Key);
+            if (exists) {
+                this.logger.debug(`Imagem já existe no S3 (ignorando download): ${s3Key}`);
+                return this.s3Service.getPublicUrl(s3Key);
+            }
+        } else {
+            // Check local existence
+            if (this.hasLocalImage(codprod)) {
+                this.logger.debug(`Imagem já existe localmente (ignorando download): ${filename}`);
+                // Return local path corresponding to how it's served? 
+                // Currently saveProductImage returns `/products/${filename}`
+                return `/products/${filename}`;
+            }
+        }
+
+        // 2. Se não existe, prossegue com download e processamento
         const imageBuffer = await this.downloadProductImage(codprod);
 
         if (!imageBuffer) {

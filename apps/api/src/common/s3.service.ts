@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -106,6 +106,30 @@ export class S3Service {
         } catch (error) {
             this.logger.error(`Erro ao enviar buffer para S3: ${error.message}`);
             throw error;
+        }
+    }
+
+    async checkFileExists(key: string): Promise<boolean> {
+        if (!this.enabled || !this.s3Client) {
+            return false;
+        }
+
+        try {
+            const command = new HeadObjectCommand({
+                Bucket: this.bucket,
+                Key: key,
+            });
+
+            await this.s3Client.send(command);
+            return true;
+        } catch (error: any) {
+            if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+                return false;
+            }
+            this.logger.error(`Erro ao verificar existência do arquivo S3: ${error.message}`);
+            // Em caso de erro (ex: permissão), assumimos false para tentar upar de novo ou lançamos?
+            // Melhor assumir false para garantir, mas logar o erro.
+            return false;
         }
     }
 
