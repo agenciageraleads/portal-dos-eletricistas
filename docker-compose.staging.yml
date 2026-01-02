@@ -64,6 +64,7 @@ services:
       # Email
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      FRONTEND_URL: ${FRONTEND_URL}
     networks:
       - portal_staging_overlay
       - Portainer

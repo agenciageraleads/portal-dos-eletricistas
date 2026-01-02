@@ -16,12 +16,18 @@ async function bootstrap() {
     forbidNonWhitelisted: false, // Don't block requests with extra fields yet
   }));
 
+  const origins = [
+    'https://app.portaleletricos.com.br',
+    'https://www.app.portaleletricos.com.br',
+    'http://localhost:3000',
+  ];
+
+  if (process.env.FRONTEND_URL) {
+    origins.push(process.env.FRONTEND_URL);
+  }
+
   app.enableCors({
-    origin: [
-      'https://app.portaleletricos.com.br',
-      'https://www.app.portaleletricos.com.br',
-      'http://localhost:3000',
-    ],
+    origin: origins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
