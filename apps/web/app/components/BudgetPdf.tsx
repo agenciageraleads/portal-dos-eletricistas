@@ -144,13 +144,6 @@ interface BudgetPdfProps {
     budget: any;
 }
 
-const formatCurrency = (value: number | string) => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    }).format(Number(value));
-};
-
 const formatPhone = (phone?: string) => {
     if (!phone) return '';
     const clean = phone.replace(/\D/g, '');
@@ -159,23 +152,16 @@ const formatPhone = (phone?: string) => {
     return phone;
 };
 
-const getImageUrl = (url?: string) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-
-    // Ensure we don't double slash
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333').replace(/\/$/, '');
-    const path = url.startsWith('/') ? url : `/${url}`;
-
-    // React-PDF often struggles with mixed content or auth-protected images.
-    // Ideally these should be public S3/MinIO URLs.
-    return `${baseUrl}${path}`;
-};
+import { getImageUrl, formatCurrency } from '@/lib/utils';
 
 export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
     const totalMaterials = Number(budget.total_materials);
     const totalLabor = Number(budget.total_labor);
     const totalPrice = Number(budget.total_price);
+
+    // Privacy Settings (v1.2.0)
+    const showUnitPrices = budget.show_unit_prices ?? true;
+    const showLaborTotal = budget.show_labor_total ?? true;
 
     return (
         <Document>
@@ -185,10 +171,13 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                     <View style={styles.logoSection}>
                         {budget.user?.logo_url && getImageUrl(budget.user.logo_url) ? (
                             <Image src={getImageUrl(budget.user.logo_url)!} style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 5 }} />
-                        ) : (
-                            <Text style={styles.logoText}>PORTAL DO ELETRICISTA</Text>
-                        )}
-                        <Text style={styles.companyDetails}>Soluções Elétricas Completas</Text>
+                        ) : null}
+                        <Text style={styles.logoText}>
+                            {budget.user?.business_name || budget.user?.name || 'PORTAL DO ELETRICISTA'}
+                        </Text>
+                        <Text style={styles.companyDetails}>
+                            {budget.user?.business_name ? budget.user.name : 'Soluções Elétricas Completas'}
+                        </Text>
                     </View>
                     <View style={styles.budgetDetails}>
                         <Text style={styles.title}>ORÇAMENTO</Text>
@@ -233,44 +222,64 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                         <View style={[styles.tableCol, { width: '10%' }]}>
                             <Text style={styles.tableCellHeader}>QTD</Text>
                         </View>
-                        <View style={[styles.tableCol, { width: '12%' }]}>
-                            <Text style={styles.tableCellHeader}>V. UNIT</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: '13%' }]}>
-                            <Text style={styles.tableCellHeader}>TOTAL</Text>
-                        </View>
+                        {showUnitPrices && (
+                            <>
+                                <View style={[styles.tableCol, { width: '12%' }]}>
+                                    <Text style={styles.tableCellHeader}>V. UNIT</Text>
+                                </View>
+                                <View style={[styles.tableCol, { width: '13%' }]}>
+                                    <Text style={styles.tableCellHeader}>TOTAL</Text>
+                                </View>
+                            </>
+                        )}
                     </View>
 
                     {budget.items.map((item: any, i: number) => (
                         <View key={i} style={styles.tableRow}>
                             <View style={[styles.tableCol, { width: '10%', padding: 2 }]}>
-                                {item.product.image_url && getImageUrl(item.product.image_url) ? (
-                                    <Image src={getImageUrl(item.product.image_url)!} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                {item.is_external ? (
+                                    item.custom_photo_url ? (
+                                        <Image src={getImageUrl(item.custom_photo_url)!} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                    ) : (
+                                        <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
+                                    )
                                 ) : (
-                                    <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
+                                    item.product?.image_url && getImageUrl(item.product.image_url) ? (
+                                        <Image src={getImageUrl(item.product.image_url)!} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                    ) : (
+                                        <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
+                                    )
                                 )}
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
-                                <Text style={styles.tableCell}>{item.product.sankhya_code}</Text>
+                                <Text style={styles.tableCell}>{item.is_external ? 'EXTRA' : item.product?.sankhya_code}</Text>
                             </View>
                             <View style={[styles.tableColDesc, { width: '35%' }]}>
                                 <Text style={styles.tableCell}>
-                                    {item.product.name}
-                                    {item.product.brand && ` - ${item.product.brand}`}
+                                    {item.is_external ? item.custom_name : (
+                                        <>
+                                            {item.product?.name}
+                                            {item.product?.brand && ` - ${item.product.brand}`}
+                                        </>
+                                    )}
                                 </Text>
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
-                                <Text style={styles.tableCell}>{item.product.unit || 'UN'}</Text>
+                                <Text style={styles.tableCell}>{item.is_external ? 'UN' : item.product?.unit || 'UN'}</Text>
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
                                 <Text style={styles.tableCell}>{item.quantity}</Text>
                             </View>
-                            <View style={[styles.tableCol, { width: '12%' }]}>
-                                <Text style={styles.tableCell}>{formatCurrency(item.price)}</Text>
-                            </View>
-                            <View style={[styles.tableCol, { width: '13%' }]}>
-                                <Text style={styles.tableCell}>{formatCurrency(Number(item.price) * item.quantity)}</Text>
-                            </View>
+                            {showUnitPrices && (
+                                <>
+                                    <View style={[styles.tableCol, { width: '12%' }]}>
+                                        <Text style={styles.tableCell}>{formatCurrency(item.price)}</Text>
+                                    </View>
+                                    <View style={[styles.tableCol, { width: '13%' }]}>
+                                        <Text style={styles.tableCell}>{formatCurrency(Number(item.price) * item.quantity)}</Text>
+                                    </View>
+                                </>
+                            )}
                         </View>
                     ))}
                 </View>

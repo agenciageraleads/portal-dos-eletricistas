@@ -14,6 +14,7 @@ export default function PerfilPage() {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [name, setName] = useState('');
+    const [businessName, setBusinessName] = useState('');
     const [phone, setPhone] = useState('');
     const [bio, setBio] = useState('');
     const [logoUrl, setLogoUrl] = useState('');
@@ -36,6 +37,7 @@ export default function PerfilPage() {
                 const response = await api.get('/users/profile');
                 const profile = response.data;
                 setName(profile.name || '');
+                setBusinessName(profile.business_name || '');
                 setPhone(profile.phone || '');
                 setBio(profile.bio || '');
                 setLogoUrl(profile.logo_url || '');
@@ -90,6 +92,7 @@ export default function PerfilPage() {
             // Clean empty strings to undefined to avoid sending invalid data
             const payload = {
                 name: name || undefined,
+                business_name: businessName || undefined,
                 phone: phone || undefined,
                 bio: bio || undefined,
                 pix_key: pixKey || undefined
@@ -171,15 +174,31 @@ export default function PerfilPage() {
                     <div>
                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                             <UserIcon size={18} />
-                            Nome
+                            Seu Nome
                         </label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                            placeholder="Seu nome ou nome da empresa"
+                            placeholder="Seu nome completo"
                         />
+                    </div>
+
+                    {/* Business Name */}
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                            <FileText size={18} />
+                            Nome da Empresa / Nome Fantasia
+                        </label>
+                        <input
+                            type="text"
+                            value={businessName}
+                            onChange={(e) => setBusinessName(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                            placeholder="Ex: J Silva Instalações Elétricas"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Este nome aparecerá com destaque nos seus orçamentos.</p>
                     </div>
 
                     {/* Phone */}

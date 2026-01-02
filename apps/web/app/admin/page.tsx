@@ -1,192 +1,173 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Users, FileText, MessageSquare, Package, ArrowLeft } from 'lucide-react';
-import axios from 'axios';
-
-interface Stats {
-    users: { total: number; recent: number; period: string };
-    budgets: { total: number; recent: number; period: string };
-    feedbacks: { total: number; recent: number; period: string };
-    products: { total: number; active: number };
-}
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import { Shield, Users, FileText, BarChart2, Package, Settings, ChevronRight } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function AdminDashboard() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    const [stats, setStats] = useState<Stats | null>(null);
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        totalBudgets: 0,
+        activeProducts: 0
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        console.log('[AdminDashboard] User:', user); // DEBUG
-
-        // Check if user is admin
-        if (user && user.role !== 'ADMIN') {
-            console.warn('[AdminDashboard] Access denied. Role:', user.role); // DEBUG
+        if (!authLoading && (!user || user.role !== 'ADMIN')) {
             router.push('/');
             return;
         }
 
-        // Fetch stats
-        const fetchStats = async () => {
-            try {
-                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/admin/stats`);
-                setStats(data);
-            } catch (error) {
-                console.error('Error fetching stats:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (user) {
+        if (user?.role === 'ADMIN') {
             fetchStats();
         }
-    }, [user, router]);
+    }, [user, authLoading, router]);
 
-    if (loading || !user) {
+    const fetchStats = async () => {
+        try {
+            // We can fetch these stats from new endpoints or existing ones
+            const usersRes = await api.get('/users');
+            const budgetsRes = await api.get('/budgets/admin/all');
+            // For products, we use the standard findAll but maybe filter active
+            const productsRes = await api.get('/products');
+
+            setStats({
+                totalUsers: usersRes.data.length,
+                totalBudgets: budgetsRes.data.length,
+                activeProducts: productsRes.data.length
+            });
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching admin stats:', error);
+            setLoading(false);
+        }
+    };
+
+    if (authLoading || loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Carregando...</div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
-    if (user.role !== 'ADMIN') {
-        return null;
-    }
+    const menuItems = [
+        {
+            title: 'Usuários',
+            description: 'Gerenciar eletricistas, permissões e perfis.',
+            icon: <Users size={24} className="text-blue-600" />,
+            href: '/admin/users',
+            count: stats.totalUsers
+        },
+        {
+            title: 'Orçamentos',
+            description: 'Visualizar todos os orçamentos gerados na plataforma.',
+            icon: <FileText size={24} className="text-green-600" />,
+            href: '/admin/budgets',
+            count: stats.totalBudgets
+        },
+        {
+            title: 'Produtos',
+            description: 'Gerenciar catálogo, preços e especificações.',
+            icon: <Package size={24} className="text-orange-600" />,
+            href: '/admin/produtos', // Assuming this route for next weeks
+            count: stats.activeProducts,
+            disabled: true,
+            badge: 'Semana 4'
+        },
+        {
+            title: 'Métricas',
+            description: 'Análise de conversão e uso da plataforma.',
+            icon: <BarChart2 size={24} className="text-purple-600" />,
+            href: '/admin/metrics',
+            disabled: true,
+            badge: 'Em breve'
+        }
+    ];
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Link href="/" className="text-gray-500 hover:text-gray-700">
-                                <ArrowLeft size={24} />
-                            </Link>
-                            <h1 className="text-2xl font-bold text-gray-800">Painel Administrativo</h1>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                            Olá, <span className="font-semibold">{user.name}</span>
+            <header className="bg-white shadow-sm sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Shield size={28} className="text-blue-600" />
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-800">Painel Administrativo</h1>
+                            <p className="text-sm text-gray-500">Bem-vindo, {user?.name}</p>
                         </div>
                     </div>
+                    <Link href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600">
+                        Voltar ao Portal
+                    </Link>
                 </div>
-            </div>
+            </header>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {/* Users Card */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-blue-100 rounded-lg">
-                                <Users className="text-blue-600" size={24} />
-                            </div>
+            <main className="max-w-7xl mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 rounded-xl">
+                            <Users className="text-blue-600" size={28} />
                         </div>
-                        <h3 className="text-gray-500 text-sm font-medium mb-1">Usuários</h3>
-                        <div className="text-3xl font-bold text-gray-800 mb-2">{stats?.users.total || 0}</div>
-                        <div className="text-sm text-green-600">
-                            +{stats?.users.recent || 0} últimos {stats?.users.period}
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Total de Eletricistas</p>
+                            <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
                         </div>
                     </div>
-
-                    {/* Budgets Card */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-green-100 rounded-lg">
-                                <FileText className="text-green-600" size={24} />
-                            </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-green-50 rounded-xl">
+                            <FileText className="text-green-600" size={28} />
                         </div>
-                        <h3 className="text-gray-500 text-sm font-medium mb-1">Orçamentos</h3>
-                        <div className="text-3xl font-bold text-gray-800 mb-2">{stats?.budgets.total || 0}</div>
-                        <div className="text-sm text-green-600">
-                            +{stats?.budgets.recent || 0} últimos {stats?.budgets.period}
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Total de Orçamentos</p>
+                            <p className="text-3xl font-bold text-gray-900">{stats.totalBudgets}</p>
                         </div>
                     </div>
-
-                    {/* Feedbacks Card */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-yellow-100 rounded-lg">
-                                <MessageSquare className="text-yellow-600" size={24} />
-                            </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-orange-50 rounded-xl">
+                            <Package className="text-orange-600" size={28} />
                         </div>
-                        <h3 className="text-gray-500 text-sm font-medium mb-1">Feedbacks</h3>
-                        <div className="text-3xl font-bold text-gray-800 mb-2">{stats?.feedbacks.total || 0}</div>
-                        <div className="text-sm text-green-600">
-                            +{stats?.feedbacks.recent || 0} últimos {stats?.feedbacks.period}
-                        </div>
-                    </div>
-
-                    {/* Products Card */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-purple-100 rounded-lg">
-                                <Package className="text-purple-600" size={24} />
-                            </div>
-                        </div>
-                        <h3 className="text-gray-500 text-sm font-medium mb-1">Produtos</h3>
-                        <div className="text-3xl font-bold text-gray-800 mb-2">{stats?.products.total || 0}</div>
-                        <div className="text-sm text-gray-500">
-                            Ativos no catálogo
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Produtos no Catálogo</p>
+                            <p className="text-3xl font-bold text-gray-900">{stats.activeProducts}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Quick Links */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Link
-                        href="/admin/usuarios"
-                        className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 rounded-lg">
-                                <Users className="text-blue-600" size={24} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {menuItems.map((item, index) => (
+                        <Link
+                            key={index}
+                            href={item.disabled ? '#' : item.href}
+                            className={`group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between transition-all ${item.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-md hover:border-blue-200'}`}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-xl transition-colors ${item.disabled ? 'bg-gray-50' : 'bg-gray-50 group-hover:bg-blue-50'}`}>
+                                    {item.icon}
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-gray-800 text-lg">{item.title}</h3>
+                                        {item.badge && (
+                                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase">
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-gray-500">{item.description}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-semibold text-gray-800">Gerenciar Usuários</h3>
-                                <p className="text-sm text-gray-500">Ver todos os eletricistas cadastrados</p>
-                            </div>
-                        </div>
-                    </Link>
-
-                    <Link
-                        href="/admin/orcamentos"
-                        className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 rounded-lg">
-                                <FileText className="text-green-600" size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-gray-800">Ver Orçamentos</h3>
-                                <p className="text-sm text-gray-500">Todos os orçamentos criados</p>
-                            </div>
-                        </div>
-                    </Link>
-
-                    <Link
-                        href="/admin/feedbacks"
-                        className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-yellow-300 hover:shadow-md transition-all"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-yellow-100 rounded-lg">
-                                <MessageSquare className="text-yellow-600" size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-gray-800">Ver Feedbacks</h3>
-                                <p className="text-sm text-gray-500">Sugestões e reportes de problemas</p>
-                            </div>
-                        </div>
-                    </Link>
+                            {!item.disabled && (
+                                <ChevronRight size={20} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
+                            )}
+                        </Link>
+                    ))}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

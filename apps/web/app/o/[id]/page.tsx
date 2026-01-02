@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
-import { ArrowLeft, Check, MessageCircle, PackageOpen, Share2, Edit, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, MessageCircle, PackageOpen, Share2, Edit, Loader2, PackagePlus } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import { DownloadBudgetButton } from '../../components/DownloadBudgetButton';
+import { getImageUrl, formatCurrency } from '@/lib/utils';
 
 export default function BudgetViewPage() {
     const params = useParams();
@@ -65,12 +66,6 @@ export default function BudgetViewPage() {
         }
     };
 
-    const formatPrice = (price: string) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-        }).format(parseFloat(price));
-    };
 
     if (loading) return <div className="p-8 text-center text-gray-500">Carregando orçamento...</div>;
     if (!budget) return <div className="p-8 text-center text-red-500">Orçamento não encontrado.</div>;
@@ -136,11 +131,11 @@ export default function BudgetViewPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <span className="text-sm text-gray-500 block mb-1">Mão de Obra do Eletricista</span>
-                        <span className="text-2xl font-bold text-gray-800">{formatPrice(budget.total_labor)}</span>
+                        <span className="text-2xl font-bold text-gray-800">{formatCurrency(budget.total_labor)}</span>
                     </div>
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <span className="text-sm text-gray-500 block mb-1">Materiais Necessários (Loja)</span>
-                        <span className="text-2xl font-bold text-gray-800">{formatPrice(budget.total_materials)}</span>
+                        <span className="text-2xl font-bold text-gray-800">{formatCurrency(budget.total_materials)}</span>
                     </div>
                 </div>
 
@@ -153,41 +148,58 @@ export default function BudgetViewPage() {
                         {budget.items.map((item: any) => (
                             <div key={item.id} className="p-4 flex items-center gap-4">
                                 {/* Product Image - Left Side */}
-                                {item.product.image_url && (
-                                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                                        <img
-                                            src={
-                                                item.product.image_url.startsWith('http')
-                                                    ? item.product.image_url
-                                                    : item.product.image_url.startsWith('/products')
+                                <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 flex items-center justify-center">
+                                    {item.is_external ? (
+                                        item.custom_photo_url ? (
+                                            <img
+                                                src={item.custom_photo_url.startsWith('http') ? item.custom_photo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${item.custom_photo_url}`}
+                                                alt={item.custom_name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-[10px] text-gray-400">Sem foto</span>
+                                        )
+                                    ) : (
+                                        item.product?.image_url && (
+                                            <img
+                                                src={
+                                                    item.product.image_url.startsWith('http')
                                                         ? item.product.image_url
-                                                        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${item.product.image_url}`
-                                            }
-                                            alt={item.product.name}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                )}
+                                                        : item.product.image_url.startsWith('/products')
+                                                            ? item.product.image_url
+                                                            : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${item.product.image_url}`
+                                                }
+                                                alt={item.product.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        )
+                                    )}
+                                </div>
 
                                 {/* Product Info - Middle */}
                                 <div className="flex-1 min-w-0">
                                     <div className="font-medium text-gray-800">
-                                        {item.product.name}
-                                        {item.product.brand && (
+                                        {item.is_external ? item.custom_name : item.product?.name}
+                                        {!item.is_external && item.product?.brand && (
                                             <span className="text-gray-500"> - {item.product.brand}</span>
                                         )}
                                     </div>
-                                    <div className="text-xs text-gray-500">{item.quantity}x {formatPrice(item.price)}</div>
+                                    <div className="text-xs text-gray-500">
+                                        {item.quantity}x {formatCurrency(item.price)}
+                                        {item.is_external && item.suggested_source && (
+                                            <span className="block italic text-blue-500">Fonte sugerida: {item.suggested_source}</span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Price - Right Side */}
-                                <div className="font-bold text-gray-700 flex-shrink-0">{formatPrice((item.price * item.quantity).toString())}</div>
+                                <div className="font-bold text-gray-700 flex-shrink-0">{formatCurrency((item.price * item.quantity).toString())}</div>
                             </div>
                         ))}
                     </div>
                     <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
                         <span className="font-bold text-gray-800">Total Geral</span>
-                        <span className="text-2xl font-bold text-blue-600">{formatPrice(budget.total_price)}</span>
+                        <span className="text-2xl font-bold text-blue-600">{formatCurrency(budget.total_price)}</span>
                     </div>
                 </section>
 
@@ -220,7 +232,7 @@ export default function BudgetViewPage() {
                                 <button
                                     className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-lg shadow-green-200 active:scale-95"
                                     onClick={() => {
-                                        const msg = `Olá! Vi o orçamento #${budget.id.slice(0, 5)} no valor de ${formatPrice(budget.total_price)}. Poderíamos agendar?`;
+                                        const msg = `Olá! Vi o orçamento #${budget.id.slice(0, 5)} no valor de ${formatCurrency(budget.total_price)}. Poderíamos agendar?`;
                                         const phone = electrician?.phone?.replace(/\D/g, '');
                                         if (phone) {
                                             window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(msg)}`, '_blank');

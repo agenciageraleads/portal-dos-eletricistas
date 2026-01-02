@@ -3,15 +3,26 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Product } from '../types/product';
 
-export interface CartItem extends Product {
+export interface CartItem {
+    id: string; // ID único no carrinho (id do produto ou UUID para manual)
+    productId?: string; // ID real no banco (apenas para produtos do catálogo)
+    name: string;
+    price: string;
+    image_url?: string;
     quantity: number;
+    brand?: string;
+    sankhya_code?: number;
+    unit?: string;
+    isExternal?: boolean;
+    suggestedSource?: string;
 }
 
 interface CartContextType {
     items: CartItem[];
     addToCart: (product: Product) => void;
-    updateQuantity: (productId: string, quantity: number) => void;
-    removeFromCart: (productId: string) => void;
+    addManualItem: (item: Partial<CartItem>) => void;
+    updateQuantity: (id: string, quantity: number) => void;
+    removeFromCart: (id: string) => void;
     clearCart: () => void;
     loadBudgetIntoCart: (budgetItems: any[]) => void;
     total: number;
@@ -42,14 +53,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const addToCart = (product: Product) => {
         setItems((prev) => {
-            const existing = prev.find((item) => item.id === product.id);
+            const existing = prev.find((item) => item.productId === product.id);
             if (existing) {
                 return prev.map((item) =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
-            return [...prev, { ...product, quantity: 1 }];
+            return [...prev, {
+                id: product.id,
+                productId: product.id,
+                name: product.name,
+                price: product.price,
+                image_url: product.image_url,
+                brand: product.brand,
+                sankhya_code: product.sankhya_code,
+                unit: product.unit,
+                quantity: 1
+            }];
         });
+    };
+
+    const addManualItem = (manualItem: Partial<CartItem>) => {
+        const id = `manual_${Math.random().toString(36).substring(2, 9)}`;
+        setItems((prev) => [...prev, {
+            id,
+            name: manualItem.name || 'Item Personalizado',
+            price: manualItem.price || '0',
+            quantity: manualItem.quantity || 1,
+            image_url: manualItem.image_url,
+            isExternal: true,
+            suggestedSource: manualItem.suggestedSource,
+        }]);
     };
 
     const updateQuantity = (productId: string, quantity: number) => {
@@ -63,17 +97,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     const loadBudgetIntoCart = (budgetItems: any[]) => {
-        const newItems: CartItem[] = budgetItems.map((item: any) => ({
-            id: item.product.id,
-            name: item.product.name,
-            description: item.product.description,
-            price: item.price.toString(),
-            image_url: item.product.image_url || item.product.imageUrl,
-            category: item.product.category,
-            quantity: item.quantity,
-            sankhya_code: item.product.sankhya_code,
-            is_available: item.product.is_available
-        }));
+        const newItems: CartItem[] = budgetItems.map((item: any) => {
+            if (item.is_external) {
+                return {
+                    id: item.id, // Use item ID since it's manual
+                    name: item.custom_name,
+                    price: item.price.toString(),
+                    image_url: item.custom_photo_url,
+                    quantity: item.quantity,
+                    isExternal: true,
+                    suggestedSource: item.suggested_source
+                };
+            }
+            return {
+                id: item.product?.id || item.productId,
+                productId: item.product?.id || item.productId,
+                name: item.product?.name || 'Produto Não Encontrado',
+                description: item.product?.description || '',
+                price: item.price.toString(),
+                image_url: item.product?.image_url || item.product?.imageUrl,
+                category: item.product?.category,
+                quantity: item.quantity,
+                sankhya_code: item.product?.sankhya_code,
+                unit: item.product?.unit || 'UN',
+            };
+        });
         setItems(newItems);
     };
 
@@ -92,7 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const count = items.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
-        <CartContext.Provider value={{ items, addToCart, updateQuantity, removeFromCart, clearCart, loadBudgetIntoCart, total, count }}>
+        <CartContext.Provider value={{ items, addToCart, addManualItem, updateQuantity, removeFromCart, clearCart, loadBudgetIntoCart, total, count }}>
             {children}
         </CartContext.Provider>
     );

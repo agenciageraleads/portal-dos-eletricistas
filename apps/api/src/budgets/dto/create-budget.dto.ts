@@ -1,10 +1,26 @@
 import { Type, Transform } from 'class-transformer';
-import { IsArray, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateNested, Matches, IsOptional } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateNested, Matches, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateBudgetItemDto {
     @IsString()
-    @IsNotEmpty()
-    productId: string;
+    @IsOptional()
+    productId?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    isExternal?: boolean;
+
+    @IsString()
+    @IsOptional()
+    customName?: string;
+
+    @IsString()
+    @IsOptional()
+    customPhotoUrl?: string;
+
+    @IsString()
+    @IsOptional()
+    suggestedSource?: string;
 
     @IsInt()
     @Min(1)
@@ -34,6 +50,20 @@ export class CreateBudgetDto {
     @IsNumber()
     @Min(0)
     laborValue: number;
+
+    @IsString()
+    @IsOptional()
+    laborDescription?: string;
+
+    @IsString()
+    @IsOptional()
+    notes?: string;
+
+    @IsOptional()
+    showUnitPrices?: boolean;
+
+    @IsOptional()
+    showLaborTotal?: boolean;
 
     @IsString()
     @IsOptional()

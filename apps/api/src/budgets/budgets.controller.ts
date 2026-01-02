@@ -30,4 +30,11 @@ export class BudgetsController {
     update(@Request() req: any, @Param('id') id: string, @Body() updateBudgetDto: UpdateBudgetDto) {
         return this.budgetsService.update(id, req.user.userId, updateBudgetDto);
     }
+
+    // Admin: Get all budgets (v1.2.0)
+    @UseGuards(AuthGuard('jwt'))
+    @Get('admin/all')
+    async findAllAdmin(@Request() req: any) {
+        return this.budgetsService.findAllForAdmin(req.user.userId);
+    }
 }

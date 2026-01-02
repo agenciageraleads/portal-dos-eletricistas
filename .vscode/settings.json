@@ -1,38 +1,21 @@
 {
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/CVS": true,
-        "**/.DS_Store": true,
-        "**/Thumbs.db": true,
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/.next": true,
-        "**/.turbo": true,
-        "**/portal.zip": true
-    },
+    "typescript.preferences.importModuleSpecifierEnding": "minimal",
+    "typescript.tsserver.maxTsServerMemory": 4096,
+    "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+    "git.autorefresh": false,
     "files.watcherExclude": {
         "**/.git/objects/**": true,
         "**/.git/subtree-cache/**": true,
         "**/node_modules/**": true,
-        "**/dist/**": true,
         "**/.next/**": true,
-        "**/.turbo/**": true,
-        "**/apps/api/uploads/**": true
+        "**/dist/**": true,
+        "**/portal.zip": true
     },
     "search.exclude": {
         "**/node_modules": true,
-        "**/dist": true,
+        "**/bower_components": true,
         "**/.next": true,
-        "**/.turbo": true,
+        "**/dist": true,
         "**/portal.zip": true
-    },
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.disableAutomaticTypeAcquisition": true,
-    "git.autorefresh": false,
-    "git.enabled": false,
-    "eslint.enable": false,
-    "editor.codeLens": false,
-    "typescript.tsserver.maxTsServerMemory": 4096
+    }
 }

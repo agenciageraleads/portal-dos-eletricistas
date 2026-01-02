@@ -24,11 +24,19 @@ export class BudgetsService {
                 client_phone: clientPhone,
                 total_materials: totalMaterials,
                 total_labor: laborValue,
+                labor_description: createBudgetDto.laborDescription,
                 total_price: totalPrice,
                 status: (createBudgetDto.status as any) || 'SHARED',
+                notes: createBudgetDto.notes,
+                show_unit_prices: createBudgetDto.showUnitPrices ?? true,
+                show_labor_total: createBudgetDto.showLaborTotal ?? true,
                 items: {
                     create: items.map((item) => ({
                         productId: item.productId,
+                        is_external: item.isExternal || false,
+                        custom_name: item.customName,
+                        custom_photo_url: item.customPhotoUrl,
+                        suggested_source: item.suggestedSource,
                         quantity: item.quantity,
                         price: item.price,
                     })),
@@ -95,8 +103,12 @@ export class BudgetsService {
                     client_phone: clientPhone,
                     total_materials: currentMaterials,
                     total_labor: currentLabor,
+                    labor_description: updateBudgetDto.laborDescription,
                     total_price: totalPrice,
                     status: (status as any) || budget.status,
+                    notes: updateBudgetDto.notes,
+                    show_unit_prices: updateBudgetDto.showUnitPrices ?? budget.show_unit_prices,
+                    show_labor_total: updateBudgetDto.showLaborTotal ?? budget.show_labor_total,
                 }
             });
 
@@ -107,6 +119,10 @@ export class BudgetsService {
                     data: items.map((item: any) => ({
                         budgetId: id,
                         productId: item.productId,
+                        is_external: item.isExternal || false,
+                        custom_name: item.customName,
+                        custom_photo_url: item.customPhotoUrl,
+                        suggested_source: item.suggestedSource,
                         quantity: item.quantity,
                         price: item.price,
                     }))
@@ -114,6 +130,32 @@ export class BudgetsService {
             }
 
             return updatedBudget;
+        });
+    }
+
+    // Admin: View all budgets (v1.2.0)
+    async findAllForAdmin(userId: string) {
+        // Check if user is admin
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user || user.role !== 'ADMIN') {
+            throw new ForbiddenException('Apenas administradores podem visualizar todos os orçamentos');
+        }
+
+        return this.prisma.budget.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true
+                    }
+                },
+                _count: {
+                    select: { items: true }
+                }
+            }
         });
     }
 }

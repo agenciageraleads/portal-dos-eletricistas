@@ -31,6 +31,7 @@ model User {
   email     String     @unique
   password  String     // Será hasheada
   name      String
+  business_name String? // Razão Social / Nome Fantasia (v1.2.0)
   role      Role       @default(ELETRICISTA)
   status    UserStatus @default(PENDING)
   cpf_cnpj  String?
@@ -131,6 +132,11 @@ model Budget {
   labor_description String?    // Descrição justificativa do serviço (Novo v1.1.0)
   total_price     Decimal      @default(0) @db.Decimal(10, 2)
 
+  // Observações e Configurações (Novo v1.2.0)
+  notes           String?      // Observações gerais, condições de pagamento, prazos
+  show_unit_prices Boolean     @default(true)  // Exibir preços unitários no PDF?
+  show_labor_total Boolean     @default(true)  // Exibir total de mão de obra separado?
+
   items           BudgetItem[]
   order           Order?
   
@@ -146,8 +152,14 @@ model BudgetItem {
   budgetId  String
   budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  // Campos para Itens Manuais / Externos (v1.3.0)
+  is_external       Boolean  @default(false)
+  custom_name       String?
+  custom_photo_url  String?
+  suggested_source  String?
 
   quantity  Int
   price     Decimal  @db.Decimal(10, 2) // Preço "congelado" no momento do orçamento

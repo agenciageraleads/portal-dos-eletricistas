@@ -1,4 +1,4 @@
-import { Controller, Patch, Body, Request, UseGuards, Get, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Patch, Body, Request, UseGuards, Get, Post, UseInterceptors, UploadedFile, BadRequestException, Param, ForbiddenException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { extname, join } from 'path';
@@ -104,5 +104,27 @@ export class UsersController {
         console.log('Updating profile with URL:', logoUrl);
         await this.usersService.updateProfile(userId, { logo_url: logoUrl });
         return { logo_url: logoUrl };
+    }
+
+    // Admin: List all users (v1.2.0)
+    @UseGuards(AuthGuard('jwt'))
+    @Get()
+    async findAll(@Request() req: any) {
+        const user = await this.usersService.findById(req.user.sub || req.user.id);
+        if (!user || user.role !== 'ADMIN') {
+            throw new ForbiddenException('Apenas administradores podem listar usuários');
+        }
+        return this.usersService.findAll();
+    }
+
+    // Admin: Update user role (v1.2.0)
+    @UseGuards(AuthGuard('jwt'))
+    @Patch(':id/role')
+    async updateRole(@Request() req: any, @Param('id') userId: string, @Body('role') role: 'ELETRICISTA' | 'ADMIN') {
+        const admin = await this.usersService.findById(req.user.sub || req.user.id);
+        if (!admin || admin.role !== 'ADMIN') {
+            throw new ForbiddenException('Apenas administradores podem alterar papéis');
+        }
+        return this.usersService.updateRole(userId, role);
     }
 }

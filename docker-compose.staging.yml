@@ -1,0 +1,97 @@
+version: "3.8"
+services:
+  # ==========================================
+  # 1. FRONTEND WEB STAGING
+  # ==========================================
+  web-staging:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://beta-api.portaleletricos.com.br
+    image: lucasborgessb/portal_dos_eletricistas:web-staging
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.portal_web_staging.rule=Host(`beta.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_web_staging.entrypoints=websecure"
+        - "traefik.http.routers.portal_web_staging.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_web_staging.loadbalancer.server.port=3000"
+        - "traefik.docker.network=Portainer"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://beta-api.portaleletricos.com.br
+    networks:
+      - portal_staging_overlay
+      - Portainer
+
+  # ==========================================
+  # 2. BACKEND API STAGING
+  # ==========================================
+  api-staging:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: lucasborgessb/portal_dos_eletricistas:api-1.2.0
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/src/main.js"
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.portal_api_staging.rule=Host(`beta-api.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_api_staging.entrypoints=websecure"
+        - "traefik.http.routers.portal_api_staging.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_api_staging.loadbalancer.server.port=3000"
+        - "traefik.docker.network=Portainer"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET_STAGING}
+      DATABASE_URL: postgresql://${STAGING_DB_USER}:${STAGING_DB_PASSWORD}@db-staging:5432/${STAGING_DB_NAME}?schema=public
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: portal-staging
+      S3_REGION: ${S3_REGION}
+      # Sankhya Integration
+      SANKHYA_CLIENT_ID: ${SANKHYA_CLIENT_ID}
+      SANKHYA_CLIENT_SECRET: ${SANKHYA_CLIENT_SECRET}
+      SANKHYA_X_TOKEN: ${SANKHYA_X_TOKEN}
+      # Email
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    networks:
+      - portal_staging_overlay
+      - Portainer
+    depends_on:
+      - db-staging
+
+  # ==========================================
+  # 3. POSTGRES STAGING
+  # ==========================================
+  db-staging:
+    image: postgres:14
+    volumes:
+      - db_staging_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${STAGING_DB_USER}
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD}
+      POSTGRES_DB: ${STAGING_DB_NAME}
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - portal_staging_overlay
+
+networks:
+  portal_staging_overlay:
+    driver: overlay
+  Portainer:
+    external: true
+
+volumes:
+  db_staging_data:

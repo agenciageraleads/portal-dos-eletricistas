@@ -5,6 +5,14 @@ Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-31
+### Adicionado
+- **Visibilidade Admin**: Nova página para administradores visualizarem todos os orçamentos do sistema.
+- **Customização de Marca**: Suporte para upload e exibição de logo da empresa nos PDFs de orçamento.
+- **Privacidade do Orçamento**: Toggles para ocultar valores unitários e total de mão de obra para o cliente final.
+- **Itens Manuais**: Possibilidade de adicionar produtos ou serviços fora do catálogo com foto e indicação de fonte.
+- **Campos Detalhados**: Novos campos de notas internas e descrição detalhada de mão de obra no orçamento.
+
 ## [1.1.0] - 2025-12-31
 ### Melhora
 - **Busca Inteligente**: Suporte a sinônimos (Fio=Cabo, Disjuntor=Breaker) e normalização de medidas (2.5mm = 2,5).

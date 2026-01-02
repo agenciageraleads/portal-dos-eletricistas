@@ -3,13 +3,13 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save } from 'lucide-react';
+import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, PackagePlus, X } from 'lucide-react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 function OrcamentoContent() {
-    const { items, total, removeFromCart, updateQuantity, clearCart } = useCart();
+    const { items, total, removeFromCart, updateQuantity, clearCart, addManualItem } = useCart();
     const { user, loading: authLoading } = useAuth();
 
     // Client inputs (meaning the end-customer, wait. No. "Seus Dados" = Electrician Info)
@@ -25,7 +25,18 @@ function OrcamentoContent() {
     const [customerPhone, setCustomerPhone] = useState('');
     const [laborValue, setLaborValue] = useState<string>('0');
     const [laborDescription, setLaborDescription] = useState('');
+    const [notes, setNotes] = useState('');
+    const [showUnitPrices, setShowUnitPrices] = useState(true);
+    const [showLaborTotal, setShowLaborTotal] = useState(true);
     const [loading, setLoading] = useState(false);
+
+    // Manual Item Modal State
+    const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+    const [manualName, setManualName] = useState('');
+    const [manualPrice, setManualPrice] = useState('');
+    const [manualQty, setManualQty] = useState('1');
+    const [manualSource, setManualSource] = useState('');
+
     const router = useRouter();
     const params = useSearchParams();
 
@@ -46,6 +57,9 @@ function OrcamentoContent() {
                     setCustomerPhone(data.client_phone);
                     setLaborValue(data.total_labor.toString());
                     setLaborDescription(data.labor_description || '');
+                    setNotes(data.notes || '');
+                    setShowUnitPrices(data.show_unit_prices ?? true);
+                    setShowLaborTotal(data.show_labor_total ?? true);
                     // Note: Items should ideally be loaded into cart via context before hitting this page,
                     // BUT if user refreshes, we might lose context state if not persisted perfectly or if we rely solely on context call from Details page.
                     // The plan said "Redirect to /orcamento?edit=ID and load items". 
@@ -86,12 +100,19 @@ function OrcamentoContent() {
                 clientName: customerName,
                 clientPhone: customerPhone.replace(/\D/g, ''),
                 items: items.map(item => ({
-                    productId: item.id,
+                    productId: item.isExternal ? undefined : item.productId,
+                    isExternal: item.isExternal || false,
+                    customName: item.isExternal ? item.name : undefined,
+                    customPhotoUrl: item.isExternal ? item.image_url : undefined,
+                    suggestedSource: item.suggestedSource,
                     quantity: Number(item.quantity),
                     price: Number(item.price)
                 })),
                 laborValue: Number(labor),
                 laborDescription: laborDescription,
+                notes: notes,
+                showUnitPrices: showUnitPrices,
+                showLaborTotal: showLaborTotal,
                 status: status
             };
 
@@ -147,6 +168,27 @@ function OrcamentoContent() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleAddManualItem = () => {
+        if (!manualName || !manualPrice) {
+            alert('Preencha nome e preço do item.');
+            return;
+        }
+
+        addManualItem({
+            name: manualName,
+            price: manualPrice,
+            quantity: parseInt(manualQty) || 1,
+            suggestedSource: manualSource
+        });
+
+        // Reset and close
+        setManualName('');
+        setManualPrice('');
+        setManualQty('1');
+        setManualSource('');
+        setIsManualModalOpen(false);
     };
 
     if (authLoading) return <div className="p-8 text-center">Carregando...</div>;
@@ -262,9 +304,19 @@ function OrcamentoContent() {
                             ))}
                         </div>
                     )}
-                    <div className="p-4 bg-gray-50 flex justify-between items-center border-t border-gray-100">
-                        <span className="text-gray-600 font-medium">Subtotal Materiais</span>
-                        <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                    <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
+                        <button
+                            type="button"
+                            onClick={() => setIsManualModalOpen(true)}
+                            className="flex items-center justify-center gap-2 py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-all font-medium"
+                        >
+                            <PackagePlus size={20} />
+                            Adicionar Item que não está no catálogo
+                        </button>
+                        <div className="flex justify-between items-center pt-2">
+                            <span className="text-gray-600 font-medium">Subtotal Materiais</span>
+                            <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                        </div>
                     </div>
                 </section>
 
@@ -289,11 +341,54 @@ function OrcamentoContent() {
                             className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
                         />
                     </div>
+
+                    {/* Privacy Toggles v1.2.0 */}
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                        <h3 className="text-sm font-bold text-gray-700 mb-3">⚙️ Configurações de Privacidade</h3>
+                        <div className="space-y-3">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={showUnitPrices}
+                                    onChange={(e) => setShowUnitPrices(e.target.checked)}
+                                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-gray-900">Mostrar preços unitários</span>
+                                    <p className="text-xs text-gray-500">Se desativado, o cliente verá apenas o total</p>
+                                </div>
+                            </label>
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={showLaborTotal}
+                                    onChange={(e) => setShowLaborTotal(e.target.checked)}
+                                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-gray-900">Mostrar valor de mão de obra separado</span>
+                                    <p className="text-xs text-gray-500">Se desativado, mão de obra será incluída no total geral</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </section>
 
-                {/* 3. Dados do Cliente */}
+                {/* 3. Observações (v1.2.0) */}
                 <section className="bg-white rounded-xl shadow-sm p-6">
-                    <h2 className="font-bold text-gray-800 mb-4">3. Dados do Cliente (Para quem é?)</h2>
+                    <h2 className="font-bold text-gray-800 mb-4">3. Observações e Condições</h2>
+                    <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Observações gerais, condições de pagamento, prazo de validade, garantias..."
+                        className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Estas informações aparecerão no final do orçamento enviado ao cliente.</p>
+                </section>
+
+                {/* 4. Dados do Cliente */}
+                <section className="bg-white rounded-xl shadow-sm p-6">
+                    <h2 className="font-bold text-gray-800 mb-4">4. Dados do Cliente (Para quem é?)</h2>
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Cliente</label>
@@ -406,6 +501,91 @@ function OrcamentoContent() {
                     </div>
                 )
             }
+
+            {/* Modal de Item Manual */}
+            {isManualModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                <Plus className="text-blue-600" />
+                                Item fora do catálogo
+                            </h3>
+                            <button onClick={() => setIsManualModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Nome do Item/Serviço *</label>
+                                <input
+                                    type="text"
+                                    value={manualName}
+                                    onChange={(e) => setManualName(e.target.value)}
+                                    placeholder="Ex: Fita Isolante 3M Alta Fusão"
+                                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Preço Unitário *</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                                        <input
+                                            type="number"
+                                            value={manualPrice}
+                                            onChange={(e) => setManualPrice(e.target.value)}
+                                            placeholder="0,00"
+                                            className="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Quantidade</label>
+                                    <input
+                                        type="number"
+                                        value={manualQty}
+                                        onChange={(e) => setManualQty(e.target.value)}
+                                        className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Sugestão de onde comprar (Opcional)</label>
+                                <input
+                                    type="text"
+                                    value={manualSource}
+                                    onChange={(e) => setManualSource(e.target.value)}
+                                    placeholder="Ex: Leroy Merlin, Loja da Esquina..."
+                                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+
+                            <p className="text-xs text-gray-500 italic">
+                                * Este item não será faturado pela empresa e deve ser providenciado pelo eletricista.
+                            </p>
+                        </div>
+
+                        <div className="p-6 bg-gray-50 flex gap-3">
+                            <button
+                                onClick={() => setIsManualModalOpen(false)}
+                                className="flex-1 py-3 px-4 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-white transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleAddManualItem}
+                                className="flex-2 py-3 px-6 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                            >
+                                Adicionar ao Orçamento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }

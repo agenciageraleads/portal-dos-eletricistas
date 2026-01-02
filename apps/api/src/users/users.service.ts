@@ -24,5 +24,31 @@ export class UsersService {
             where: { id: userId },
         });
     }
-}
 
+    // Admin: List all users (v1.2.0)
+    async findAll() {
+        return this.prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                logo_url: true,
+                createdAt: true,
+                _count: {
+                    select: { budgets: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    // Admin: Update user role (v1.2.0)
+    async updateRole(userId: string, role: 'ELETRICISTA' | 'ADMIN') {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { role }
+        });
+    }
+}
