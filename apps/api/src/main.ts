@@ -19,6 +19,7 @@ async function bootstrap() {
   const origins = [
     'https://app.portaleletricos.com.br',
     'https://www.app.portaleletricos.com.br',
+    'https://beta.portaleletricos.com.br',
     'http://localhost:3000',
   ];
 
