@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronRight, RefreshCw, Cable } from 'lucide-react';
 
 export function BitolaCalculator() {
     const [voltage, setVoltage] = useState('220');

@@ -16,6 +16,9 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Privacidade do Orçamento (Público)**: Lógica aprimorada na visualização pública (`/o/[id]`) para ocultar preços unitários e detalhamento de mão de obra quando configurado pelo eletricista.
 - **Feedback Visual**: Badges coloridos para facilitar leitura de especificações técnicas.
 
+### Correções
+- **Staging**: Correção de CORS na API para permitir conexões do ambiente de staging (`beta.portaleletricos.com.br`), originalmente planejada para v1.2.1.
+
 ## [1.2.0] - 2025-12-31
 ### Adicionado
 - **Visibilidade Admin**: Nova página para administradores visualizarem todos os orçamentos do sistema.
