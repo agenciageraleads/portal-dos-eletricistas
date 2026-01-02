@@ -36,7 +36,7 @@ services:
       dockerfile: apps/api/Dockerfile
     image: lucasborgessb/portal_dos_eletricistas:api-1.2.0
     command: >
-      sh -c "npx prisma migrate deploy && node dist/src/main.js"
+      sh -c "npx prisma migrate deploy && node dist/main.js"
     deploy:
       mode: replicated
       replicas: 1

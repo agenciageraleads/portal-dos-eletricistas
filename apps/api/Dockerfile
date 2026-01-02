@@ -41,4 +41,4 @@ COPY --from=builder /app/apps/api/prisma ./prisma
 
 EXPOSE 3333
 
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/main.js"]
