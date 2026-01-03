@@ -23,39 +23,39 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto, 
 **Semana 1: Correções Fundamentais**
 *   [x] **Busca Inteligente + Sinônimos:** "Cabo" = "Fio", "S8" = "S08".
 *   [x] **Edição de Quantidade no Orçamento:** Ajuste fácil +/- e input manual.
-*   [ ] **Especificações Técnicas (MVP):** Exibir dados críticos (Bitola, Amperagem) no catálogo.
+*   [x] **Especificações Técnicas (MVP):** Exibir dados críticos (Bitola, Amperagem) no catálogo.
 
 **Semana 2: UX Essencial & Privacidade**
 *   [x] **Campos de Observação:** Notas, prazo, pagamento no orçamento.
 *   [x] **Privacidade Toggle:** Opção de ocultar detalhes de preço (Material vs Mão de Obra).
+*   [x] **Staging Environment:** Ambiente Beta (`beta.portaleletricos.com.br`) para validação.
 *   [ ] **Onboarding:** Tutorial rápido para novos usuários.
 
-**Semana 3: Kits de Serviço & Itens Manuais**
-*   [ ] **Service Templates / Kits:** Kits baseados em serviços (Visita, Troca de Chuveiro, etc).
-*   [ ] **Produto Extra / Manual:** Permitir adicionar itens fora do catálogo (com aviso de faturamento externo).
-*   [ ] **Hub de Ferramentas (MVP):** Área para Calculadoras, Tabelas e Normas Técnicas.
-*   [ ] **Especialista AI (Alpha):** Assistente GPT para dúvidas técnicas de elétrica.
+**Semana 3: Ferramentas & Release v1.3.0 (CONCLUÍDO)**
+*   [x] **Hub de Ferramentas (MVP):** Calculadora de Bitola e Disjuntores (`/ferramentas`).
+*   [x] **Release v1.3.0:** Build, Tag e Deploy em Staging.
+*   [ ] **Service Templates / Kits:** Kits baseados em serviços (Adiado).
 
-**Semana 4: Gestão & Polimento**
+**Semana 4: Diferenciais Competitivos (Próximo Foco)**
+*   [ ] **Produtos Complementares (Cross-Sell):** Sugestão automática (Disjuntor -> Barramento).
+*   [ ] **Desconto por Quantidade:** Tabela de preços progressiva (Atacado).
+*   [ ] **Produto Extra / Manual:** Permitir adicionar itens fora do catálogo.
+*   [ ] **Especialista AI (Alpha):** Assistente GPT (Fase de Pesquisa).
+
+**Gestão & Polimento (Ongoing)**
 *   [x] **CRM Básico:** Status dos orçamentos (Enviado, Aprovado) e Meus Orçamentos.
 *   [ ] **Dashboard de Métricas:** Taxa de conversão.
 *   [ ] **PDF Melhorado:** Layout mais robusto.
 *   [x] **Simplified Auth:** Cadastro simplificado (CPF/CNPJ, WhatsApp).
 *   [x] **Image Persistence:** Integração com MinIO para fotos estáveis.
 
-### 🟡 Marco 2: Diferenciais (60 Dias) - FEVEREIRO 2026
+### 🟡 Marco 2: Expansão (60 Dias) - FEVEREIRO 2026
 > **Objetivo:** Implementar ferramentas que "prendem" o usuário e diferenciais competitivos.
 
-*   [ ] **Desconto por Quantidade:** Tabela de preços progressiva.
-*   [ ] **Calculadoras Completas:** Disjuntores, Demanda.
+*   [ ] **Calculadoras Avançadas:** Demanda, Fator de Potência.
 *   [ ] **Agrupamento de Produtos:** Melhor visualização de variações (cores, tamanhos).
 *   [ ] **PWA Completo:** Instalação e cache offline robusto.
-
-### 💎 Marco 3: Consolidação (90 Dias) - MARÇO 2026
-> **Objetivo:** Escala, App Nativo e Integrações com Distribuidores.
-
-*   [ ] **App Mobile Nativo (React Native):** Foco em uso offline na obra.
-*   [ ] **Integração com Distribuidores:** Estoque e preço em tempo real.
+*   [ ] **App Mobile Nativo:** Planejamento.
 *   [ ] **Geolocalização:** Encontrar eletricistas próximos.
 
 ---
