@@ -10,12 +10,18 @@ interface User {
     phone?: string;
     logo_url?: string;
     role?: string;
+    bio?: string;
+    pix_key?: string;
+    _count?: {
+        budgets: number;
+    };
 }
 
 interface AuthContextType {
     user: User | null;
     login: (token: string, userData: User) => void;
     logout: () => void;
+    refreshUser: () => Promise<void>;
     loading: boolean;
 }
 
@@ -23,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     login: () => { },
     logout: () => { },
+    refreshUser: async () => { },
     loading: true,
 });
 
@@ -69,6 +76,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    const refreshUser = async () => {
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/me`);
+            const freshUser = response.data;
+            setUser(freshUser);
+            localStorage.setItem('user', JSON.stringify(freshUser));
+        } catch (error) {
+            console.error('Error refreshing user:', error);
+        }
+    };
+
     const login = (token: string, userData: User) => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
@@ -85,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, refreshUser, loading }}>
             {children}
         </AuthContext.Provider>
     );

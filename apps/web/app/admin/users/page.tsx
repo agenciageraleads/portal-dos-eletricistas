@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '@/lib/api';
-import { ChevronLeft, Shield, Users } from 'lucide-react';
+import { ChevronLeft, Shield, Users, Key, Copy, X } from 'lucide-react';
 
 interface User {
     id: string;
@@ -25,6 +25,8 @@ export default function AdminUsersPage() {
     const router = useRouter();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [resetToken, setResetToken] = useState<string | null>(null);
+    const [resetLink, setResetLink] = useState<string | null>(null);
 
     useEffect(() => {
         if (!authLoading && (!currentUser || currentUser.role !== 'ADMIN')) {
@@ -61,6 +63,27 @@ export default function AdminUsersPage() {
             console.error('Erro ao alterar papel:', error);
             alert('Erro ao alterar permissões do usuário.');
         }
+    };
+
+    const handleResetPassword = async (userId: string) => {
+        if (!confirm('Gerar código de redefinição de senha para este usuário?')) return;
+
+        try {
+            const { data } = await api.post(`/users/${userId}/reset-token`);
+            setResetToken(data.token);
+            // Construct link (assuming localhost for dev, but should use window.location.origin in production)
+            const origin = window.location.origin;
+            setResetLink(`${origin}/redefinir-senha`);// User will need to enter token manually or we can add ?token=
+            // Actually the current Page asks for token input. So giving the token is key.
+        } catch (error) {
+            console.error('Erro ao gerar token:', error);
+            alert('Erro ao gerar código de redefinição.');
+        }
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        alert('Copiado para a área de transferência!');
     };
 
     if (authLoading || loading) {
@@ -145,12 +168,20 @@ export default function AdminUsersPage() {
                                             <button
                                                 onClick={() => toggleRole(user.id, user.role)}
                                                 className={`text-sm font-medium ${user.role === 'ADMIN'
-                                                        ? 'text-orange-600 hover:text-orange-700'
-                                                        : 'text-blue-600 hover:text-blue-700'
+                                                    ? 'text-orange-600 hover:text-orange-700'
+                                                    : 'text-blue-600 hover:text-blue-700'
                                                     }`}
                                                 disabled={user.id === currentUser?.id}
                                             >
                                                 {user.role === 'ADMIN' ? 'Rebaixar' : 'Promover a Admin'}
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleResetPassword(user.id)}
+                                                className="ml-3 text-gray-400 hover:text-blue-600"
+                                                title="Redefinir Senha"
+                                            >
+                                                <Key size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -167,6 +198,57 @@ export default function AdminUsersPage() {
                     </div>
                 )}
             </main>
-        </div>
+
+            {/* Reset Token Modal */}
+            {
+                resetToken && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-lg font-bold text-gray-900">Código Gerado 🔐</h3>
+                                <button onClick={() => setResetToken(null)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <p className="text-sm text-gray-600 mb-6">
+                                Envie este código e o link para o usuário redefinir a senha:
+                            </p>
+
+                            <div className="bg-gray-50 p-4 rounded-xl mb-4 border border-gray-100">
+                                <p className="text-xs text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Código</p>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-2xl font-mono font-bold text-blue-600 tracking-widest">{resetToken}</span>
+                                    <button onClick={() => copyToClipboard(resetToken)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors">
+                                        <Copy size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {resetLink && (
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <p className="text-xs text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Link de Redefinição</p>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-sm text-gray-600 truncate">{resetLink}</span>
+                                        <button onClick={() => copyToClipboard(resetLink)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors">
+                                            <Copy size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={() => setResetToken(null)}
+                                    className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+                                >
+                                    Concluído
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }

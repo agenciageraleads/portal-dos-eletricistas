@@ -1,147 +1,107 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Product } from './types/product';
-import { ProductCard } from './components/ProductCard';
-import { ProductSearch } from './components/ProductSearch';
-import { CartSummary } from './components/CartSummary';
-import { OnboardingModal } from './components/OnboardingModal';
-import { PackageSearch, User, FileText, TriangleAlert, LogOut, ShieldCheck, Calculator } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Link from 'next/link';
+import {
+    FileText,
+    ShoppingCart,
+    Calculator,
+    Users,
+    Zap,
+    MessageCircle,
+    PackageSearch,
+    ChevronRight,
+    Trophy,
+    LogOut,
+    User,
+    ShieldCheck
+} from 'lucide-react';
+import { OnboardingModal } from './components/OnboardingModal';
+import JornadaModal from './components/JornadaModal';
 
 export default function Home() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const { user, logout } = useAuth();
 
-
-    const CATEGORIES = [
-        { id: 'Acabamento', label: 'Acabamento', icon: '🏠' },
-        { id: 'Acessórios', label: 'Acessórios', icon: '📎' },
-        { id: 'Automação', label: 'Automação', icon: '🤖' },
-        { id: 'Cabos Diversos', label: 'Cabos Diversos', icon: '🔗' },
-        { id: 'Cabos Energia', label: 'Fios e Cabos', icon: '⚡' },
-        { id: 'Combate a Incêndio', label: 'Incêndio', icon: '🔥' },
-        { id: 'Equipamentos', label: 'Equipamentos', icon: '⚙️' },
-        { id: 'Ferragens', label: 'Ferragens', icon: '🔩' },
-        { id: 'Ferramentas', label: 'Ferramentas', icon: '🔧' },
-        { id: 'Iluminação Comercial', label: 'Ilum. Comercial', icon: '🏢' },
-        { id: 'Iluminação Decorativa', label: 'Ilum. Decorativa', icon: '💡' },
-        { id: 'Infraestrutura', label: 'Infraestrutura', icon: '🏗️' },
-        { id: 'Média Tensão', label: 'Média Tensão', icon: '🔋' },
-        { id: 'SPDA', label: 'SPDA', icon: '⛈️' },
-        { id: 'Elétrica', label: 'Elétrica Geral', icon: '🔌' },
+    const menuItems = [
+        {
+            title: 'Fazer Orçamento Simplificado',
+            description: 'Apenas mão de obra ou itens manuais.',
+            icon: <FileText size={32} className="text-white" />,
+            bg: 'bg-blue-600',
+            href: '/orcamento', // Redirects to blank budget
+            color: 'text-blue-600'
+        },
+        {
+            title: 'Orçamento + Catálogo',
+            description: 'Adicione produtos direto do nosso catálogo.',
+            icon: <PackageSearch size={32} className="text-white" />,
+            bg: 'bg-cyan-600',
+            href: '/catalogo',
+            color: 'text-cyan-600'
+        },
+        {
+            title: 'Meus Orçamentos',
+            description: 'Gerencie e envie propostas para clientes.',
+            icon: <ShoppingCart size={32} className="text-white" />, // Using ShoppingCart/FileText metaphor
+            bg: 'bg-emerald-600',
+            href: '/orcamentos',
+            color: 'text-emerald-600'
+        },
+        {
+            title: 'Comunidade Elétrica',
+            description: 'Troque experiências com outros profissionais.',
+            icon: <Users size={32} className="text-white" />,
+            bg: 'bg-purple-600',
+            href: '#',
+            color: 'text-purple-600',
+            badge: 'Em Breve'
+        },
+        {
+            title: 'Ferramentas Úteis',
+            description: 'Calculadoras de bitola, disjuntores e mais.',
+            icon: <Calculator size={32} className="text-white" />,
+            bg: 'bg-orange-600',
+            href: '/ferramentas',
+            color: 'text-orange-600'
+        },
+        {
+            title: 'Eletricista GPT',
+            description: 'Tire dúvidas técnicas com nossa IA.',
+            icon: <MessageCircle size={32} className="text-white" />,
+            bg: 'bg-pink-600',
+            href: '#',
+            color: 'text-pink-600',
+            badge: 'Em Breve'
+        }
     ];
 
-    const fetchProducts = async (pageToFetch: number, query: string = '', category: string | null = null, reset: boolean = false) => {
-        try {
-            setLoading(true);
-            const params: any = {
-                page: pageToFetch,
-                limit: 20,
-            };
-
-            if (query) params.q = query;
-            if (category) params.category = category;
-
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/products`, { params });
-            const newProducts = response.data.data;
-
-            if (reset) {
-                setProducts(newProducts);
-            } else {
-                setProducts(prev => [...prev, ...newProducts]);
-            }
-
-            setHasMore(newProducts.length === 20); // If < 20 returned, probably end of list
-            setLoading(false);
-        } catch (error) {
-            console.error('Erro ao buscar produtos:', error);
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchProducts(1, '', null, true);
-    }, []);
-
-    const handleSearch = (query: string) => {
-        setSearchQuery(query);
-        setPage(1);
-        setSelectedCategory(null);
-        fetchProducts(1, query, null, true); // Search clears category
-    };
-
-    const handleCategoryClick = (category: string) => {
-        const newCategory = selectedCategory === category ? null : category;
-        setSelectedCategory(newCategory);
-        setPage(1);
-        setSearchQuery(''); // Category clears search query
-        fetchProducts(1, '', newCategory, true);
-    };
-
-    const loadMore = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        fetchProducts(nextPage, searchQuery, selectedCategory, false);
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 pb-24"> {/* pb-24 space for floating cart */}
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Header */}
             <header className="bg-white shadow-sm sticky top-0 z-10">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-                            P
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+                            <Zap size={24} fill="currentColor" />
                         </div>
-                        <h1 className="text-xl font-bold text-gray-800 hidden sm:block">Portal do Eletricista</h1>
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-800 leading-tight">Portal do Eletricista</h1>
+                            <p className="text-xs text-gray-500 font-medium">Seu escritório digital</p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <button
-                            className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors border border-yellow-200"
-                            onClick={async () => {
-                                const msg = prompt('Encontrou algum erro ou tem uma sugestão? Conte para nós:');
-                                if (msg) {
-                                    try {
-                                        await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/feedback`, {
-                                            type: 'GENERAL',
-                                            message: msg,
-                                        });
-                                        alert('Obrigado! Seu feedback é muito importante.');
-                                    } catch (error) {
-                                        console.error(error);
-                                        alert('Erro ao enviar feedback.');
-                                    }
-                                }
-                            }}
-                            title="Reportar problema ou sugerir melhoria"
-                        >
-                            <TriangleAlert size={18} />
-                        </button>
+
+                    <div className="flex items-center gap-2">
                         {user ? (
                             <>
-                                <Link href="/ferramentas" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Ferramentas & Cálculos">
-                                    <Calculator size={22} className="text-gray-600" />
-                                </Link>
-                                <Link href="/orcamentos" className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Meus Orçamentos">
-                                    <FileText size={22} className="text-gray-600" />
-                                </Link>
                                 {user.role === 'ADMIN' && (
-                                    <Link href="/admin" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors group" title="Painel Admin">
-                                        <ShieldCheck size={22} className="text-blue-600 group-hover:text-blue-700" />
-                                        <span className="text-gray-900 font-medium">Admin</span>
+                                    <Link href="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group" title="Painel Admin">
+                                        <ShieldCheck size={24} className="text-blue-600" />
+                                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                                     </Link>
                                 )}
-                                <Link href="/perfil" className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors">
+                                <Link href="/perfil" className="flex items-center gap-3 hover:bg-gray-100 pl-1 pr-3 py-1 rounded-full transition-all border border-transparent hover:border-gray-200">
                                     {user.logo_url ? (
-                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                                        <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 shadow-sm">
                                             <img
                                                 src={user.logo_url.startsWith('http') ? user.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${user.logo_url}`}
                                                 alt={user.name}
@@ -149,139 +109,118 @@ export default function Home() {
                                             />
                                         </div>
                                     ) : (
-                                        <User size={22} className="text-gray-600" />
+                                        <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                            <User size={20} className="text-gray-500" />
+                                        </div>
                                     )}
-                                    <span className="hidden sm:inline text-gray-900 font-medium">{user.name}</span>
+                                    <div className="hidden sm:block text-left">
+                                        <p className="text-sm font-bold text-gray-800 leading-none">{user.name.split(' ')[0]}</p>
+                                        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">
+                                            {user.role === 'ADMIN' ? 'Administrador' : 'Profissional'}
+                                        </p>
+                                    </div>
                                 </Link>
-                                <button
-                                    onClick={() => logout()}
-                                    className="flex items-center gap-2 hover:bg-red-50 px-3 py-2 rounded-full transition-colors text-red-600"
-                                    title="Sair"
-                                >
+                                <button onClick={logout} className="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Sair">
                                     <LogOut size={20} />
-                                    <span className="hidden sm:inline font-medium">Sair</span>
                                 </button>
                             </>
                         ) : (
-                            <Link href="/login" className="text-blue-600 font-medium hover:underline">
+                            <Link href="/login" className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-sm">
                                 Entrar
                             </Link>
                         )}
                     </div>
                 </div>
+            </header>
 
-            </header >
-
-            <main className="max-w-5xl mx-auto px-4 py-6">
-                <ProductSearch onSearch={handleSearch} />
-
-                {/* Categories Navigation - Hidden on Search */}
-                {!searchQuery && (
-                    <div className="mb-6">
-                        <div className="flex flex-wrap gap-3 justify-center">
-                            {CATEGORIES.map((cat) => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => handleCategoryClick(cat.id)}
-                                    className={`
-                                        flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap transition-colors border shadow-sm
-                                        ${selectedCategory === cat.id
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-blue-200'
-                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}
-                                    `}
-                                >
-                                    <span className="text-xl">{cat.icon}</span>
-                                    <span className="font-bold text-base">{cat.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <PackageSearch size={20} className="text-blue-600" />
-                        {selectedCategory ? selectedCategory : (searchQuery ? `Busca: "${searchQuery}"` : 'Produtos em Destaque')}
+            <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
+                {/* Welcome Section */}
+                <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                        Olá, {user?.name.split(' ')[0] || 'Eletricista'}! 👋
                     </h2>
-                    <span className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-gray-500">
-                        Mostrando {products.length} itens
-                    </span>
+                    <p className="text-gray-600">O que você deseja fazer hoje?</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                    {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                {/* Dashboard Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                    {menuItems.map((item, index) => (
+                        <Link
+                            key={index}
+                            href={item.href}
+                            className={`
+                                group relative overflow-hidden bg-white p-6 rounded-2xl shadow-sm border border-gray-100 
+                                transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block
+                                ${item.badge ? 'opacity-90' : ''}
+                            `}
+                        >
+                            <div className={`
+                                absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8 rounded-full 
+                                opacity-5 transition-transform group-hover:scale-150 ${item.bg.replace('bg-', 'bg-')}
+                            `}></div>
+
+                            <div className="flex items-start justify-between mb-4 relative z-10">
+                                <div className={`p-3 rounded-xl shadow-md ${item.bg} transition-transform group-hover:scale-110 duration-300`}>
+                                    {item.icon}
+                                </div>
+                                {item.badge && (
+                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-gray-200">
+                                        {item.badge}
+                                    </span>
+                                )}
+                            </div>
+
+                            <h3 className="text-lg font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors relative z-10">
+                                {item.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 relative z-10">
+                                {item.description}
+                            </p>
+
+                            {!item.badge && (
+                                <div className={`
+                                    absolute bottom-4 right-4 opacity-0 transform translate-x-4 
+                                    group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300
+                                    ${item.color}
+                                `}>
+                                    <ChevronRight size={24} />
+                                </div>
+                            )}
+                        </Link>
                     ))}
                 </div>
 
-                {loading && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mt-4 animate-pulse">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i} className="h-72 bg-gray-200 rounded-xl"></div>
-                        ))}
-                    </div>
-                )}
-
-                {!loading && hasMore && (
-                    <div className="mt-8 flex justify-center">
-                        <button
-                            onClick={loadMore}
-                            className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors shadow-sm"
-                        >
-                            Carregar mais produtos...
-                        </button>
-                    </div>
-                )}
-                {!loading && products.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 animate-in fade-in">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center tex-4xl">
-                            🤔
+                {/* Gamification Banner (Placeholder for Modal Trigger if closed) */}
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-xl flex items-center justify-between relative overflow-hidden group cursor-pointer" id="jornada-trigger">
+                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative z-10 flex items-center gap-4">
+                        <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
+                            <Trophy size={32} className="text-yellow-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800">
-                            {searchQuery ? `Nenhum resultado para "${searchQuery}"` : 'Nenhum produto encontrado nesta categoria'}
-                        </h3>
-                        <p className="text-gray-500 max-w-sm">
-                            Tente buscar com outras palavras ou verifique a ortografia.
-                        </p>
-
-                        {searchQuery && (
-                            <button
-                                onClick={async (e) => {
-                                    const btn = e.currentTarget;
-                                    btn.disabled = true;
-                                    const originalText = btn.innerHTML;
-                                    btn.innerHTML = 'Enviando...';
-                                    try {
-                                        await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/products/failed-search`, {
-                                            params: { q: searchQuery }
-                                        });
-                                        btn.innerHTML = 'Obrigado! Vamos corrigir isso.';
-                                        btn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
-                                        btn.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
-                                    } catch (err) {
-                                        console.error(err);
-                                        btn.innerHTML = 'Erro ao enviar. Tente novamente.';
-                                        btn.disabled = false;
-                                    }
-                                }}
-                                className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
-                            >
-                                Não achei o que procurava
-                            </button>
-                        )}
-
-                        <button
-                            onClick={() => handleSearch('')}
-                            className="text-blue-600 font-medium hover:underline mt-2"
-                        >
-                            Limpar busca e ver tudo
-                        </button>
+                        <div>
+                            <h3 className="font-bold text-lg">Sua Jornada Profissional</h3>
+                            <p className="text-gray-300 text-sm">Complete seu perfil e desbloqueie conquistas.</p>
+                        </div>
                     </div>
-                )}
+                    <div className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm shadow-lg transform group-hover:scale-105 transition-transform">
+                        Ver Progresso
+                    </div>
+                </div>
+
             </main>
 
-            <CartSummary />
+            {/* Footer / Copyright */}
+            <footer className="bg-white border-t border-gray-100 py-8 mt-auto">
+                <div className="max-w-5xl mx-auto px-4 text-center">
+                    <p className="text-gray-400 text-sm">
+                        &copy; 2026 Portal do Eletricista. Feito por eletricistas, para eletricistas.
+                    </p>
+                </div>
+            </footer>
+
+            {/* Modals */}
             <OnboardingModal />
-        </div >
+            <JornadaModal />
+        </div>
     );
 }

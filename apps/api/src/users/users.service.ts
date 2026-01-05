@@ -22,6 +22,11 @@ export class UsersService {
     async findById(userId: string) {
         return this.prisma.user.findUnique({
             where: { id: userId },
+            include: {
+                _count: {
+                    select: { budgets: true }
+                }
+            }
         });
     }
 
@@ -50,5 +55,23 @@ export class UsersService {
             where: { id: userId },
             data: { role }
         });
+    }
+
+    // Admin: Generate Reset Token manually
+    async generateManualResetToken(userId: string) {
+        // Generate 6-digit code
+        const token = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = new Date();
+        expires.setHours(expires.getHours() + 1); // Valid for 1 hour
+
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                reset_token: token,
+                reset_token_expires: expires
+            }
+        });
+
+        return { token };
     }
 }

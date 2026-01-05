@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Patch, Body, Param } from '@nestjs/common';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -25,7 +25,17 @@ export class ProductsController {
         if (query) {
             this.productsService.logFailedSearch(query);
         }
-        return { status: 'ok' };
+    }
+
+    // Admin Endpoints (Should be protected by RoleGuard in real app)
+    @Get('admin/failed-searches')
+    getFailedSearches(@Query('page') page: number = 1, @Query('limit') limit: number = 20) {
+        return this.productsService.getFailedSearches(Number(page), Number(limit));
+    }
+
+    @Patch('admin/:id')
+    updateProduct(@Param('id') id: string, @Body() data: any) {
+        return this.productsService.updateProduct(id, data);
     }
 }
 

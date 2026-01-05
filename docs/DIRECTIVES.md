@@ -32,7 +32,7 @@ Mensagens de commit devem ser semânticas e em inglês (padrão internacional):
 
 ### Geral
 *   **Idioma do Código (Codebase):** Inglês para variáveis, funções e classes (Padrão Internacional).
-*   **Idioma da Documentação e Instruções:** **Português (Brasil)**. Todos os arquivos de documentação, artefatos do sistema (Walkthroughs, Planos), README, manuais, comentários explicativos complexos e mensagens de Pull Request devem ser em Português para facilitar a leitura da equipe local.
+*   **Idioma da Documentação e Instruções:** **Português (Brasil)**. Todos os arquivos de documentação, artefatos do sistema (Walkthroughs, Planos, Tasks), README, manuais, comentários explicativos complexos e mensagens de Pull Request deve ser em Português para facilitar a leitura da equipe local.
 *   **Idioma da UI:** Português (Brasil).
 
 ### TypeScript (Strict Mode)

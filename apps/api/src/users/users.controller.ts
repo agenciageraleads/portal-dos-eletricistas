@@ -127,4 +127,15 @@ export class UsersController {
         }
         return this.usersService.updateRole(userId, role);
     }
+
+    // Admin: Generate Reset Token (v1.3.0)
+    @UseGuards(AuthGuard('jwt'))
+    @Post(':id/reset-token')
+    async generateResetToken(@Request() req: any, @Param('id') userId: string) {
+        const admin = await this.usersService.findById(req.user.sub || req.user.id);
+        if (!admin || admin.role !== 'ADMIN') {
+            throw new ForbiddenException('Apenas administradores podem gerar tokens de reset');
+        }
+        return this.usersService.generateManualResetToken(userId);
+    }
 }

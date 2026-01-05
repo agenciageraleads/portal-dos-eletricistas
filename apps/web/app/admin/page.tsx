@@ -75,10 +75,15 @@ export default function AdminDashboard() {
             title: 'Produtos',
             description: 'Gerenciar catálogo, preços e especificações.',
             icon: <Package size={24} className="text-orange-600" />,
-            href: '/admin/produtos', // Assuming this route for next weeks
+            href: '/admin/products',
             count: stats.activeProducts,
-            disabled: true,
-            badge: 'Semana 4'
+        },
+        {
+            title: 'Buscas Falhas',
+            description: 'Termos que os usuários buscaram e não encontraram.',
+            icon: <div className="text-xl">🔍</div>,
+            href: '/admin/failed-searches',
+            badge: 'Novo'
         },
         {
             title: 'Métricas',

@@ -34,17 +34,21 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto, 
 **Semana 3: Ferramentas & Release v1.3.0 (CONCLUÍDO)**
 *   [x] **Hub de Ferramentas (MVP):** Calculadora de Bitola e Disjuntores (`/ferramentas`).
 *   [x] **Release v1.3.0:** Build, Tag e Deploy em Staging.
-*   [ ] **Service Templates / Kits:** Kits baseados em serviços (Adiado).
+*   [x] **Onboarding Gamificado (Jornada do Eletricista):** Tutorial guiado e checklist de progresso.
+*   [x] **Nova Home Dashboard:** Hub central com acesso rápido (Orçamentos, Catálogo, Ferramentas).
 
 **Semana 4: Diferenciais Competitivos (Próximo Foco)**
-*   [ ] **Produtos Complementares (Cross-Sell):** Sugestão automática (Disjuntor -> Barramento).
-*   [ ] **Desconto por Quantidade:** Tabela de preços progressiva (Atacado).
-*   [ ] **Produto Extra / Manual:** Permitir adicionar itens fora do catálogo.
-*   [ ] **Especialista AI (Alpha):** Assistente GPT (Fase de Pesquisa).
+*   [ ] **Smart Sorting:** Ordenar por Popularidade e Estoque (Disponibilidade).
+*   [ ] **PWA Completo:** Instalação e cache offline robusto.
+*   [ ] **Calculadoras Avançadas:** Demanda, Fator de Potência.
+*   [x] **Produto Extra / Manual:** Permitir adicionar itens fora do catálogo.
 
 **Gestão & Polimento (Ongoing)**
-*   [x] **CRM Básico:** Status dos orçamentos (Enviado, Aprovado) e Meus Orçamentos.
-*   [ ] **Dashboard de Métricas:** Taxa de conversão.
+*   [x] **CRM Básico + Mini Dashboard:** Status dos orçamentos, Meus Orçamentos e Estatísticas (Total/Ticket Médio).
+*   [x] **Descrição de Mão de Obra:** Campo detalhado para justificar valor do serviço.
+*   [x] **Perfil Profissional:** Nome da Empresa/Fantasia e Logo no PDF.
+*   [x] **Failed Search Logging:** Registro de buscas sem resultado e botão "Não achei".
+*   [ ] **Dashboard de Métricas:** Taxa de conversão (Avançado).
 *   [ ] **PDF Melhorado:** Layout mais robusto.
 *   [x] **Simplified Auth:** Cadastro simplificado (CPF/CNPJ, WhatsApp).
 *   [x] **Image Persistence:** Integração com MinIO para fotos estáveis.
@@ -52,10 +56,13 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto, 
 ### 🟡 Marco 2: Expansão (60 Dias) - FEVEREIRO 2026
 > **Objetivo:** Implementar ferramentas que "prendem" o usuário e diferenciais competitivos.
 
-*   [ ] **Calculadoras Avançadas:** Demanda, Fator de Potência.
+*   [ ] **Produtos Complementares (Cross-Sell):** Sugestão automática (Disjuntor -> Barramento).
+*   [ ] **Desconto por Quantidade:** Tabela de preços progressiva (Atacado).
+*   [ ] **Especialista AI (Alpha):** Assistente GPT (Fase de Pesquisa).
 *   [ ] **Agrupamento de Produtos:** Melhor visualização de variações (cores, tamanhos).
-*   [ ] **PWA Completo:** Instalação e cache offline robusto.
 *   [ ] **App Mobile Nativo:** Planejamento.
+*   [x] **Admin: Gestão Completa:** Reset de senha de usuários e Gestão de Produtos (Editar/Desativar).
+*   [ ] **AI Placeholders:** Sugestões inteligentes na descrição de serviços.
 *   [ ] **Geolocalização:** Encontrar eletricistas próximos.
 
 ---

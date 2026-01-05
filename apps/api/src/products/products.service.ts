@@ -196,4 +196,34 @@ export class ProductsService {
             }
         });
     }
+
+    // Admin: Get Failed Searches
+    async getFailedSearches(page: number = 1, limit: number = 20) {
+        const skip = (page - 1) * limit;
+        const [data, total] = await Promise.all([
+            this.prisma.failedSearch.findMany({
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.failedSearch.count(),
+        ]);
+
+        return {
+            data,
+            pagination: {
+                total,
+                page,
+                totalPages: Math.ceil(total / limit),
+            }
+        };
+    }
+
+    // Admin: Update Product
+    async updateProduct(id: string, data: Prisma.ProductUpdateInput) {
+        return this.prisma.product.update({
+            where: { id },
+            data,
+        });
+    }
 }
