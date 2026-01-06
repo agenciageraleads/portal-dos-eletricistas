@@ -94,16 +94,19 @@ export default function JornadaModal() {
 
     const startTour = () => {
         setIsOpen(false);
-        const driverObj = driver({
-            showProgress: true,
-            steps: [
-                { popover: { title: 'Bem-vindo ao Portal! ⚡', description: 'Aqui é seu novo escritório digital. Vamos dar uma volta?' } },
-                { element: 'header', popover: { title: 'Menu Superior', description: 'Acesso rápido ao seu Perfil e Sair.' } },
-                { element: '.grid', popover: { title: 'Seu Painel', description: 'Aqui você cria orçamentos e acessa o catálogo.' } },
-                { element: '#jornada-trigger', popover: { title: 'Sua Jornada', description: 'Acompanhe seu progresso e conquistas aqui.' } }
-            ]
-        });
-        driverObj.drive();
+        // Wait for modal to close (animation)
+        setTimeout(() => {
+            const driverObj = driver({
+                showProgress: true,
+                steps: [
+                    { popover: { title: 'Bem-vindo ao Portal! ⚡', description: 'Aqui é seu novo escritório digital. Vamos dar uma volta?' } },
+                    { element: 'header', popover: { title: 'Menu Superior', description: 'Configure seu perfil, veja notificações e acesse ajuda.' } },
+                    { element: '.grid', popover: { title: 'Seus Apps', description: 'Acesse rapidamente orçamentos, catálogo e ferramentas.' } },
+                    { element: '#jornada-trigger', popover: { title: 'Sua Jornada', description: 'Acompanhe seu nível profissional e conquistas.' } }
+                ]
+            });
+            driverObj.drive();
+        }, 300);
     };
 
     if (!isOpen) return null;
@@ -150,8 +153,8 @@ export default function JornadaModal() {
                             <div
                                 key={task.id}
                                 className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${task.isCompleted
-                                        ? 'bg-green-50 border-green-100'
-                                        : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm'
+                                    ? 'bg-green-50 border-green-100'
+                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm'
                                     }`}
                             >
                                 <div className="mt-1">

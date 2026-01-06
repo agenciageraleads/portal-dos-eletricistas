@@ -174,7 +174,10 @@ export class ProductsService {
             const [data, total] = await Promise.all([
                 this.prisma.product.findMany({
                     where,
-                    orderBy: { name: 'asc' },
+                    orderBy: [
+                        { popularity_index: 'desc' },
+                        { name: 'asc' }
+                    ],
                     skip,
                     take: limit,
                 }),

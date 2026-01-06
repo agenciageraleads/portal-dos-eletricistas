@@ -527,8 +527,8 @@ function OrcamentoContent() {
                     <div className="flex flex-col sm:flex-row gap-3">
                         <button
                             onClick={() => handleFinish('DRAFT')}
-                            disabled={loading || items.length === 0}
-                            className="w-full sm:flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+                            disabled={loading || (items.length === 0 && labor === 0)}
+                            className="w-full sm:flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? <Loader2 className="animate-spin" /> : <Save size={24} />}
                             {loading ? '...' : 'Salvar Rascunho'}
@@ -536,8 +536,8 @@ function OrcamentoContent() {
 
                         <button
                             onClick={() => handleFinish('SHARED')}
-                            disabled={loading || items.length === 0}
-                            className="w-full sm:flex-[2] bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+                            disabled={loading || (items.length === 0 && labor === 0)}
+                            className="w-full sm:flex-[2] bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? <Loader2 className="animate-spin" /> : (isEditMode ? <Save size={24} /> : <Share2 size={24} />)}
                             {loading ? 'Salvando...' : (isEditMode ? 'Salvar e Gerar Link' : 'Gerar Link do Orçamento')}

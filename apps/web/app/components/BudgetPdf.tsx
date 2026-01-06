@@ -163,14 +163,27 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
     const showUnitPrices = budget.show_unit_prices ?? true;
     const showLaborTotal = budget.show_labor_total ?? true;
 
+    // Helper to resolve images safely
+    const resolveImage = (url?: string) => {
+        if (!url) return undefined;
+        if (url.startsWith('http')) return url;
+        // Assume it's relative to API or just a path, construct full URL if possible, otherwise use base
+        // But react-pdf needs a valid URL or base64. 
+        // If it's a local file path (e.g. from upload), it might need the full API prefix.
+        return getImageUrl(url);
+    };
+
     return (
         <Document>
             <Page size="A4" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.logoSection}>
-                        {budget.user?.logo_url && getImageUrl(budget.user.logo_url) ? (
-                            <Image src={getImageUrl(budget.user.logo_url)!} style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 5 }} />
+                        {budget.user?.logo_url ? (
+                            <Image
+                                src={resolveImage(budget.user.logo_url) || ''}
+                                style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 5 }}
+                            />
                         ) : null}
                         <Text style={styles.logoText}>
                             {budget.user?.business_name || budget.user?.name || 'PORTAL DO ELETRICISTA'}
@@ -178,6 +191,7 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                         <Text style={styles.companyDetails}>
                             {budget.user?.business_name ? budget.user.name : 'Soluções Elétricas Completas'}
                         </Text>
+                        {budget.user?.phone && <Text style={styles.companyDetails}>Tel: {formatPhone(budget.user.phone)}</Text>}
                     </View>
                     <View style={styles.budgetDetails}>
                         <Text style={styles.title}>ORÇAMENTO</Text>
@@ -195,93 +209,111 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                     {budget.client_phone && <Text style={styles.label}>Tel: {formatPhone(budget.client_phone)}</Text>}
                 </View>
 
-                {/* Eletricista Info (se disponível) */}
+                {/* Responsible Info (if available) */}
                 {budget.user && (
                     <View style={{ marginBottom: 20 }}>
                         <Text style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 5, color: '#374151' }}>RESPONSÁVEL TÉCNICO</Text>
                         <Text style={styles.value}>{budget.user.name}</Text>
-                        {budget.user.phone && <Text style={styles.label}>Tel: {formatPhone(budget.user.phone)}</Text>}
                     </View>
                 )}
 
-                {/* Items Table */}
-                <View style={styles.table}>
-                    <View style={[styles.tableRow, { backgroundColor: '#F9FAFB' }]}>
-                        <View style={[styles.tableCol, { width: '10%' }]}>
-                            <Text style={styles.tableCellHeader}>IMG</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: '10%' }]}>
-                            <Text style={styles.tableCellHeader}>COD.</Text>
-                        </View>
-                        <View style={[styles.tableColDesc, { width: '35%' }]}>
-                            <Text style={styles.tableCellHeader}>PRODUTO</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: '10%' }]}>
-                            <Text style={styles.tableCellHeader}>UND</Text>
-                        </View>
-                        <View style={[styles.tableCol, { width: '10%' }]}>
-                            <Text style={styles.tableCellHeader}>QTD</Text>
-                        </View>
-                        {showUnitPrices && (
-                            <>
-                                <View style={[styles.tableCol, { width: '12%' }]}>
-                                    <Text style={styles.tableCellHeader}>V. UNIT</Text>
-                                </View>
-                                <View style={[styles.tableCol, { width: '13%' }]}>
-                                    <Text style={styles.tableCellHeader}>TOTAL</Text>
-                                </View>
-                            </>
-                        )}
-                    </View>
-
-                    {budget.items.map((item: any, i: number) => (
-                        <View key={i} style={styles.tableRow}>
-                            <View style={[styles.tableCol, { width: '10%', padding: 2 }]}>
-                                {item.is_external ? (
-                                    item.custom_photo_url ? (
-                                        <Image src={getImageUrl(item.custom_photo_url)!} style={{ width: 30, height: 30, objectFit: 'contain' }} />
-                                    ) : (
-                                        <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
-                                    )
-                                ) : (
-                                    item.product?.image_url && getImageUrl(item.product.image_url) ? (
-                                        <Image src={getImageUrl(item.product.image_url)!} style={{ width: 30, height: 30, objectFit: 'contain' }} />
-                                    ) : (
-                                        <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
-                                    )
-                                )}
+                {/* Items Table - Only show if there are items */}
+                {budget.items && budget.items.length > 0 && (
+                    <View style={styles.table}>
+                        <View style={[styles.tableRow, { backgroundColor: '#F9FAFB' }]}>
+                            <View style={[styles.tableCol, { width: '10%' }]}>
+                                <Text style={styles.tableCellHeader}>IMG</Text>
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
-                                <Text style={styles.tableCell}>{item.is_external ? 'EXTRA' : item.product?.sankhya_code}</Text>
+                                <Text style={styles.tableCellHeader}>COD.</Text>
                             </View>
                             <View style={[styles.tableColDesc, { width: '35%' }]}>
-                                <Text style={styles.tableCell}>
-                                    {item.is_external ? item.custom_name : (
-                                        <>
-                                            {item.product?.name}
-                                            {item.product?.brand && ` - ${item.product.brand}`}
-                                        </>
-                                    )}
-                                </Text>
+                                <Text style={styles.tableCellHeader}>PRODUTO</Text>
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
-                                <Text style={styles.tableCell}>{item.is_external ? 'UN' : item.product?.unit || 'UN'}</Text>
+                                <Text style={styles.tableCellHeader}>UND</Text>
                             </View>
                             <View style={[styles.tableCol, { width: '10%' }]}>
-                                <Text style={styles.tableCell}>{item.quantity}</Text>
+                                <Text style={styles.tableCellHeader}>QTD</Text>
                             </View>
                             {showUnitPrices && (
                                 <>
                                     <View style={[styles.tableCol, { width: '12%' }]}>
-                                        <Text style={styles.tableCell}>{formatCurrency(item.price)}</Text>
+                                        <Text style={styles.tableCellHeader}>V. UNIT</Text>
                                     </View>
                                     <View style={[styles.tableCol, { width: '13%' }]}>
-                                        <Text style={styles.tableCell}>{formatCurrency(Number(item.price) * item.quantity)}</Text>
+                                        <Text style={styles.tableCellHeader}>TOTAL</Text>
                                     </View>
                                 </>
                             )}
                         </View>
-                    ))}
+
+                        {budget.items.map((item: any, i: number) => {
+                            const imgUrl = item.is_external ? item.custom_photo_url : item.product?.image_url;
+                            const resolvedImg = resolveImage(imgUrl);
+
+                            return (
+                                <View key={i} style={styles.tableRow}>
+                                    <View style={[styles.tableCol, { width: '10%', padding: 2 }]}>
+                                        {resolvedImg ? (
+                                            // eslint-disable-next-line jsx-a11y/alt-text
+                                            <Image src={resolvedImg} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                        ) : (
+                                            <Text style={[styles.tableCell, { fontSize: 8, color: '#CCC' }]}>Sem Foto</Text>
+                                        )}
+                                    </View>
+                                    <View style={[styles.tableCol, { width: '10%' }]}>
+                                        <Text style={styles.tableCell}>{item.is_external ? 'EXTRA' : item.product?.sankhya_code}</Text>
+                                    </View>
+                                    <View style={[styles.tableColDesc, { width: '35%' }]}>
+                                        <Text style={styles.tableCell}>
+                                            {item.is_external ? item.custom_name : (
+                                                <>
+                                                    {item.product?.name}
+                                                    {item.product?.brand && ` - ${item.product.brand}`}
+                                                </>
+                                            )}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.tableCol, { width: '10%' }]}>
+                                        <Text style={styles.tableCell}>{item.is_external ? 'UN' : item.product?.unit || 'UN'}</Text>
+                                    </View>
+                                    <View style={[styles.tableCol, { width: '10%' }]}>
+                                        <Text style={styles.tableCell}>{item.quantity}</Text>
+                                    </View>
+                                    {showUnitPrices && (
+                                        <>
+                                            <View style={[styles.tableCol, { width: '12%' }]}>
+                                                <Text style={styles.tableCell}>{formatCurrency(item.price)}</Text>
+                                            </View>
+                                            <View style={[styles.tableCol, { width: '13%' }]}>
+                                                <Text style={styles.tableCell}>{formatCurrency(Number(item.price) * item.quantity)}</Text>
+                                            </View>
+                                        </>
+                                    )}
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
+
+                {/* Labor & Notes Section */}
+                <View style={{ marginTop: 20 }}>
+                    {/* Labor Description (if any) */}
+                    {budget.labor_description && (
+                        <View style={{ marginBottom: 15 }}>
+                            <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#374151', marginBottom: 3 }}>DESCRIÇÃO DO SERVIÇO / MÃO DE OBRA:</Text>
+                            <Text style={{ fontSize: 10, color: '#4B5563', lineHeight: 1.4 }}>{budget.labor_description}</Text>
+                        </View>
+                    )}
+
+                    {/* General Notes and Conditions */}
+                    {budget.notes && (
+                        <View style={{ marginBottom: 15, padding: 10, backgroundColor: '#F9FAFB', borderRadius: 4 }}>
+                            <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#374151', marginBottom: 3 }}>OBSERVAÇÕES E CONDIÇÕES:</Text>
+                            <Text style={{ fontSize: 9, color: '#4B5563', lineHeight: 1.4 }}>{budget.notes}</Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Totals */}
@@ -290,10 +322,19 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                         <Text style={styles.totalLabel}>Materiais:</Text>
                         <Text style={styles.totalValue}>{formatCurrency(totalMaterials)}</Text>
                     </View>
-                    <View style={styles.totalRow}>
-                        <Text style={styles.totalLabel}>Mão de Obra:</Text>
-                        <Text style={styles.totalValue}>{formatCurrency(totalLabor)}</Text>
-                    </View>
+
+                    {showLaborTotal ? (
+                        <View style={styles.totalRow}>
+                            <Text style={styles.totalLabel}>Mão de Obra:</Text>
+                            <Text style={styles.totalValue}>{formatCurrency(totalLabor)}</Text>
+                        </View>
+                    ) : (
+                        // If labor is hidden, it is added to the total but not shown separately here? 
+                        // Or should we just show "Total Geral"?
+                        // Usually hidden labor means we just show the final Price.
+                        null
+                    )}
+
                     <View style={[styles.totalRow, { marginTop: 5, borderTopWidth: 1, borderTopColor: '#DDDDDD', paddingTop: 5 }]}>
                         <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#111827' }}>TOTAL GERAL:</Text>
                         <Text style={styles.grandTotal}>{formatCurrency(totalPrice)}</Text>

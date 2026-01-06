@@ -80,6 +80,9 @@ model Product {
   // Especificações Técnicas (Novo v1.1.0)
   specs         Json?    // { "amperage": "32A", "curve": "C", "voltage": "750V" }
 
+  // Popularidade (Sankhya Calculated)
+  popularity_index Decimal @default(0) @map("INDICE_POPULARIDADE") @db.Decimal(10, 4)
+
   updatedAt     DateTime @updatedAt  // Para saber quando foi a última sync
 
   budgetItems   BudgetItem[]

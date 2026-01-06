@@ -23,6 +23,18 @@ docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml push
 ```
 
+### 1.1 Atualizar Tags de Staging (Padrão v1.5.0+)
+Para facilitar o deploy contínuo em staging, sempre atualize as tags flutuantes `staging`:
+
+```bash
+# Exemplo para v1.5.0
+docker tag lucasborgessb/portal_dos_eletricistas:web-1.5.0 lucasborgessb/portal_dos_eletricistas:web-staging
+docker tag lucasborgessb/portal_dos_eletricistas:api-1.5.0 lucasborgessb/portal_dos_eletricistas:api-staging
+
+docker push lucasborgessb/portal_dos_eletricistas:web-staging
+docker push lucasborgessb/portal_dos_eletricistas:api-staging
+```
+
 ## 2️⃣ Deploy na VPS
 
 Acesse sua VPS e atualize os serviços.

@@ -8,6 +8,7 @@ export interface Product {
     is_available: boolean;
     brand?: string;
     category?: string;
+    popularity_index?: number;
     specs?: {
         amperage?: string;
         curve?: string;

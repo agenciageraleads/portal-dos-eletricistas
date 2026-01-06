@@ -5,6 +5,17 @@ Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-01-05
+
+### Added
+- **Home UI Redesign:** Substituídos os cards grandes por um grid de botões estilo App para melhor navegação.
+- **Budget PDF:** Adicionados campos de Logo, Fotos do Produto, Descrição do Serviço e Notas (Garantia/Condições).
+- **Labor Budget:** Agora é possível salvar orçamentos simplificados contendo apenas valor de Mão de Obra (sem produtos).
+
+### Fixed
+- **Tutorial:** Corrigido bug onde o tour iniciava antes do modal fechar (adicionado delay).
+- **Reordering:** Atalho "Ferramentas" movido para antes dos itens "Em Breve".
+
 ## [1.3.0] - 2026-01-02
 ### Adicionado
 - **Calculadoras Embutidas**: Nova página `/ferramentas` com calculadoras de Bitola de Cabo (NBR 5410) e Dimensionamento de Disjuntor.
