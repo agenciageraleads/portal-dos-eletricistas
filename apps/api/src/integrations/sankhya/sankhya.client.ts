@@ -68,9 +68,10 @@ export class SankhyaClient {
     async getProducts(page: number = 0, limit: number = 100) {
         await this.authenticate();
 
-        // Oracle usa ROWNUM para paginação
         const offset = page * limit;
-        const sql = `
+
+        // Query Principal (Com Índice de Popularidade)
+        const sqlWithPopularity = `
             SELECT * FROM (
                 SELECT 
                     CODPROD,
@@ -91,40 +92,71 @@ export class SankhyaClient {
             WHERE RN > ${offset}
         `;
 
+        // Query Fallback (Sem Índice - Caso a View não tenha a coluna ainda)
+        const sqlFallback = `
+            SELECT * FROM (
+                SELECT 
+                    CODPROD,
+                    DESCRPROD,
+                    MARCA,
+                    MARCA_CONTROLE,
+                    CODVOL,
+                    ATIVO,
+                    ESTOQUE,
+                    PRECO_CONSUMIDOR,
+                    ENDIMAGEM,
+                    CATEGORIA_MACRO,
+                    ROWNUM AS RN
+                FROM VW_PORTAL_PRODUTOS
+                WHERE ROWNUM <= ${offset + limit}
+            )
+            WHERE RN > ${offset}
+        `;
+
         try {
             this.logger.log(`Buscando produtos (página ${page}, limite ${limit})...`);
 
-            const response = await this.httpClient.post(
-                '/gateway/v1/mge/service.sbr',
-                {
-                    serviceName: 'DbExplorerSP.executeQuery',
-                    requestBody: {
-                        sql: sql.trim(),
-                    },
-                },
-                {
-                    params: {
-                        serviceName: 'DbExplorerSP.executeQuery',
-                        outputType: 'json',
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${this.bearerToken}`,
-                    },
-                },
-            );
+            // Tenta query completa
+            try {
+                return await this.executeProductQuery(sqlWithPopularity);
+            } catch (err) {
+                this.logger.warn(`Falha na query com INDICE_POPULARIDADE. Tentando fallback... (${err.message})`);
+                return await this.executeProductQuery(sqlFallback);
+            }
 
-            const rows = response.data.responseBody?.rows || [];
-
-            this.logger.log(`${rows.length} produtos retornados`);
-
-            return {
-                products: rows,
-                total: rows.length,
-            };
         } catch (error: any) {
-            this.logger.error('Erro ao buscar produtos', error.response?.data || error.message);
+            this.logger.error('Erro fatal ao buscar produtos', error.response?.data || error.message);
             throw new Error('Falha ao buscar produtos do Sankhya');
         }
+    }
+
+    private async executeProductQuery(sql: string) {
+        const response = await this.httpClient.post(
+            '/gateway/v1/mge/service.sbr',
+            {
+                serviceName: 'DbExplorerSP.executeQuery',
+                requestBody: {
+                    sql: sql.trim(),
+                },
+            },
+            {
+                params: {
+                    serviceName: 'DbExplorerSP.executeQuery',
+                    outputType: 'json',
+                },
+                headers: {
+                    'Authorization': `Bearer ${this.bearerToken}`,
+                },
+            },
+        );
+
+        const rows = response.data.responseBody?.rows || [];
+        this.logger.log(`${rows.length} produtos retornados`);
+
+        return {
+            products: rows,
+            total: rows.length,
+        };
     }
 
     /**
