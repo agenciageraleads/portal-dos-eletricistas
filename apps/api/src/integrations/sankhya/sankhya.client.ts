@@ -92,7 +92,7 @@ export class SankhyaClient {
             WHERE RN > ${offset}
         `;
 
-        // Query Fallback (Sem Índice - Caso a View não tenha a coluna ainda)
+        // Query Fallback (Sem Índice e Sem Endimagem - Caso a View esteja quebrada)
         const sqlFallback = `
             SELECT * FROM (
                 SELECT 
@@ -104,7 +104,6 @@ export class SankhyaClient {
                     ATIVO,
                     ESTOQUE,
                     PRECO_CONSUMIDOR,
-                    ENDIMAGEM,
                     CATEGORIA_MACRO,
                     ROWNUM AS RN
                 FROM VW_PORTAL_PRODUTOS
