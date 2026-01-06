@@ -150,7 +150,11 @@ export class SankhyaClient {
             },
         );
 
-        const rows = response.data.responseBody?.rows || [];
+        if (!response.data.responseBody) {
+            throw new Error(`Erro Sankhya: ${response.data.statusMessage || 'Resposta inválida'}`);
+        }
+
+        const rows = response.data.responseBody.rows || [];
         this.logger.log(`${rows.length} produtos retornados`);
 
         return {
