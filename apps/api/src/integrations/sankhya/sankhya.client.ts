@@ -130,6 +130,9 @@ export class SankhyaClient {
     }
 
     private async executeProductQuery(sql: string) {
+        // Log query para debug (temporário)
+        this.logger.log(`Executando SQL Sankhya: ${sql.replace(/\s+/g, ' ').trim()}`);
+
         const response = await this.httpClient.post(
             '/gateway/v1/mge/service.sbr',
             {
