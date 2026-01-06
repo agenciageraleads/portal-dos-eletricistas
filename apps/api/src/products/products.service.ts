@@ -151,7 +151,13 @@ export class ProductsService {
                 if (scoreA > scoreB) return -1;
                 if (scoreB > scoreA) return 1;
 
-                // Fallback: Alphabetical
+                // Fallback: Popularity then Alphabetical
+                const popA = Number(a.popularity_index) || 0;
+                const popB = Number(b.popularity_index) || 0;
+
+                if (popA > popB) return -1;
+                if (popB > popA) return 1;
+
                 return nameA.localeCompare(nameB);
             });
 
