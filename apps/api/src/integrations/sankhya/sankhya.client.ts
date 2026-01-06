@@ -83,6 +83,7 @@ export class SankhyaClient {
                     PRECO_CONSUMIDOR,
                     ENDIMAGEM,
                     CATEGORIA_MACRO,
+                    INDICE_POPULARIDADE,
                     ROWNUM AS RN
                 FROM VW_PORTAL_PRODUTOS
                 WHERE ROWNUM <= ${offset + limit}

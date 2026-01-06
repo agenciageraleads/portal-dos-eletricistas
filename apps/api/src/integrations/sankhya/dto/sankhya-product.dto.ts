@@ -7,6 +7,7 @@ export interface SankhyaProduct {
     ATIVO: 'S' | 'N';
     ESTOQUE?: number;
     DTALTER?: string;
+    INDICE_POPULARIDADE?: number;
 }
 
 export interface SankhyaProductsRequest {

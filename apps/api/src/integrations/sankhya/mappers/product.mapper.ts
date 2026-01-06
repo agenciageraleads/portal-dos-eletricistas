@@ -7,12 +7,12 @@ export class ProductMapper {
     static toPortalProduct(sankhyaProduct: any) {
         // O retorno do Sankhya via DbExplorerSP é um ARRAY de valores na ordem do SELECT
         // Indices baseados na query do SankhyaClient:
-        // 0: CODPROD, 1: DESCRPROD, 2: MARCA, 3: MARCA_CONTROLE, 4: CODVOL, 5: ATIVO, 6: ESTOQUE, 7: PRECO_CONSUMIDOR, 8: ENDIMAGEM, 9: CATEGORIA_MACRO
+        // 0: CODPROD, 1: DESCRPROD, 2: MARCA, 3: MARCA_CONTROLE, 4: CODVOL, 5: ATIVO, 6: ESTOQUE, 7: PRECO_CONSUMIDOR, 8: ENDIMAGEM, 9: CATEGORIA_MACRO, 10: INDICE_POPULARIDADE
 
-        let codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, endimagem, categoria_macro;
+        let codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, endimagem, categoria_macro, indice_popularidade;
 
         if (Array.isArray(sankhyaProduct)) {
-            [codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, endimagem, categoria_macro] = sankhyaProduct;
+            [codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, endimagem, categoria_macro, indice_popularidade] = sankhyaProduct;
         } else {
             // Fallback
             codprod = sankhyaProduct.CODPROD || sankhyaProduct.codprod;
@@ -24,7 +24,9 @@ export class ProductMapper {
             estoque = sankhyaProduct.ESTOQUE;
             preco = sankhyaProduct.PRECO_CONSUMIDOR;
             endimagem = sankhyaProduct.ENDIMAGEM;
+            endimagem = sankhyaProduct.ENDIMAGEM;
             categoria_macro = sankhyaProduct.CATEGORIA_MACRO;
+            indice_popularidade = sankhyaProduct.INDICE_POPULARIDADE;
         }
 
         return {
@@ -36,6 +38,7 @@ export class ProductMapper {
             is_available: ativo === 'S' && (estoque || 0) > 0,
             category: this.mapCategory(categoria_macro) || this.inferCategory(descrprod),
             description: null,
+            popularity_index: parseFloat(indice_popularidade || 0)
             // image_url não é retornado aqui para não sobrescrever com null durante o update
         };
     }
