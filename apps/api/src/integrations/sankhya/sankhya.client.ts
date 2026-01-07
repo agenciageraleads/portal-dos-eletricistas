@@ -82,7 +82,6 @@ export class SankhyaClient {
                     ATIVO,
                     ESTOQUE,
                     PRECO_CONSUMIDOR,
-                    ENDIMAGEM,
                     CATEGORIA_MACRO,
                     INDICE_POPULARIDADE,
                     ROWNUM AS RN
