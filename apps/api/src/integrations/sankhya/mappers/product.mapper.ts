@@ -43,59 +43,60 @@ export class ProductMapper {
         };
     }
 
-    const safeCode = String(code || '').trim();
-    if(!safeCode) return null;
+    private static mapCategory(code: string): string | null {
+        const safeCode = String(code || '').trim();
+        if (!safeCode) return null;
 
-const categories: Record<string, string> = {
-    'AB': 'Acabamento',
-    'AC': 'Acessórios',
-    'AT': 'Automação',
-    'CD': 'Cabos Diversos',
-    'CE': 'Cabos Energia',
-    'CI': 'Combate a Incêndio',
-    'EQ': 'Equipamentos',
-    'FE': 'Ferragens',
-    'FR': 'Ferramentas',
-    'HD': 'Hidraulico',
-    'IC': 'Iluminação Comercial',
-    'ID': 'Iluminação Decorativa',
-    'IN': 'Infraestrutura',
-    'MT': 'Média Tensão',
-    'SP': 'SPDA'
-};
+        const categories: Record<string, string> = {
+            'AB': 'Acabamento',
+            'AC': 'Acessórios',
+            'AT': 'Automação',
+            'CD': 'Cabos Diversos',
+            'CE': 'Cabos Energia',
+            'CI': 'Combate a Incêndio',
+            'EQ': 'Equipamentos',
+            'FE': 'Ferragens',
+            'FR': 'Ferramentas',
+            'HD': 'Hidraulico',
+            'IC': 'Iluminação Comercial',
+            'ID': 'Iluminação Decorativa',
+            'IN': 'Infraestrutura',
+            'MT': 'Média Tensão',
+            'SP': 'SPDA'
+        };
 
-return categories[safeCode.toUpperCase()] || safeCode; // Retorna o nome mapeado ou o próprio código se não achar
+        return categories[safeCode.toUpperCase()] || safeCode; // Retorna o nome mapeado ou o próprio código se não achar
     }
 
     /**
      * Fallback: Infere a categoria baseado no nome do produto se não tiver macro
      */
     private static inferCategory(name: string): string {
-    const lowerName = name?.toLowerCase() || '';
+        const lowerName = name?.toLowerCase() || '';
 
-    if (lowerName.includes('disjuntor') || lowerName.includes('dr')) {
-        return 'Elétrica';
-    }
-    if (lowerName.includes('fio') || lowerName.includes('cabo')) {
-        return 'Fios e Cabos';
-    }
-    if (lowerName.includes('tomada') || lowerName.includes('interruptor')) {
-        return 'Acabamento';
-    }
-    if (lowerName.includes('lampada') || lowerName.includes('led')) {
-        return 'Iluminação';
-    }
-    if (lowerName.includes('condulete') || lowerName.includes('caixa')) {
-        return 'Infraestrutura';
-    }
+        if (lowerName.includes('disjuntor') || lowerName.includes('dr')) {
+            return 'Elétrica';
+        }
+        if (lowerName.includes('fio') || lowerName.includes('cabo')) {
+            return 'Fios e Cabos';
+        }
+        if (lowerName.includes('tomada') || lowerName.includes('interruptor')) {
+            return 'Acabamento';
+        }
+        if (lowerName.includes('lampada') || lowerName.includes('led')) {
+            return 'Iluminação';
+        }
+        if (lowerName.includes('condulete') || lowerName.includes('caixa')) {
+            return 'Infraestrutura';
+        }
 
-    return 'Geral';
-}
+        return 'Geral';
+    }
 
     /**
      * Converte múltiplos produtos em lote
      */
     static toPortalProducts(sankhyaProducts: SankhyaProduct[]) {
-    return sankhyaProducts.map(product => this.toPortalProduct(product));
-}
+        return sankhyaProducts.map(product => this.toPortalProduct(product));
+    }
 }
