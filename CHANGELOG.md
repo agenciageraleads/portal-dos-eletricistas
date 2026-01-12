@@ -5,6 +5,13 @@ Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.8] - 2026-01-12
+
+### Fixed
+- **Sync Robustness**: Corrigida a falha `ORA-00904` removendo a coluna `ENDIMAGEM` da query principal do Sankhya.
+- **Data Mapping**: Ajuste no `ProductMapper` para alinhar com a nova estrutura da query, resolvendo o bug onde categorias apareciam como IDs numéricos.
+- **Sorting**: Produtos agora são ordenados corretamente pelo `INDICE_POPULARIDADE`.
+- **Category Filter**: Filtros de categoria na Home/Catálogo agora funcionam corretamente.
 ## [1.4.1] - 2026-01-05
 
 ### Added
