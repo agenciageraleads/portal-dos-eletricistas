@@ -7,12 +7,12 @@ export class ProductMapper {
     static toPortalProduct(sankhyaProduct: any) {
         // O retorno do Sankhya via DbExplorerSP é um ARRAY de valores na ordem do SELECT
         // Indices baseados na query do SankhyaClient:
-        // 0: CODPROD, 1: DESCRPROD, 2: MARCA, 3: MARCA_CONTROLE, 4: CODVOL, 5: ATIVO, 6: ESTOQUE, 7: PRECO_CONSUMIDOR, 8: ENDIMAGEM, 9: CATEGORIA_MACRO, 10: INDICE_POPULARIDADE
+        // 0: CODPROD, 1: DESCRPROD, 2: MARCA, 3: MARCA_CONTROLE, 4: CODVOL, 5: ATIVO, 6: ESTOQUE, 7: PRECO_CONSUMIDOR, 8: CATEGORIA_MACRO, 9: INDICE_POPULARIDADE
 
-        let codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, endimagem, categoria_macro, indice_popularidade;
+        let codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, categoria_macro, indice_popularidade;
 
         if (Array.isArray(sankhyaProduct)) {
-            [codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, endimagem, categoria_macro, indice_popularidade] = sankhyaProduct;
+            [codprod, descrprod, marca, marca_controle, codvol, ativo, estoque, preco, categoria_macro, indice_popularidade] = sankhyaProduct;
         } else {
             // Fallback
             codprod = sankhyaProduct.CODPROD || sankhyaProduct.codprod;
@@ -23,8 +23,6 @@ export class ProductMapper {
             ativo = sankhyaProduct.ATIVO;
             estoque = sankhyaProduct.ESTOQUE;
             preco = sankhyaProduct.PRECO_CONSUMIDOR;
-            endimagem = sankhyaProduct.ENDIMAGEM;
-            endimagem = sankhyaProduct.ENDIMAGEM;
             categoria_macro = sankhyaProduct.CATEGORIA_MACRO;
             indice_popularidade = sankhyaProduct.INDICE_POPULARIDADE;
         }
