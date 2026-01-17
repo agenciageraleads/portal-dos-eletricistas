@@ -18,6 +18,7 @@ export default function CatalogPage() {
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [orderBy, setOrderBy] = useState('popularity');
     const { user, logout } = useAuth();
 
 
@@ -39,12 +40,13 @@ export default function CatalogPage() {
         { id: 'Elétrica', label: 'Elétrica Geral', icon: '🔌' },
     ];
 
-    const fetchProducts = async (pageToFetch: number, query: string = '', category: string | null = null, reset: boolean = false) => {
+    const fetchProducts = async (pageToFetch: number, query: string = '', category: string | null = null, order: string = 'popularity', reset: boolean = false) => {
         try {
             setLoading(true);
             const params: any = {
                 page: pageToFetch,
                 limit: 20,
+                orderBy: order,
             };
 
             if (query) params.q = query;
@@ -68,14 +70,15 @@ export default function CatalogPage() {
     };
 
     useEffect(() => {
-        fetchProducts(1, '', null, true);
+        fetchProducts(1, '', null, 'popularity', true);
     }, []);
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
         setPage(1);
         setSelectedCategory(null);
-        fetchProducts(1, query, null, true); // Search clears category
+        setOrderBy('popularity'); // Reset sort on new search? Optional, but good default.
+        fetchProducts(1, query, null, 'popularity', true);
     };
 
     const handleCategoryClick = (category: string) => {
@@ -83,13 +86,20 @@ export default function CatalogPage() {
         setSelectedCategory(newCategory);
         setPage(1);
         setSearchQuery(''); // Category clears search query
-        fetchProducts(1, '', newCategory, true);
+        fetchProducts(1, '', newCategory, orderBy, true);
     };
 
     const loadMore = () => {
         const nextPage = page + 1;
         setPage(nextPage);
-        fetchProducts(nextPage, searchQuery, selectedCategory, false);
+        fetchProducts(nextPage, searchQuery, selectedCategory, orderBy, false);
+    };
+
+    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newOrder = e.target.value;
+        setOrderBy(newOrder);
+        setPage(1);
+        fetchProducts(1, searchQuery, selectedCategory, newOrder, true);
     };
 
     return (
@@ -139,9 +149,21 @@ export default function CatalogPage() {
                         <PackageSearch size={20} className="text-blue-600" />
                         {selectedCategory ? selectedCategory : (searchQuery ? `Busca: "${searchQuery}"` : 'Produtos em Destaque')}
                     </h2>
-                    <span className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-gray-500">
-                        Mostrando {products.length} itens
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={orderBy}
+                            onChange={handleSortChange}
+                            className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="popularity">Mais Populares</option>
+                            <option value="price_asc">Menor Preço</option>
+                            <option value="price_desc">Maior Preço</option>
+                            <option value="name_asc">A - Z</option>
+                        </select>
+                        <span className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-gray-500">
+                            {products.length} itens
+                        </span>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">

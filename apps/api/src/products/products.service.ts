@@ -10,7 +10,7 @@ export class ProductsService {
 
 
 
-    async findAll(query?: string, page: number = 1, limit: number = 20, category?: string) {
+    async findAll(query?: string, page: number = 1, limit: number = 20, category?: string, orderBy: string = 'popularity') {
         const where: Prisma.ProductWhereInput = {
             is_available: true,
         };
@@ -28,10 +28,6 @@ export class ProductsService {
             isSearch = true;
             normalizedQ = query.toUpperCase().trim();
 
-            // 1. Tokenize & Filter Stopwords
-            // Improved regex to keep "2.5" together, but split "2.5mm" if space absent? 
-            // "search-engineering" variations handle "2.5mm" -> "2.5".
-            // So we just need to split by spaces generally.
             const tokens = normalizedQ.split(/\s+/)
                 .filter(t => !STOPWORDS.has(t));
 
@@ -45,18 +41,14 @@ export class ProductsService {
 
                     const tokenOrConditions: Prisma.ProductWhereInput[] = [];
                     tokenVariations.forEach(term => {
-                        // Using contains for broad recall
                         tokenOrConditions.push(
                             { name: { contains: term, mode: 'insensitive' } },
                             { brand: { contains: term, mode: 'insensitive' } },
                             { category: { startsWith: term, mode: 'insensitive' } },
                         );
 
-                        // If term is purely numeric code
                         const code = parseInt(term);
                         if (!isNaN(code) && String(code) === term) {
-                            // Only match code if exact match string to avoid "32" matching "3200" via contains (which is handled above)
-                            // But for `sankhya_code` it is Int, so equals.
                             tokenOrConditions.push({ sankhya_code: { equals: code } });
                         }
                     });
@@ -69,7 +61,6 @@ export class ProductsService {
                 andConditions.push({ name: { contains: normalizedQ, mode: 'insensitive' } });
             }
 
-            // Fallback for exact code match on full query
             const fullQueryCode = parseInt(query);
             if (!isNaN(fullQueryCode) && (tokens.length <= 1)) {
                 andConditions.push({ sankhya_code: { equals: fullQueryCode } });
@@ -91,85 +82,82 @@ export class ProductsService {
 
             // LOG FAILED SEARCH (v1.1.0)
             if (results.length === 0 && query && query.length > 2) {
-                // Async logging, don't await to not block response
                 this.logFailedSearch(query).catch(err => console.error('Error logging failed search', err));
             }
 
-            // Re-generate expanded tokens for scoring
-            const allVariations = new Set<string>();
+            let sorted = results;
 
-            // Add original full query for exact matching
-            if (normalizedQ) allVariations.add(normalizedQ);
+            // Only apply relevance sort if orderBy is 'relevance' or 'popularity' (and it's a search)
+            // Actually, if user specifically asks for 'price_asc', we should respect that over relevance.
+            if (!orderBy || orderBy === 'relevance' || orderBy === 'popularity') {
+                // Re-generate expanded tokens for scoring
+                const allVariations = new Set<string>();
 
-            searchTokens.forEach(t => {
-                const vars = getVariations(t);
-                vars.forEach(v => allVariations.add(v));
-            });
+                if (normalizedQ) allVariations.add(normalizedQ);
 
-            const sorted = results.sort((a, b) => {
-                const nameA = a.name.toUpperCase();
-                const nameB = b.name.toUpperCase();
+                searchTokens.forEach(t => {
+                    const vars = getVariations(t);
+                    vars.forEach(v => allVariations.add(v));
+                });
 
-                function calculateScore(name: string): number {
-                    let score = 0;
+                sorted = results.sort((a, b) => {
+                    const nameA = a.name.toUpperCase();
+                    const nameB = b.name.toUpperCase();
 
-                    // 1. Exact Match to Full Query
-                    if (name === normalizedQ) score += 200;
+                    function calculateScore(name: string): number {
+                        let score = 0;
+                        if (name === normalizedQ) score += 200;
+                        let maxStartScore = 0;
+                        allVariations.forEach(term => {
+                            if (name.startsWith(term)) maxStartScore = Math.max(maxStartScore, 100);
+                        });
+                        score += maxStartScore;
+                        let maxWordScore = 0;
+                        const nameWords = name.split(/[\s\-\/\.]+/);
+                        allVariations.forEach(term => {
+                            if (nameWords.includes(term)) maxWordScore = Math.max(maxWordScore, 50);
+                            else if (name.includes(term)) score += 10;
+                        });
+                        score += maxWordScore;
+                        return score;
+                    }
 
-                    // 2. Starts With (Any Token Variation) - Highest Priority
-                    let maxStartScore = 0;
-                    allVariations.forEach(term => {
-                        if (name.startsWith(term)) {
-                            maxStartScore = Math.max(maxStartScore, 100);
-                        }
-                    });
-                    score += maxStartScore;
+                    const scoreA = calculateScore(nameA);
+                    const scoreB = calculateScore(nameB);
 
-                    // 3. Word Match (Any Token Variation)
-                    let maxWordScore = 0;
-                    // Split name into words to match exact token presence
-                    const nameWords = name.split(/[\s\-\/\.]+/);
-                    allVariations.forEach(term => {
-                        if (nameWords.includes(term)) {
-                            maxWordScore = Math.max(maxWordScore, 50);
-                        } else if (name.includes(term)) {
-                            // Partial match inside word (e.g. searching "FITA" finds "FITA-ISOLANTE")
-                            score += 10;
-                        }
-                    });
-                    score += maxWordScore;
+                    if (scoreA > scoreB) return -1;
+                    if (scoreB > scoreA) return 1;
 
-                    // Boost based on availability? optional.
-                    if (!a.is_available) score -= 1000; // Push unavailable to bottom? No, maybe just less priority.
+                    // Fallback: Popularity then Alphabetical
+                    if (orderBy === 'popularity' || !orderBy) {
+                        const popA = Number(a.popularity_index) || 0;
+                        const popB = Number(b.popularity_index) || 0;
+                        if (popA > popB) return -1;
+                        if (popB > popA) return 1;
+                    }
 
-                    return score;
-                }
-
-                const scoreA = calculateScore(nameA);
-                const scoreB = calculateScore(nameB);
-
-                if (scoreA > scoreB) return -1;
-                if (scoreB > scoreA) return 1;
-
-                // Fallback: Popularity then Alphabetical
-                const popA = Number(a.popularity_index) || 0;
-                const popB = Number(b.popularity_index) || 0;
-
-                if (popA > popB) return -1;
-                if (popB > popA) return 1;
-
-                return nameA.localeCompare(nameB);
-            });
+                    return nameA.localeCompare(nameB);
+                });
+            } else {
+                // Apply explicit sort on the in-memory results (since we already fetched them)
+                sorted = results.sort((a, b) => {
+                    if (orderBy === 'price_asc') return Number(a.price) - Number(b.price);
+                    if (orderBy === 'price_desc') return Number(b.price) - Number(a.price);
+                    if (orderBy === 'name_asc') return a.name.localeCompare(b.name);
+                    if (orderBy === 'name_desc') return b.name.localeCompare(a.name);
+                    return 0;
+                });
+            }
 
             // Pagination
-            const total = await this.prisma.product.count({ where });
+            const total = results.length;
             const start = (page - 1) * limit;
             const paginatedData = sorted.slice(start, start + limit);
 
             return {
                 data: paginatedData,
                 meta: {
-                    total: results.length, // Accurate count of filters
+                    total: results.length,
                     page,
                     last_page: Math.ceil(results.length / limit),
                 },
@@ -177,13 +165,22 @@ export class ProductsService {
         } else {
             // Standard Browsing (Efficient DB Paging)
             const skip = (page - 1) * limit;
+
+            let finalOrderBy: Prisma.ProductOrderByWithRelationInput[] = [
+                { popularity_index: 'desc' },
+                { name: 'asc' }
+            ];
+
+            if (orderBy === 'price_asc') finalOrderBy = [{ price: 'asc' }];
+            if (orderBy === 'price_desc') finalOrderBy = [{ price: 'desc' }];
+            if (orderBy === 'name_asc') finalOrderBy = [{ name: 'asc' }];
+            if (orderBy === 'name_desc') finalOrderBy = [{ name: 'desc' }];
+            // popularity is default
+
             const [data, total] = await Promise.all([
                 this.prisma.product.findMany({
                     where,
-                    orderBy: [
-                        { popularity_index: 'desc' },
-                        { name: 'asc' }
-                    ],
+                    orderBy: finalOrderBy,
                     skip,
                     take: limit,
                 }),

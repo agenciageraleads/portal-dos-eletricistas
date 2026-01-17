@@ -4,9 +4,14 @@ import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { AuthGuard } from '@nestjs/passport';
 
+import { BudgetImportService } from './budget-import.service';
+
 @Controller('budgets')
 export class BudgetsController {
-    constructor(private readonly budgetsService: BudgetsService) { }
+    constructor(
+        private readonly budgetsService: BudgetsService,
+        private readonly budgetImportService: BudgetImportService
+    ) { }
 
     @UseGuards(AuthGuard('jwt'))
     @Post()
@@ -36,5 +41,12 @@ export class BudgetsController {
     @Get('admin/all')
     async findAllAdmin(@Request() req: any) {
         return this.budgetsService.findAllForAdmin(req.user.userId);
+    }
+
+    // Smart Import (v1.5.0)
+    @UseGuards(AuthGuard('jwt'))
+    @Post('smart-import')
+    async smartImport(@Body() body: { text?: string; imageUrl?: string }) {
+        return this.budgetImportService.processInput(body);
     }
 }

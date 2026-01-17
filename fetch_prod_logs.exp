@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
-set timeout 30
-spawn ssh -o StrictHostKeyChecking=no root@5.161.247.240 "docker service ls"
+set timeout 120
+spawn ssh -o StrictHostKeyChecking=no root@5.161.247.240 "docker service logs portal_eletricistas_api --raw --tail 500"
 expect {
     "password:" {
         send "Lucas2311#\r"

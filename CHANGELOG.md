@@ -5,6 +5,23 @@ Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-01-14
+
+### Added
+- **Orçamento Inteligente**: Nova funcionalidade que permite gerar orçamentos a partir de listas de texto ou imagens (fotos de listas) usando IA (GPT-4o-mini).
+- **Importação de Arquivo**: Suporte para upload de imagens no modal de orçamento.
+- **Engine de Busca**: Novo motor de correspondência (Matching Engine) para identificar produtos por código, nome e marca automaticamente.
+
+## [1.4.10] - 2026-01-13
+
+### Changed
+- **PDF**: Layout melhorado para exibir Condições Comerciais (Prazo, Pagamento, Validade, Garantia) em grade estruturada.
+
+## [1.4.9] - 2026-01-13
+
+### Fixed
+- **Sync Timeout**: Aumentado timeout do cliente Sankhya para 120s para suportar queries lentas em produção.
+
 ## [1.4.8] - 2026-01-12
 
 ### Fixed

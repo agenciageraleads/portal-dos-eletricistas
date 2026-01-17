@@ -19,7 +19,7 @@ export interface CartItem {
 
 interface CartContextType {
     items: CartItem[];
-    addToCart: (product: Product) => void;
+    addToCart: (product: Product, quantity?: number) => void;
     addManualItem: (item: Partial<CartItem>) => void;
     updateQuantity: (id: string, quantity: number) => void;
     removeFromCart: (id: string) => void;
@@ -51,12 +51,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('portal_cart', JSON.stringify(items));
     }, [items]);
 
-    const addToCart = (product: Product) => {
+    const addToCart = (product: Product, quantity: number = 1) => {
         setItems((prev) => {
             const existing = prev.find((item) => item.productId === product.id);
             if (existing) {
                 return prev.map((item) =>
-                    item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item
                 );
             }
             return [...prev, {
@@ -68,7 +68,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 brand: product.brand,
                 sankhya_code: product.sankhya_code,
                 unit: product.unit,
-                quantity: 1
+                quantity: quantity
             }];
         });
     };

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,9 +7,121 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --------------------------------------
-// 👤 Usuários (Eletricistas & Admins)
-// --------------------------------------
+model User {
+  id                   String     @id @default(uuid())
+  email                String     @unique
+  password             String
+  name                 String
+  role                 Role       @default(ELETRICISTA)
+  status               UserStatus @default(PENDING)
+  cpf_cnpj             String?
+  phone                String?
+  gateway_recipient_id String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  bio                  String?
+  logo_url             String?
+  pix_key              String?
+  reset_token          String?
+  reset_token_expires  DateTime?
+  terms_accepted_at    DateTime?
+  business_name        String?
+  budgets              Budget[]
+
+  @@map("users")
+}
+
+model Product {
+  id               String       @id @default(uuid())
+  sankhya_code     Int          @unique
+  name             String
+  description      String?
+  price            Decimal      @db.Decimal(10, 2)
+  unit             String?
+  image_url        String?
+  category         String?
+  brand            String?
+  is_available     Boolean      @default(true)
+  updatedAt        DateTime     @updatedAt
+  specs            Json?
+  popularity_index Decimal      @default(0) @map("INDICE_POPULARIDADE") @db.Decimal(10, 4)
+  budgetItems      BudgetItem[]
+  feedbacks        Feedback[]
+
+  @@map("products")
+}
+
+model FailedSearch {
+  id        String   @id @default(uuid())
+  query     String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@map("failed_searches")
+}
+
+model Budget {
+  id                String       @id @default(uuid())
+  userId            String
+  client_name       String?
+  client_phone      String?
+  status            BudgetStatus @default(DRAFT)
+  expiresAt         DateTime?
+  total_materials   Decimal      @default(0) @db.Decimal(10, 2)
+  total_labor       Decimal      @default(0) @db.Decimal(10, 2)
+  total_price       Decimal      @default(0) @db.Decimal(10, 2)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  labor_description String?
+  notes             String?
+  show_labor_total  Boolean      @default(true)
+  show_unit_prices  Boolean      @default(true)
+  items             BudgetItem[]
+  user              User         @relation(fields: [userId], references: [id])
+  order             Order?
+
+  @@map("budgets")
+}
+
+model BudgetItem {
+  id               String   @id @default(uuid())
+  budgetId         String
+  productId        String?
+  quantity         Int
+  price            Decimal  @db.Decimal(10, 2)
+  custom_name      String?
+  custom_photo_url String?
+  is_external      Boolean  @default(false)
+  suggested_source String?
+  budget           Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  product          Product? @relation(fields: [productId], references: [id])
+
+  @@map("budget_items")
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  budgetId         String      @unique
+  gateway_id       String?
+  sankhya_order_id Int?
+  status           OrderStatus @default(PENDING_SYNC)
+  paidAt           DateTime    @default(now())
+  budget           Budget      @relation(fields: [budgetId], references: [id])
+
+  @@map("orders")
+}
+
+model Feedback {
+  id        String       @id @default(uuid())
+  type      FeedbackType
+  message   String
+  productId String?
+  userEmail String?
+  createdAt DateTime     @default(now())
+  product   Product?     @relation(fields: [productId], references: [id])
+
+  @@map("feedbacks")
+}
 
 enum Role {
   ADMIN
@@ -26,195 +135,21 @@ enum UserStatus {
   BLOCKED
 }
 
-model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  password  String     // Será hasheada
-  name      String
-  business_name String? // Razão Social / Nome Fantasia (v1.2.0)
-  role      Role       @default(ELETRICISTA)
-  status    UserStatus @default(PENDING)
-  cpf_cnpj  String?
-  phone     String?
-  
-  // LGPD - Consentimento
-  terms_accepted_at DateTime?
-  bio       String?
-  logo_url  String?
-  pix_key   String?
-  
-  // Password Reset
-  reset_token          String?
-  reset_token_expires  DateTime?
-  
-  // Dados de Pagamento (Split)
-  // Armazena o ID do recebedor no Gateway (Pagar.me/Asaas)
-  gateway_recipient_id String?
-
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  budgets   Budget[]
-  
-  @@map("users")
-}
-
-// --------------------------------------
-// 📦 Catálogo de Produtos (Sync Sankhya)
-// --------------------------------------
-
-model Product {
-  id            String   @id @default(uuid())
-  sankhya_code  Int      @unique // Código original no ERP
-  name          String
-  description   String?
-  price         Decimal  @db.Decimal(10, 2)
-  unit          String?  // UN, M, CX
-  image_url     String?
-  category      String?
-  brand         String?
-  
-  // Controle de Estoque Simplificado
-  is_available  Boolean  @default(true)
-  
-  // Especificações Técnicas (Novo v1.1.0)
-  specs         Json?    // { "amperage": "32A", "curve": "C", "voltage": "750V" }
-
-  // Popularidade (Sankhya Calculated)
-  popularity_index Decimal @default(0) @map("INDICE_POPULARIDADE") @db.Decimal(10, 4)
-
-  updatedAt     DateTime @updatedAt  // Para saber quando foi a última sync
-
-  budgetItems   BudgetItem[]
-  feedbacks     Feedback[]
-
-  @@map("products")
-}
-
-// --------------------------------------
-// 🔍 Buscas Falhas (Analytics) v1.1.0
-// --------------------------------------
-
-model FailedSearch {
-  id        String   @id @default(uuid())
-  query     String
-  userId    String?
-  createdAt DateTime @default(now())
-  
-  @@map("failed_searches")
-}
-
-// --------------------------------------
-// 📝 Orçamentos (Carrinho Técnico)
-// --------------------------------------
-
 enum BudgetStatus {
-  DRAFT      // Em rascunho
-  SHARED     // Enviado ao cliente
-  APPROVED   // Cliente aceitou
-  CONVERTED  // Virou Pedido (Pago)
-  EXPIRED    // Passou do prazo
+  DRAFT
+  SHARED
+  APPROVED
+  CONVERTED
+  EXPIRED
 }
-
-model Budget {
-  id              String       @id @default(uuid())
-  
-  // Relacionamentos
-  userId          String
-  user            User         @relation(fields: [userId], references: [id])
-  
-  client_name     String?
-  client_phone    String?
-  
-  status          BudgetStatus @default(DRAFT)
-  expiresAt       DateTime?
-
-  // Totais (Calculados)
-  total_materials Decimal      @default(0) @db.Decimal(10, 2)
-  total_labor     Decimal      @default(0) @db.Decimal(10, 2) // Mão de obra (Split)
-  labor_description String?    // Descrição justificativa do serviço (Novo v1.1.0)
-  total_price     Decimal      @default(0) @db.Decimal(10, 2)
-
-  // Observações e Configurações (Novo v1.2.0)
-  notes           String?      // Observações gerais, condições de pagamento, prazos
-  show_unit_prices Boolean     @default(true)  // Exibir preços unitários no PDF?
-  show_labor_total Boolean     @default(true)  // Exibir total de mão de obra separado?
-
-  items           BudgetItem[]
-  order           Order?
-  
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  @@map("budgets")
-}
-
-model BudgetItem {
-  id        String   @id @default(uuid())
-  
-  budgetId  String
-  budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-
-  // Campos para Itens Manuais / Externos (v1.3.0)
-  is_external       Boolean  @default(false)
-  custom_name       String?
-  custom_photo_url  String?
-  suggested_source  String?
-
-  quantity  Int
-  price     Decimal  @db.Decimal(10, 2) // Preço "congelado" no momento do orçamento
-
-  @@map("budget_items")
-}
-
-// --------------------------------------
-// 💳 Pedidos (Pós-Pagamento)
-// --------------------------------------
 
 enum OrderStatus {
-  PENDING_SYNC  // Pago, mas não enviado ao Sankhya
-  SYNCED        // Enviado ao Sankhya com sucesso
-  ERROR_SYNC    // Erro ao enviar
+  PENDING_SYNC
+  SYNCED
+  ERROR_SYNC
 }
-
-model Order {
-  id                    String      @id @default(uuid())
-  
-  budgetId              String      @unique
-  budget                Budget      @relation(fields: [budgetId], references: [id])
-
-  gateway_id            String?     // ID da transação no Gateway
-  sankhya_order_id      Int?        // ID do pedido criado no Sankhya
-  
-  status                OrderStatus @default(PENDING_SYNC)
-  
-  paidAt                DateTime    @default(now())
-
-  @@map("orders")
-}
-
-// --------------------------------------
-// 📢 Feedback & Report
-// --------------------------------------
 
 enum FeedbackType {
   GENERAL
   PRODUCT_REPORT
-}
-
-model Feedback {
-  id        String       @id @default(uuid())
-  type      FeedbackType
-  message   String
-  productId String?      // Opcional: só se for report de produto
-  product   Product?     @relation(fields: [productId], references: [id])
-  
-  userEmail String?      // Opcional: se quisermos saber quem mandou (futuro)
-  
-  createdAt DateTime     @default(now())
-  
-  @@map("feedbacks")
 }

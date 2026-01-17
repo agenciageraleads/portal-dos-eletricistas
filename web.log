@@ -1,0 +1,30 @@
+
+> web@1.5.0 dev
+> next dev -H 0.0.0.0
+
+node:internal/modules/package_json_reader:110
+  const parsed = modulesBinding.readPackageJSON(
+                                ^
+
+Error: Invalid package config /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/node_modules/next/dist/compiled/picomatch/package.json.
+    at Object.read (node:internal/modules/package_json_reader:110:33)
+    at _readPackage (node:internal/modules/cjs/loader:477:55)
+    at tryPackage (node:internal/modules/cjs/loader:497:36)
+    at Function._findPath (node:internal/modules/cjs/loader:796:18)
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1387:27)
+    at /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/node_modules/next/dist/server/require-hook.js:57:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  code: 'ERR_INVALID_PACKAGE_CONFIG'
+}
+
+Node.js v22.16.0
+npm error Lifecycle script `dev` failed with error:
+npm error code 1
+npm error path /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/apps/web
+npm error workspace web@1.5.0
+npm error location /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/apps/web
+npm error command failed
+npm error command sh -c next dev -H 0.0.0.0

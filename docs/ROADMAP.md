@@ -38,10 +38,12 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto, 
 *   [x] **Nova Home Dashboard:** Hub central com acesso rápido (Orçamentos, Catálogo, Ferramentas).
 
 **Semana 4: Diferenciais Competitivos (Próximo Foco)**
-*   [ ] **Smart Sorting:** Ordenar por Popularidade e Estoque (Disponibilidade).
-*   [ ] **PWA Completo:** Instalação e cache offline robusto.
-*   [ ] **Calculadoras Avançadas:** Demanda, Fator de Potência.
 *   [x] **Produto Extra / Manual:** Permitir adicionar itens fora do catálogo.
+*   [ ] **Correções Rápidas (Staging):**
+    *   [ ] Ferramentas: Opção Trifásico (380v).
+    *   [ ] Orçamento: Mostrar Valor Unitário e corrigir texto "Portal Distribuidora".
+    *   [ ] Foto no item manual (Medium Impact).
+*   [x] **Smart Sorting:** Ordenar por Popularidade (Backend pronto, Web pendente) e Estoque.
 
 **Gestão & Polimento (Ongoing)**
 *   [x] **CRM Básico + Mini Dashboard:** Status dos orçamentos, Meus Orçamentos e Estatísticas (Total/Ticket Médio).
@@ -62,8 +64,11 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto, 
 *   [ ] **Agrupamento de Produtos:** Melhor visualização de variações (cores, tamanhos).
 *   [ ] **App Mobile Nativo:** Planejamento.
 *   [x] **Admin: Gestão Completa:** Reset de senha de usuários e Gestão de Produtos (Editar/Desativar).
-*   [ ] **AI Placeholders:** Sugestões inteligentes na descrição de serviços.
+*   [ ] **Gamificação Completa (Jornada):** Tornar o modal funcional com badges e conquistas (Pedidos, Convites, Orçamentos).
+*   [ ] **Referral System:** Sistema de convites com prêmios e comissionamento multinível (Planejamento).
+*   [ ] **AI Features:** Sugestões inteligentes para descrição de serviços e "Diagnóstico de Problemas" (Foto -> Solução).
 *   [ ] **Geolocalização:** Encontrar eletricistas próximos.
+*   [ ] **Hub de Ferramentas Avançado:** Motor e Tutoriais.
 
 ---
 

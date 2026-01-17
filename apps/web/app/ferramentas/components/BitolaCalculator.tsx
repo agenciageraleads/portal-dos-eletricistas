@@ -16,19 +16,25 @@ export function BitolaCalculator() {
 
         if (!V || !P || !L) return;
 
-        // Corrente (I) = P / V
-        const I = P / V;
+        // Corrente (I)
+        // Monofásico/Bifásico (127/220): I = P / V
+        // Trifásico (380): I = P / (V * sqrt(3))
+        const isThreePhase = V === 380;
+        const sqrt3 = 1.732;
+        const I = isThreePhase ? P / (V * sqrt3) : P / V;
 
         // Queda de Tensão Admitida (4%)
-        // DeltaV = (2 * L * I * rho) / S
-        // S = (2 * L * I * 0.0172) / (V * 0.04)   (Cobre)
+        // DeltaV = (k * L * I * rho) / S
+        // k = 2 (Mono/Bi), k = sqrt(3) (Tri)
+        // S = (k * L * I * 0.0172) / (V * 0.04)   (Cobre)
 
         // rho cobre = 0.0172 ohm.mm²/m
         const rho = 0.0172;
         const maxDropV = V * 0.04; // 4%
 
-        // S_drop = (2 * L * I * rho) / maxDropV (Monofasico/Bifasico simplificado 2 condutores carregados)
-        const S_drop = (2 * L * I * rho) / maxDropV;
+        // S_drop calculation
+        const k = isThreePhase ? sqrt3 : 2;
+        const S_drop = (k * L * I * rho) / maxDropV;
 
         // Capacidade de conducão (Tabela simplificada B1 - 2 condutores carregados PVC)
         // 1.5mm -> 17.5A
@@ -67,7 +73,7 @@ export function BitolaCalculator() {
 
         setResult({
             gauge: finalGauge.toString(),
-            drop: (2 * L * I * rho / finalGauge) // Recalcula drop real
+            drop: (k * L * I * rho / finalGauge) // Recalcula drop real
         });
     };
 
@@ -85,6 +91,7 @@ export function BitolaCalculator() {
                     >
                         <option value="127">127V (Monofásico)</option>
                         <option value="220">220V (Bifásico/Mono)</option>
+                        <option value="380">380V (Trifásico)</option>
                     </select>
                 </div>
 
@@ -133,7 +140,7 @@ export function BitolaCalculator() {
                         </div>
 
                         <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm border border-white/20 text-sm">
-                            <p>Corrente Calculada: <strong>{Math.round(parseFloat(power) / parseFloat(voltage))} A</strong></p>
+                            <p>Corrente Calculada: <strong>{Math.round((parseFloat(power) / parseFloat(voltage)) / (voltage === '380' ? 1.732 : 1))} A</strong></p>
                             <p>Queda de Tensão Estimada: <strong>{result.drop.toFixed(2)} V</strong></p>
                         </div>
                     </div>
