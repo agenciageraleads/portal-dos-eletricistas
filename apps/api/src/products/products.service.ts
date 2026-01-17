@@ -17,7 +17,7 @@ export class ProductsService {
 
         // ... (Category logic remains)
         if (category) {
-            where.category = { equals: category, mode: 'insensitive' };
+            where.category = { equals: category, mode: 'insensitive' as Prisma.QueryMode };
         }
 
         let isSearch = false;
@@ -42,9 +42,9 @@ export class ProductsService {
                     const tokenOrConditions: Prisma.ProductWhereInput[] = [];
                     tokenVariations.forEach(term => {
                         tokenOrConditions.push(
-                            { name: { contains: term, mode: 'insensitive' } },
-                            { brand: { contains: term, mode: 'insensitive' } },
-                            { category: { startsWith: term, mode: 'insensitive' } },
+                            { name: { contains: term, mode: 'insensitive' as Prisma.QueryMode } },
+                            { brand: { contains: term, mode: 'insensitive' as Prisma.QueryMode } },
+                            { category: { startsWith: term, mode: 'insensitive' as Prisma.QueryMode } },
                         );
 
                         const code = parseInt(term);
@@ -58,7 +58,7 @@ export class ProductsService {
                     }
                 });
             } else if (normalizedQ.length > 0) {
-                andConditions.push({ name: { contains: normalizedQ, mode: 'insensitive' } });
+                andConditions.push({ name: { contains: normalizedQ, mode: 'insensitive' as Prisma.QueryMode } });
             }
 
             const fullQueryCode = parseInt(query);

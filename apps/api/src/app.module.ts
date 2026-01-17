@@ -16,8 +16,13 @@ import { HealthModule } from './health/health.module';
 import { AdminModule } from './admin/admin.module';
 import { UploadsModule } from './uploads/uploads.module';
 
+import { ConfigModule } from '@nestjs/config';
+
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Loads .env globally
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',

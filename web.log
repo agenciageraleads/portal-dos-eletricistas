@@ -6,7 +6,7 @@ node:internal/modules/package_json_reader:110
   const parsed = modulesBinding.readPackageJSON(
                                 ^
 
-Error: Invalid package config /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/node_modules/next/dist/compiled/picomatch/package.json.
+Error: Invalid package config /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/node_modules/next/dist/compiled/zod/package.json.
     at Object.read (node:internal/modules/package_json_reader:110:33)
     at _readPackage (node:internal/modules/cjs/loader:477:55)
     at tryPackage (node:internal/modules/cjs/loader:497:36)

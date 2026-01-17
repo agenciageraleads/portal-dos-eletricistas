@@ -1,6 +1,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 
@@ -29,8 +30,10 @@ export class BudgetImportService {
         private prisma: PrismaService,
         private configService: ConfigService,
     ) {
+        const key = this.configService.get<string>('OPENAI_API_KEY');
+        console.log(`\n\n\n[DEBUG] Using OpenAI Key: ${key ? key.substring(0, 10) + '...' : 'UNDEFINED'}\n\n\n`);
         this.openai = new OpenAI({
-            apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+            apiKey: key,
         });
     }
 
@@ -39,6 +42,7 @@ export class BudgetImportService {
      */
     async processInput(input: { text?: string; imageUrl?: string }): Promise<MatchResult[]> {
         let parsedItems: ParsedItem[] = [];
+
 
         if (input.text) {
             parsedItems = await this.parseTextWithAI(input.text);
@@ -100,7 +104,10 @@ export class BudgetImportService {
             return result.items || [];
         } catch (error) {
             this.logger.error('Error parsing text with OpenAI', error);
-            return [];
+            if (error?.status === 429) {
+                throw new Error('Cota da OpenAI excedida via API. Verifique o faturamento.');
+            }
+            throw error;
         }
     }
 
@@ -151,7 +158,10 @@ export class BudgetImportService {
             return result.items || [];
         } catch (error) {
             this.logger.error('Error parsing image with OpenAI', error);
-            return [];
+            if (error?.status === 429) {
+                throw new Error('Cota da OpenAI excedida via API. Verifique o faturamento.');
+            }
+            throw error;
         }
     }
 
@@ -199,9 +209,9 @@ export class BudgetImportService {
             where: {
                 is_available: true,
                 OR: [
-                    { name: { contains: item.description, mode: 'insensitive' } },
+                    { name: { contains: item.description, mode: 'insensitive' as Prisma.QueryMode } },
                     // Fallback: split terms
-                    ...item.description.split(' ').map(term => ({ name: { contains: term, mode: 'insensitive' } }))
+                    ...item.description.split(' ').map(term => ({ name: { contains: term, mode: 'insensitive' as Prisma.QueryMode } }))
                 ]
             },
             take: 5
