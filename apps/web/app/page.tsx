@@ -109,15 +109,7 @@ export default function Home() {
 
             <main className="flex-1 max-w-md mx-auto px-4 w-full relative z-10">
 
-                {/* 3. SEARCH BAR (Floating over banner) */}
-                <div className="bg-white p-2 rounded-xl shadow-lg border border-gray-100 flex items-center gap-3 mb-6">
-                    <Search size={20} className="text-gray-400 ml-2" />
-                    <input
-                        type="text"
-                        placeholder="O que você precisa hoje?"
-                        className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-sm py-2"
-                    />
-                </div>
+
 
                 {/* 4. CONTENT SECTIONS */}
 

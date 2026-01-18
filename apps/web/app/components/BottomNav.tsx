@@ -30,14 +30,14 @@ export default function BottomNav() {
         },
         {
             label: 'IA',
-            href: '#', // TODO: Link to AI
+            href: '/ia', // Link to AI Assistant
             icon: BrainCircuit,
             isActive: false,
             isSpecial: true // Central button
         },
         {
             label: 'Serviços',
-            href: '#',
+            href: '/services',
             icon: Grid,
             isActive: false // Placeholder
         },

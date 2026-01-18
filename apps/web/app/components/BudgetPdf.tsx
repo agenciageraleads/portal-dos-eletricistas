@@ -268,14 +268,14 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                                         )}
                                     </View>
                                     <View style={[styles.tableCol, { width: '10%' }]}>
-                                        <Text style={styles.tableCell}>{item.is_external ? 'EXTRA' : item.product?.sankhya_code}</Text>
+                                        <Text style={styles.tableCell}>{item.is_external ? 'EXTRA' : (item.product?.type === 'SERVICE' ? 'SERV' : item.product?.sankhya_code)}</Text>
                                     </View>
                                     <View style={[styles.tableColDesc, { width: '35%' }]}>
                                         <Text style={styles.tableCell}>
                                             {item.is_external ? item.custom_name : (
                                                 <>
                                                     {item.product?.name}
-                                                    {item.product?.brand && ` - ${item.product.brand}`}
+                                                    {item.product?.type !== 'SERVICE' && item.product?.brand && ` - ${item.product.brand}`}
                                                 </>
                                             )}
                                         </Text>

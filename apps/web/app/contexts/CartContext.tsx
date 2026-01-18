@@ -14,7 +14,9 @@ export interface CartItem {
     sankhya_code?: number;
     unit?: string;
     isExternal?: boolean;
+    isExternal?: boolean;
     suggestedSource?: string;
+    type?: 'MATERIAL' | 'SERVICE';
 }
 
 interface CartContextType {
@@ -68,6 +70,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 brand: product.brand,
                 sankhya_code: product.sankhya_code,
                 unit: product.unit,
+                sankhya_code: product.sankhya_code,
+                unit: product.unit,
+                type: (product as any).type || 'MATERIAL',
                 quantity: quantity
             }];
         });
@@ -119,7 +124,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 category: item.product?.category,
                 quantity: item.quantity,
                 sankhya_code: item.product?.sankhya_code,
+                quantity: item.quantity,
+                sankhya_code: item.product?.sankhya_code,
                 unit: item.product?.unit || 'UN',
+                type: item.product?.type || 'MATERIAL',
             };
         });
         setItems(newItems);

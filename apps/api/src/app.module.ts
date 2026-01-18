@@ -15,6 +15,8 @@ import { join } from 'path';
 import { HealthModule } from './health/health.module';
 import { AdminModule } from './admin/admin.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { ServicesModule } from './services/services.module';
+import { AssistantModule } from './assistant/assistant.module';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -41,6 +43,8 @@ import { ConfigModule } from '@nestjs/config';
     HealthModule,
     AdminModule,
     UploadsModule,
+    ServicesModule,
+    AssistantModule,
   ], controllers: [AppController],
   providers: [
     AppService,

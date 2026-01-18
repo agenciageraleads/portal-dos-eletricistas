@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   /* config options here */
   turbopack: {}, // Silence Next.js 16 webpack/turbopack warning
+  devIndicators: {
+    buildActivity: false,
+    appIsrStatus: false,
+  },
 };
 
 export default withPWA({

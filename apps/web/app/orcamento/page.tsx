@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import SmartBudgetImport from '../components/SmartBudgetImport';
+import AddServiceModal from '../components/AddServiceModal';
 
 const formatPrice = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -84,6 +85,7 @@ function OrcamentoContent() {
     // UI
     const [loading, setLoading] = useState(false);
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+    const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [shareData, setShareData] = useState<any>(null);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -269,14 +271,24 @@ function OrcamentoContent() {
                                     });
                                 }}
                             />
-                            <button
-                                type="button"
-                                onClick={() => setIsManualModalOpen(true)}
-                                className="flex items-center justify-center gap-2 py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-all font-medium"
-                            >
-                                <PackagePlus size={20} />
-                                Adicionar Item que não está no catálogo
-                            </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsServiceModalOpen(true)}
+                                    className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
+                                >
+                                    <PackagePlus size={24} />
+                                    Adicionar Serviço
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsManualModalOpen(true)}
+                                    className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm"
+                                >
+                                    <Plus size={24} />
+                                    Item Manual
+                                </button>
+                            </div>
                             <div className="flex justify-between items-center pt-2">
                                 <span className="text-gray-600 font-medium">Subtotal Materiais</span>
                                 <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
@@ -621,6 +633,24 @@ function OrcamentoContent() {
                     </div >
                 )
             }
+            )
+            }
+
+            <AddServiceModal
+                isOpen={isServiceModalOpen}
+                onClose={() => setIsServiceModalOpen(false)}
+                onAddService={(service) => {
+                    addToCart({
+                        id: service.id,
+                        name: service.name,
+                        price: service.price.toString(),
+                        image_url: service.image_url || '',
+                        sankhya_code: 0,
+                        type: 'SERVICE'
+                    }, 1);
+                    setIsServiceModalOpen(false);
+                }}
+            />
         </>
     );
 }

@@ -61,55 +61,92 @@ export default function SmartBudgetImport({ onImportItems }: SmartBudgetImportPr
         }
     };
 
-    const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
+    // State for swapping product
+    const [swapItemIndex, setSwapItemIndex] = useState<number | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleOpenSwap = (index: number) => {
+        setSwapItemIndex(index);
+        setSearchTerm(results![index].parsed.description); // Pre-fill with description
+        handleSearchProduct(results![index].parsed.description);
+    };
+
+    const handleSearchProduct = async (query: string) => {
+        setSearchTerm(query);
+        if (!query.trim()) return;
+
+        setIsSearching(true);
+        try {
+            const { data } = await api.get('/products', { params: { search: query } });
+            setSearchResults(data);
+        } catch (error) {
+            console.error('Error searching products:', error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleSelectReplacement = async (product: any) => {
+        if (swapItemIndex === null || !results) return;
+
+        const originalResult = results[swapItemIndex];
+        const newResults = [...results];
+
+        // Update local state
+        newResults[swapItemIndex] = {
+            ...originalResult,
+            status: 'MATCHED', // Now it's matched/corrected
+            product: product
+        };
+        setResults(newResults);
+        setSwapItemIndex(null);
+
+        // Send Feedback to Backend
+        try {
+            await api.post('/budgets/feedback', {
+                original_text: originalResult.parsed.raw_text,
+                suggested_pid: originalResult.product?.id,
+                correct_pid: product.id,
+                correction_type: 'FIXED'
+            });
+            console.log('Feedback sent successfully');
+        } catch (error) {
+            console.error('Error sending feedback:', error);
+        }
+    };
+
+    // ... (rest of toBase64)
 
     const handleConfirmImport = () => {
         if (!results) return;
 
-        // Filter and map items to the cart format
-        const itemsTrusted = results.map(r => {
-            if (r.status === 'MATCHED' || r.status === 'SUGGESTED') {
-                return {
-                    id: r.product.id,
-                    name: r.product.name,
-                    price: r.product.price,
-                    imageUrl: r.product.image_url,
-                    sankhya_code: r.product.sankhya_code,
-                    quantity: r.parsed.quantity
-                };
-            }
-            // For NOT_FOUND, strictly speaking we should add as manual item
-            // But for now let's just ignore or add as manual if we had the logic here
-            // Assuming the parent component handles adding to cart
-            return null;
-        }).filter(Boolean);
+        const itemsToImport = results
+            .filter(item => item.product)
+            .map(item => ({
+                product_id: item.product.id,
+                quantity: item.parsed.quantity,
+                unit_price: item.product.price,
+                // Add other necessary fields compatible with the cart/budget
+            }));
 
-        onImportItems(itemsTrusted);
+        if (itemsToImport.length === 0) {
+            alert('Nenhum produto identificado com correspondência para importar.');
+            return;
+        }
+
+        onImportItems(itemsToImport);
         setIsOpen(false);
-        setResults(null);
-        setTextInput('');
     };
 
-    if (!isOpen) {
-        return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all font-bold text-sm"
-            >
-                <Sparkles size={18} />
-                Orçamento Inteligente
-            </button>
-        );
-    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Main Modal */}
+            <div className={`bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all ${swapItemIndex !== null ? 'opacity-50 pointer-events-none' : ''}`}>
+                {/* ... Existing Modal Content ... */}
+                {/* Update the Item Render to include Swap Button */}
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <div>
@@ -127,6 +164,7 @@ export default function SmartBudgetImport({ onImportItems }: SmartBudgetImportPr
                 {/* Body */}
                 <div className="p-6 overflow-y-auto flex-1 text-black">
                     {!results ? (
+                        /* Input Mode (Text/File) - Unchanged */
                         <>
                             <div className="flex gap-4 mb-4">
                                 <button
@@ -166,7 +204,6 @@ export default function SmartBudgetImport({ onImportItems }: SmartBudgetImportPr
                                         accept="image/*,.pdf"
                                         className="absolute inset-0 opacity-0 cursor-pointer"
                                         onChange={(e) => {
-                                            // Optional: Show preview or file name
                                             const file = e.target.files?.[0];
                                             if (file) {
                                                 const label = document.getElementById('file-label');
@@ -182,6 +219,7 @@ export default function SmartBudgetImport({ onImportItems }: SmartBudgetImportPr
                             )}
                         </>
                     ) : (
+                        /* Results Mode - Modified with Swap Button */
                         <div className="space-y-4">
                             <h4 className="font-bold text-gray-700 text-lg">Resultado da Análise</h4>
                             <div className="space-y-3">
@@ -215,10 +253,16 @@ export default function SmartBudgetImport({ onImportItems }: SmartBudgetImportPr
                                             )}
                                         </div>
 
-                                        <div className="text-right">
+                                        <div className="text-right flex flex-col items-end gap-2">
                                             <span className="block font-bold text-gray-900 text-lg">
                                                 {item.parsed.quantity} {item.parsed.unit || 'un'}
                                             </span>
+                                            <button
+                                                onClick={() => handleOpenSwap(idx)}
+                                                className="text-xs text-blue-600 hover:text-blue-800 font-bold underline"
+                                            >
+                                                Trocar Produto
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -257,6 +301,55 @@ export default function SmartBudgetImport({ onImportItems }: SmartBudgetImportPr
                     )}
                 </div>
             </div>
+
+            {/* Swap Product Modal Overlay */}
+            {swapItemIndex !== null && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col h-[600px] border border-gray-200">
+                        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-gray-800">Trocar Produto</h3>
+                            <button onClick={() => setSwapItemIndex(null)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4 border-b">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={searchTerm}
+                                    onChange={(e) => handleSearchProduct(e.target.value)}
+                                    placeholder="Buscar produto..."
+                                    className="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            {isSearching ? (
+                                <div className="flex justify-center p-8 text-gray-400"><Loader2 className="animate-spin" /></div>
+                            ) : searchResults.length === 0 ? (
+                                <p className="text-center text-gray-500 mt-8">Nenhum produto encontrado.</p>
+                            ) : (
+                                searchResults.map((p) => (
+                                    <div
+                                        key={p.id}
+                                        onClick={() => handleSelectReplacement(p)}
+                                        className="p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-200 cursor-pointer flex justify-between items-center group"
+                                    >
+                                        <div>
+                                            <p className="font-bold text-gray-800 text-sm group-hover:text-blue-700">{p.name}</p>
+                                            <p className="text-xs text-gray-500">Cód: {p.sankhya_code}</p>
+                                        </div>
+                                        <span className="font-bold text-gray-900 text-sm">R$ {p.price}</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+

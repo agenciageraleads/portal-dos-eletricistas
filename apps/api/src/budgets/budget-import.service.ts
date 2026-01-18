@@ -168,10 +168,59 @@ export class BudgetImportService {
     /**
      * Search Engine Logic (Cascading Match)
      */
+    /**
+     * Store feedback from user to improve future matches
+     */
+    async registerFeedback(userId: string, data: { original_text: string; ai_model?: string; suggested_pid?: string; correct_pid?: string; correction_type: string }) {
+        try {
+            await this.prisma.aiMatchFeedback.create({
+                data: {
+                    userId,
+                    original_text: data.original_text.toLowerCase().trim(),
+                    ai_model: data.ai_model || 'gpt-4o-mini',
+                    suggested_pid: data.suggested_pid,
+                    correct_pid: data.correct_pid,
+                    correction_type: data.correction_type
+                }
+            });
+            return { success: true };
+        } catch (error) {
+            this.logger.error('Error registering feedback', error);
+            return { success: false };
+        }
+    }
+
+    /**
+     * Search Engine Logic (Cascading Match with Memory)
+     */
     private async findBestMatch(item: ParsedItem): Promise<MatchResult> {
+        // 0. CHECK MEMORY (AI Feedback)
+        // Normalize text for lookup
+        const normalizedText = item.raw_text.toLowerCase().trim();
+        // Also check by description as fallback
+        const normalizedDesc = item.description.toLowerCase().trim();
+
+        const memory = await this.prisma.aiMatchFeedback.findFirst({
+            where: {
+                OR: [
+                    { original_text: normalizedText },
+                    { original_text: normalizedDesc }
+                ],
+                correction_type: 'FIXED',
+                correct_pid: { not: null }
+            },
+            orderBy: { createdAt: 'desc' } // Get latest fix
+        });
+
+        if (memory && memory.correct_pid) {
+            const product = await this.prisma.product.findUnique({ where: { id: memory.correct_pid } });
+            if (product) {
+                return { parsed: item, match_score: 95, status: 'MATCHED', product: product };
+            }
+        }
+
         // 1. Exact Match (Code)
         if (item.code_ref) {
-            // Try Sankhya Code first (if numeric)
             const codeInt = parseInt(item.code_ref.replace(/\D/g, ''));
             if (!isNaN(codeInt)) {
                 const prodByCode = await this.prisma.product.findUnique({
@@ -183,50 +232,66 @@ export class BudgetImportService {
             }
         }
 
-        // 2. Text Search (Full Text / ILIKE)
-        // Clean up description for search
-        const searchTerms = item.description
-            .replace(/[^\w\s]/gi, ' ') // Remove special chars
-            .split(' ')
-            .filter((t) => t.length > 2)
-            .join(' & '); // Create TSQUERY
+        // 2. Text Search Improvement
+        // Remove quantities at start? e.g. "10 " or "10x" if captured in description
+        // AI usually handles "description" well, but "10a" is important.
 
-        if (!searchTerms) {
+        const searchTerms = item.description
+            .replace(/[^\w\s\-\.]/gi, '') // Keep alphanumeric, space, dash, dot
+            .split(/\s+/)
+            .filter((t) => t.length >= 2); // Ignore single chars unless it's like V, A, W? Handled by >=2 for now (10A is 3 chars)
+
+        if (searchTerms.length === 0) {
             return { parsed: item, match_score: 0, status: 'NOT_FOUND' };
         }
 
-        // Using PostgreSQL Full Text Search via Prisma (raw query is often better for this, but simplistic approach first)
-        // We'll search by name containing words
-        // Priority: Name + Brand
+        // STRATEGY A: Strict "AND" Search (All terms must appear) 
+        // Best for "Disjuntor 20A" -> must have "Disjuntor" AND "20A"
+        try {
+            const strictMatches = await this.prisma.product.findMany({
+                where: {
+                    is_available: true,
+                    AND: searchTerms.map(term => ({
+                        name: { contains: term, mode: 'insensitive' }
+                    }))
+                },
+                take: 1
+            });
 
-        // Simplistic ranking:
-        // 1. filter by brand if present (optional, maybe too strict)
-        // 2. ILIKE query on name
+            if (strictMatches.length > 0) {
+                return { parsed: item, match_score: 90, status: 'MATCHED', product: strictMatches[0] };
+            }
+        } catch (e) {
+            // Ignore complexity limit errors if any
+        }
 
-        // To calculate score, we would typically use pg_trgm but let's stick to standard querying for V1
-
-        const possibleMatches = await this.prisma.product.findMany({
+        // STRATEGY B: Fallback "OR" Search (ranked by overlap)
+        // If strict failed (e.g. user wrote "Disjuntor 2400A" (typo) or brand mismatch)
+        const looseMatches = await this.prisma.product.findMany({
             where: {
                 is_available: true,
-                OR: [
-                    { name: { contains: item.description, mode: 'insensitive' as Prisma.QueryMode } },
-                    // Fallback: split terms
-                    ...item.description.split(' ').map(term => ({ name: { contains: term, mode: 'insensitive' as Prisma.QueryMode } }))
-                ]
+                OR: searchTerms.map(term => ({
+                    name: { contains: term, mode: 'insensitive' }
+                }))
             },
-            take: 5
+            take: 10
         });
 
-        if (possibleMatches.length > 0) {
-            // Find best match in this small subset
-            // Basic Levenshtein or token overlap could go here.
-            // For now, return the first one as "SUGGESTED" (Logic to be improved)
-            return {
-                parsed: item,
-                match_score: 80, // Mock score for textual match
-                status: 'SUGGESTED',
-                product: possibleMatches[0]
-            };
+        if (looseMatches.length > 0) {
+            // Rank them by how many terms they matched
+            const ranked = looseMatches.map(p => {
+                let score = 0;
+                const nameLower = p.name.toLowerCase();
+                searchTerms.forEach(term => {
+                    if (nameLower.includes(term.toLowerCase())) score++;
+                });
+                return { product: p, score };
+            }).sort((a, b) => b.score - a.score);
+
+            // Return top 1 if score > 0
+            if (ranked.length > 0 && ranked[0].score > 0) {
+                return { parsed: item, match_score: 60, status: 'SUGGESTED', product: ranked[0].product };
+            }
         }
 
         return { parsed: item, match_score: 0, status: 'NOT_FOUND' };

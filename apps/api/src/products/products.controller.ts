@@ -12,8 +12,9 @@ export class ProductsController {
         @Query('limit') limit: number = 20,
         @Query('category') category?: string,
         @Query('orderBy') orderBy?: string,
+        @Query('type') type?: string,
     ) {
-        return this.productsService.findAll(query, Number(page), Number(limit), category, orderBy);
+        return this.productsService.findAll(query, Number(page), Number(limit), category, orderBy, type);
     }
 
     @Get('failed-search')

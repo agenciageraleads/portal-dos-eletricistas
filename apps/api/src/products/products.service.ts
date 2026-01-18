@@ -10,7 +10,7 @@ export class ProductsService {
 
 
 
-    async findAll(query?: string, page: number = 1, limit: number = 20, category?: string, orderBy: string = 'popularity') {
+    async findAll(query?: string, page: number = 1, limit: number = 20, category?: string, orderBy: string = 'popularity', type?: string) {
         const where: Prisma.ProductWhereInput = {
             is_available: true,
         };
@@ -18,6 +18,20 @@ export class ProductsService {
         // ... (Category logic remains)
         if (category) {
             where.category = { equals: category, mode: 'insensitive' as Prisma.QueryMode };
+        }
+
+        if (type) {
+            where.type = { equals: type as any };
+        } else {
+            // Default behavior: if no type specified, show only MATERIAL?
+            // User requested explicit separate lists.
+            // If I don't filter, it shows mixed.
+            // Let's keep it mixed by default unless specified, OR default to MATERIAL if most existing calls rely on it.
+            // But browsing mixed is weird.
+            // Let's default to MATERIAL if type is not present AND generic browsing.
+            // Actually, existing frontend expects Products (Materials).
+            // So if type is undefined, lets filter standard MATERIAL to hide services from general catalog.
+            where.type = 'MATERIAL';
         }
 
         let isSearch = false;

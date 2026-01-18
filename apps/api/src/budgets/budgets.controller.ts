@@ -49,4 +49,9 @@ export class BudgetsController {
     async smartImport(@Body() body: { text?: string; imageUrl?: string }) {
         return this.budgetImportService.processInput(body);
     }
+    @UseGuards(AuthGuard('jwt'))
+    @Post('feedback')
+    async feedback(@Request() req: any, @Body() body: { original_text: string; ai_model?: string; suggested_pid?: string; correct_pid?: string; correction_type: string }) {
+        return this.budgetImportService.registerFeedback(req.user.userId, body);
+    }
 }
