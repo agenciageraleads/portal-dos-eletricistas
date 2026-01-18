@@ -143,9 +143,9 @@ function OrcamentoContent() {
         if (!manualName || !manualPrice) return;
         addManualItem({
             name: manualName,
-            price: parseFloat(manualPrice.replace(',', '.')),
+            price: parseFloat(manualPrice.replace(',', '.')).toString(),
             image_url: manualImage,
-            source: manualSource,
+            suggestedSource: manualSource,
             quantity: parseInt(manualQty) || 1
         });
         setIsManualModalOpen(false);
@@ -633,8 +633,6 @@ function OrcamentoContent() {
                     </div >
                 )
             }
-            )
-            }
 
             <AddServiceModal
                 isOpen={isServiceModalOpen}
@@ -646,7 +644,8 @@ function OrcamentoContent() {
                         price: service.price.toString(),
                         image_url: service.image_url || '',
                         sankhya_code: 0,
-                        type: 'SERVICE'
+                        type: 'SERVICE',
+                        is_available: true
                     }, 1);
                     setIsServiceModalOpen(false);
                 }}
