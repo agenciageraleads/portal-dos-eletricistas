@@ -1,16 +1,15 @@
 ---
-description: Workflow seguro para deploy em produção
+description: Workflow para deploy em VPS (Docker/Portainer)
 ---
 
-# Workflow de Deploy - Portal dos Eletricistas
+# Workflow de Deploy - Portal dos Eletricistas (VPS)
 
 ## 🚨 REGRA DE OURO
 
-**NUNCA fazer `git push origin main` sem aprovação explícita do usuário.**
+**NUNCA fazer push direto na `main` sem validação prévia na `dev`.**
 
-Todos os pushes para `main` disparam deploy automático em:
-- 🔵 Vercel (Frontend)
-- 🟣 Railway (Backend)
+- 🟠 **Branch `dev`**: Ambiente de Staging (Testes/Homologação).
+- 🟢 **Branch `main`**: Ambiente de Produção (Oficial/Clientes).
 
 ---
 
@@ -19,164 +18,79 @@ Todos os pushes para `main` disparam deploy automático em:
 ### 1. Desenvolvimento Local
 
 ```bash
-# Criar branch de desenvolvimento
 git checkout -b dev
-
-# Fazer alterações
 # ... código ...
-
-# Commit local (não afeta produção)
 git add .
-git commit -m "feat: descrição da mudança"
+git commit -m "feat: nova funcionalidade"
 ```
 
 ### 2. Testar Localmente
 
 ```bash
-# Frontend
-cd apps/web
-npm run dev
-
-# Backend
-cd apps/api
-npm run dev
-```
-
-### 3. Push para Branch de Dev (Opcional)
-
-```bash
-# Push para branch de desenvolvimento
-git push origin dev
-
-# Vercel cria preview automático
-# URL: portal-xxx-git-dev.vercel.app
+npm run build
 ```
 
 ---
 
-## 🚀 Deploy para Produção
+## 🚀 Deploy para Staging (Dev)
 
-### Passo 1: Revisar Mudanças
+Objetivo: Validar funcionalidades novas em um ambiente idêntico ao de produção.
+
+1. **Push para Dev:**
+
+    ```bash
+    git push origin dev
+    ```
+
+2. **Build & Update (VPS):**
+    - O Portainer (ou CI/CD) deve puxar a imagem/código da branch `dev`.
+    - Ou manualmente: Pull da branch `dev` e rebuild dos containers de staging.
+
+---
+
+## 🚀 Deploy para Produção (Main)
+
+Objetivo: Lançar versão estável para os clientes.
+
+### Passo 1: Merge Dev -> Main
+
+Só faça isso após validar que tudo funciona em Staging.
 
 ```bash
-# Ver diferenças entre dev e main
-git diff main dev
-
-# Listar arquivos alterados
-git diff --name-only main dev
-```
-
-### Passo 2: Merge para Main
-
-```bash
-# Voltar para main
 git checkout main
-
-# Atualizar main
 git pull origin main
-
-# Merge da branch de desenvolvimento
 git merge dev
-```
-
-### Passo 3: Push (COM APROVAÇÃO)
-
-**⚠️ IMPORTANTE:** Antes de fazer o push, o agente DEVE:
-
-1. Mostrar resumo das alterações
-2. Listar arquivos modificados
-3. Perguntar: "Confirma o deploy para produção?"
-4. Aguardar aprovação explícita
-
-```bash
-# Só executar após aprovação
 git push origin main
 ```
 
+### Passo 2: Atualizar VPS (Produção)
+
+1. Acessar Portainer ou Terminal da VPS.
+2. Puxar nova imagem Docker (tag `latest` ou versão específica).
+3. Recriar containers.
+
 ---
 
-## 🔧 Comandos Úteis
+## 📦 Versionamento (Tags)
 
-### Desfazer último commit (local)
-```bash
-git reset --soft HEAD~1
-```
+Sempre crie uma tag ao lançar em produção:
 
-### Desfazer push (CUIDADO!)
 ```bash
-git revert HEAD
-git push origin main
-```
-
-### Ver histórico
-```bash
-git log --oneline -10
-```
-
-### Criar tag de versão
-```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.5.0
+git push origin v1.5.0
 ```
 
 ---
 
-## 📦 Versionamento
+## 🔄 Rollback
 
-Seguir padrão semântico: `v{MAJOR}.{MINOR}.{PATCH}`
-
-- **MAJOR**: Mudanças incompatíveis (v2.0.0)
-- **MINOR**: Novas funcionalidades (v1.1.0)
-- **PATCH**: Correções de bugs (v1.0.1)
-
-Exemplo:
-```bash
-# Nova feature
-git tag v1.1.0 -m "Adiciona filtro de produtos"
-git push origin v1.1.0
-
-# Correção de bug
-git tag v1.0.1 -m "Corrige erro no login"
-git push origin v1.0.1
-```
-
----
-
-## ✅ Checklist Pré-Deploy
-
-Antes de fazer push para `main`, verificar:
-
-- [ ] Código testado localmente
-- [ ] Sem erros no console
-- [ ] Build passa sem warnings críticos
-- [ ] Variáveis de ambiente configuradas
-- [ ] Migrations rodadas (se houver)
-- [ ] Aprovação do usuário obtida
-
----
-
-## 🔄 Rollback Rápido
-
-Se algo der errado em produção:
+Se produção quebrar:
 
 ```bash
-# Ver últimos commits
-git log --oneline -5
-
-# Voltar para commit anterior
+# Voltar código
 git revert HEAD
 git push origin main
 
-# Ou voltar para versão específica
-git revert <commit-hash>
-git push origin main
+# No Portainer:
+# Redeploy usando a imagem da versão anterior (ex: v1.4.0)
 ```
-
----
-
-## 📝 Notas
-
-- Vercel mantém histórico de deploys (pode fazer rollback pela UI)
-- Railway mantém histórico de deploys (pode fazer rollback pela UI)
-- Sempre manter `main` estável
-- Usar branches para experimentação
