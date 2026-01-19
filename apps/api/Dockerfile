@@ -1,7 +1,14 @@
 # Base stage
 FROM node:20-slim AS base
 
-RUN apt-get update -y && apt-get install -y openssl ca-certificates
+# Install system dependencies for sharp (image processing library)
+RUN apt-get update -y && apt-get install -y \
+    openssl \
+    ca-certificates \
+    libvips-dev \
+    build-essential \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Dependencies stage
 FROM base AS deps
