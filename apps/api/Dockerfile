@@ -16,8 +16,8 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps ./apps
 RUN npm ci
-# Force rebuild sharp for AMD64 after npm ci (image processing library)
-RUN npm rebuild sharp
+# Force install sharp for Linux x64 (AMD64) explicitly
+RUN npm install --os=linux --cpu=x64 sharp
 
 # Builder stage
 FROM base AS builder
@@ -47,8 +47,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./package.json
 COPY --from=builder /app/apps/api/prisma ./prisma
 
-# Rebuild sharp for current platform in production image  
-RUN npm rebuild sharp
+# Force install sharp for Linux x64 (AMD64) explicitly in runner
+RUN npm install --os=linux --cpu=x64 sharp
 
 USER nestjs
 

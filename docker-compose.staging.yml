@@ -9,7 +9,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://beta-api.portaleletricos.com.br
-    image: lucasborgessb/portal_dos_eletricistas:web-1.5.0
+    image: lucasborgessb/portal_dos_eletricistas:web-staging
     platform: linux/amd64
     deploy:
       mode: replicated
@@ -35,7 +35,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: lucasborgessb/portal_dos_eletricistas:api-1.5.0
+    image: lucasborgessb/portal_dos_eletricistas:api-staging
     platform: linux/amd64
     command: >
       sh -c "npx prisma migrate deploy && node dist/main.js"
