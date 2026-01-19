@@ -7,6 +7,11 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
 RUN npm ci
+# Install platform-specific native binaries explicitly for AMD64
+RUN npm install --save-optional \
+    lightningcss-linux-x64-musl \
+    @next/swc-linux-x64-musl \
+    @tailwindcss/oxide-linux-x64-musl
 
 # Builder stage
 FROM base AS builder
