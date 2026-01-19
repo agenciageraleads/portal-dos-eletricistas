@@ -1,5 +1,7 @@
 # Base stage
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
+
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 
 # Dependencies stage
 FROM base AS deps
@@ -7,11 +9,6 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
 RUN npm ci
-# Install platform-specific native binaries explicitly for AMD64
-RUN npm install --save-optional \
-    lightningcss-linux-x64-musl \
-    @next/swc-linux-x64-musl \
-    @tailwindcss/oxide-linux-x64-musl
 
 # Builder stage
 FROM base AS builder
