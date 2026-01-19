@@ -1,8 +1,9 @@
 # Base stage
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 # Dependencies stage
 FROM base AS deps
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
@@ -23,6 +24,7 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build Web
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build --workspace=apps/web
 
 # Runner stage

@@ -633,8 +633,6 @@ function OrcamentoContent() {
                     </div >
                 )
             }
-            )
-            }
 
             <AddServiceModal
                 isOpen={isServiceModalOpen}
