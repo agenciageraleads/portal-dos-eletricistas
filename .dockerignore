@@ -3,7 +3,9 @@ node_modules
 npm-debug.log
 yarn-error.log
 .next
+**/.next
 dist
+**/dist
 .env
 .env.*.local
 .git
@@ -14,6 +16,15 @@ LICENSE
 .vscode
 .agent
 .gemini
-uploads
+
 portal-db
 portal.zip
+
+# Explicit ignores for monorepo structure
+apps/web/.next
+apps/web/dist
+apps/api/dist
+apps/api/node_modules
+apps/web/node_modules
+.turbo
+.cache

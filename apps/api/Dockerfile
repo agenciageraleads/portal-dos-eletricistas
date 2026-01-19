@@ -9,6 +9,8 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps ./apps
 RUN npm ci
+# Force rebuild sharp for AMD64 after npm ci (image processing library)
+RUN npm rebuild sharp
 
 # Builder stage
 FROM base AS builder
@@ -32,12 +34,16 @@ ENV NODE_ENV=production
 # Don't run as root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
-USER nestjs
 
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./package.json
 COPY --from=builder /app/apps/api/prisma ./prisma
+
+# Rebuild sharp for current platform in production image  
+RUN npm rebuild sharp
+
+USER nestjs
 
 EXPOSE 3333
 

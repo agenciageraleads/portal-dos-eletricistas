@@ -3,9 +3,16 @@ FROM node:20-alpine AS base
 
 # Dependencies stage
 FROM base AS deps
+ARG TARGETPLATFORM
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
+# Install platform-specific native binaries
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    npm install --save-optional lightningcss-linux-x64-musl @next/swc-linux-x64-musl @tailwindcss/oxide-linux-x64-musl; \
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    npm install --save-optional lightningcss-linux-arm64-musl @next/swc-linux-arm64-musl @tailwindcss/oxide-linux-arm64-musl; \
+    fi
 RUN npm ci
 
 # Builder stage
@@ -23,6 +30,7 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build Web
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build --workspace=apps/web
 
 # Runner stage

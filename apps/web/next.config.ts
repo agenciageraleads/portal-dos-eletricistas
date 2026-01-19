@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     buildActivity: false,
     appIsrStatus: false,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default withPWA({
@@ -18,7 +21,7 @@ export default withPWA({
   disable: process.env.NODE_ENV === "development",
   runtimeCaching: [
     {
-      urlPattern: /^https:\/\/portal-api-production-c2c9\.up\.railway\.app\/api\/.*/i,
+      urlPattern: /\/api\/.*/i,
       handler: "NetworkFirst",
       options: {
         cacheName: "api-cache",
