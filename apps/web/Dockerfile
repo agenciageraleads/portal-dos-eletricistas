@@ -3,16 +3,9 @@ FROM node:20-alpine AS base
 
 # Dependencies stage
 FROM base AS deps
-ARG TARGETPLATFORM
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
-# Install platform-specific native binaries
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    npm install --save-optional lightningcss-linux-x64-musl @next/swc-linux-x64-musl @tailwindcss/oxide-linux-x64-musl; \
-    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    npm install --save-optional lightningcss-linux-arm64-musl @next/swc-linux-arm64-musl @tailwindcss/oxide-linux-arm64-musl; \
-    fi
 RUN npm ci
 
 # Builder stage
