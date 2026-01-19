@@ -1,14 +1,11 @@
 # Base stage
-FROM node:20-slim AS base
+FROM node:20-alpine AS base
 
-# Install system dependencies for sharp (image processing library)
-RUN apt-get update -y && apt-get install -y \
-    openssl \
-    ca-certificates \
-    libvips-dev \
-    build-essential \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies for sharp (Alpine uses musl, not glibc)
+RUN apk add --no-cache \
+    vips-dev \
+    build-base \
+    python3
 
 # Dependencies stage
 FROM base AS deps
