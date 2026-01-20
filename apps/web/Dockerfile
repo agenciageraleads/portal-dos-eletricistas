@@ -9,11 +9,11 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
 RUN npm ci
-# Install platform-specific native binaries explicitly for AMD64 GNU (Debian)
+# Install platform-specific native binaries explicitly for BOTH AMD64 and ARM64
 RUN npm install --save-optional \
-    lightningcss-linux-x64-gnu \
-    @next/swc-linux-x64-gnu \
-    @tailwindcss/oxide-linux-x64-gnu
+    lightningcss-linux-x64-gnu lightningcss-linux-arm64-gnu \
+    @next/swc-linux-x64-gnu @next/swc-linux-arm64-gnu \
+    @tailwindcss/oxide-linux-x64-gnu @tailwindcss/oxide-linux-arm64-gnu
 
 # Builder stage
 FROM base AS builder
