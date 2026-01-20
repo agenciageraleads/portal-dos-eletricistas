@@ -31,10 +31,15 @@ export class BudgetImportService {
         private configService: ConfigService,
     ) {
         const key = this.configService.get<string>('OPENAI_API_KEY');
-        console.log(`\n\n\n[DEBUG] Using OpenAI Key: ${key ? key.substring(0, 10) + '...' : 'UNDEFINED'}\n\n\n`);
-        this.openai = new OpenAI({
-            apiKey: key,
-        });
+        
+        if (key) {
+            console.log(`[DEBUG] OpenAI Key loaded: ${key.substring(0, 5)}...`);
+            this.openai = new OpenAI({
+                apiKey: key,
+            });
+        } else {
+            console.warn('[WARN] OPENAI_API_KEY not found. AI features will be disabled.');
+        }
     }
 
     /**
