@@ -54,6 +54,9 @@ COPY --from=builder /app/apps/api/prisma ./prisma
 # Force install sharp for Linux x64 (AMD64) explicitly in runner
 RUN npm install --os=linux --cpu=x64 sharp
 
+# Fix: Ensure nestjs user owns the cache created by the previous root command
+RUN chown -R nestjs:nodejs /home/nestjs
+
 USER nestjs
 
 EXPOSE 3333
