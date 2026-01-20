@@ -23,22 +23,27 @@ export class ServicesService {
     }
 
     async findAll(search?: string) {
-        return this.prisma.serviceListing.findMany({
-            where: {
-                status: 'OPEN',
-                ...(search ? {
-                    OR: [
-                        { title: { contains: search, mode: 'insensitive' } },
-                        { description: { contains: search, mode: 'insensitive' } },
-                        { city: { contains: search, mode: 'insensitive' } }
-                    ]
-                } : {})
-            },
-            orderBy: { createdAt: 'desc' },
-            include: {
-                user: { select: { name: true, logo_url: true } }
-            }
-        });
+        try {
+            return await this.prisma.serviceListing.findMany({
+                where: {
+                    status: 'OPEN',
+                    ...(search ? {
+                        OR: [
+                            { title: { contains: search, mode: 'insensitive' } },
+                            { description: { contains: search, mode: 'insensitive' } },
+                            { city: { contains: search, mode: 'insensitive' } }
+                        ]
+                    } : {})
+                },
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { name: true, logo_url: true } }
+                }
+            });
+        } catch (error) {
+            console.error('Error in ServicesService.findAll:', error);
+            throw error;
+        }
     }
 
     async remove(id: string, userId: string) {
