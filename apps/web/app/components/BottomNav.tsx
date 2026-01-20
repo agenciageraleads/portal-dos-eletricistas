@@ -9,7 +9,8 @@ import {
     BrainCircuit,
     Grid,
     User,
-    Zap
+    Zap,
+    Bell
 } from 'lucide-react';
 
 export default function BottomNav() {
