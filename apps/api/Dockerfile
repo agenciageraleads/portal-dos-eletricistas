@@ -14,7 +14,7 @@ COPY package.json package-lock.json turbo.json ./
 COPY apps ./apps
 RUN npm ci
 # Force install sharp for BOTH architectures (Universal Support)
-RUN npm install sharp @img/sharp-linux-x64 @img/sharp-linux-arm64
+RUN npm install --force sharp @img/sharp-linux-x64 @img/sharp-linux-arm64
 
 # Builder stage
 FROM base AS builder
