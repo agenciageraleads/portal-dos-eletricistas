@@ -42,6 +42,10 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
 
+# Create home directory for nestjs user to avoid npm EACCES errors
+RUN mkdir -p /home/nestjs && chown nestjs:nodejs /home/nestjs
+ENV HOME=/home/nestjs
+
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./package.json
