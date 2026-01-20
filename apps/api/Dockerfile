@@ -49,7 +49,7 @@ COPY --from=builder /app/apps/api/package.json ./package.json
 COPY --from=builder /app/apps/api/prisma ./prisma
 
 # Force install sharp for BOTH architectures (Universal Support)
-RUN npm install sharp @img/sharp-linux-x64 @img/sharp-linux-arm64
+RUN npm install --force sharp @img/sharp-linux-x64 @img/sharp-linux-arm64
 
 # Fix: Ensure nestjs user owns the cache created by the previous root command
 RUN chown -R nestjs:nodejs /home/nestjs
