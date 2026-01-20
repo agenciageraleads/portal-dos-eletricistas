@@ -70,10 +70,10 @@ export default function Home() {
 
                     <div className="flex items-center gap-3">
                         {/* Notifications */}
-                        <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+                        <Link href="/inbox" className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
                             <Bell size={22} />
                             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+                        </Link>
 
                         {/* User Avatar (Redirects to Profile or just display) */}
                         <Link href="/perfil" className="block relative">
@@ -140,47 +140,51 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Gamification / Status Card */}
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-5 text-white shadow-lg mb-6 relative overflow-hidden">
-                    {/* Decorative circle */}
-                    <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                {/* Gamification / PWA INSTALL CARD */}
+                <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden border border-white/10">
+                    <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
 
-                    <div className="flex items-start justify-between relative z-10">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <Trophy size={18} className="text-yellow-400" />
-                                <span className="font-bold text-yellow-400 text-sm uppercase tracking-wide">Nível Ouro</span>
-                            </div>
-                            <h3 className="font-bold text-lg mb-1">Sua Jornada</h3>
-                            <p className="text-gray-400 text-xs max-w-[200px]">Complete missões para desbloquear benefícios exclusivos no portal.</p>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="bg-yellow-400 text-yellow-900 text-xs font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-wider">Missão Diária</span>
                         </div>
-                        {/* Progress Circle Placeholder */}
-                        <div className="w-12 h-12 rounded-full border-4 border-blue-500 flex items-center justify-center font-bold text-xs bg-gray-800">
-                            75%
-                        </div>
+
+                        <h3 className="text-2xl font-bold mb-2 leading-tight">Instale o App e ganhe acesso offline!</h3>
+                        <p className="text-blue-100 text-sm mb-6 leading-relaxed">
+                            Adicione o Portal à sua tela inicial para acessar orçamentos e ferramentas mesmo sem internet.
+                        </p>
+
+                        <button className="w-full bg-white text-blue-900 font-bold py-3.5 rounded-xl shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                            <Zap size={20} className="text-blue-600" />
+                            Instalar Aplicativo Agora
+                        </button>
                     </div>
-
-                    <button className="mt-4 w-full py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors border border-white/10">
-                        Ver Conquistas
-                    </button>
                 </div>
 
-                {/* Other Services / Categories */}
                 <div className="mb-6">
-                    <h3 className="font-semibold text-gray-800 mb-3 px-1">Outros Serviços</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                        <Link href="#" className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center gap-2 text-center hover:shadow-md transition-shadow">
-                            <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center">
-                                <Users size={20} />
+                    <div className="flex items-center gap-3 mb-4 px-1">
+                        <h3 className="font-bold text-gray-800 text-lg">Outros Serviços</h3>
+                        <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full uppercase tracking-wide border border-gray-200">Em Breve 🚧</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 flex flex-col items-center gap-3 text-center grayscale opacity-70">
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                <Users size={24} className="text-gray-400" />
                             </div>
-                            <span className="text-sm font-medium text-gray-700">Comunidade</span>
-                        </Link>
-                        <Link href="#" className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center gap-2 text-center hover:shadow-md transition-shadow">
-                            <div className="w-10 h-10 bg-pink-50 text-pink-600 rounded-full flex items-center justify-center">
-                                <MessageCircle size={20} />
+                            <div>
+                                <span className="text-sm font-bold text-gray-500 block">Comunidade</span>
+                                <span className="text-[10px] text-gray-400">Networking</span>
                             </div>
-                            <span className="text-sm font-medium text-gray-700">Dúvidas?</span>
-                        </Link>
+                        </div>
+                        <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 flex flex-col items-center gap-3 text-center grayscale opacity-70">
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                <MessageCircle size={24} className="text-gray-400" />
+                            </div>
+                            <div>
+                                <span className="text-sm font-bold text-gray-500 block">Suporte VIP</span>
+                                <span className="text-[10px] text-gray-400">Consultoria</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

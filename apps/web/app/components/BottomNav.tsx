@@ -23,29 +23,29 @@ export default function BottomNav() {
             isActive: pathname.startsWith('/ferramentas')
         },
         {
-            label: 'Orçamento',
-            href: '/orcamento',
+            label: 'Orçamentos',
+            href: '/orcamentos',
             icon: FileText,
-            isActive: pathname.startsWith('/orcamento')
+            isActive: pathname.startsWith('/orcamentos')
         },
         {
             label: 'IA',
-            href: '/ia', // Link to AI Assistant
+            href: '/ia',
             icon: BrainCircuit,
             isActive: false,
-            isSpecial: true // Central button
+            isSpecial: true
         },
         {
             label: 'Serviços',
             href: '/services',
             icon: Grid,
-            isActive: false // Placeholder
+            isActive: pathname.startsWith('/services')
         },
         {
-            label: 'Perfil',
-            href: '/perfil',
-            icon: User,
-            isActive: pathname.startsWith('/perfil')
+            label: 'Notificações',
+            href: '/inbox',
+            icon: Bell,
+            isActive: pathname.startsWith('/inbox')
         }
     ];
 
@@ -53,6 +53,7 @@ export default function BottomNav() {
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 pb-safe">
             <div className="flex items-end justify-between px-2 max-w-md mx-auto">
                 {navItems.map((item, index) => {
+                    // @ts-ignore - isSpecial might not exist on all items type definition
                     const isSpecial = item.isSpecial;
                     const Icon = item.icon;
 

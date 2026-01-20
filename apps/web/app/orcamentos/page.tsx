@@ -96,11 +96,20 @@ export default function MyBudgetsPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             <header className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <Link href="/" className="text-gray-500 hover:text-gray-700">
-                        <ChevronLeft size={24} />
+                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="text-gray-500 hover:text-gray-700">
+                            <ChevronLeft size={24} />
+                        </Link>
+                        <h1 className="text-xl font-bold text-gray-800">Meus Orçamentos</h1>
+                    </div>
+
+                    <Link
+                        href="/orcamento"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
+                    >
+                        + Novo
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-800">Meus Orçamentos</h1>
                 </div>
             </header>
 

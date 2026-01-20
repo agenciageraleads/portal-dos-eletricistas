@@ -261,7 +261,7 @@ function OrcamentoContent() {
                             </div>
                         )}
                         <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
-                            <SmartBudgetImport
+                            {/* <SmartBudgetImport
                                 onImportItems={(importedItems) => {
                                     importedItems.forEach(item => {
                                         addToCart({
@@ -270,7 +270,7 @@ function OrcamentoContent() {
                                         }, item.quantity);
                                     });
                                 }}
-                            />
+                            /> */}
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"
