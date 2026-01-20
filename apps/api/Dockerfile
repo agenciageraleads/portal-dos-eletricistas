@@ -13,8 +13,15 @@ WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY apps ./apps
 RUN npm ci
-# Force install sharp for BOTH architectures (Universal Support)
-RUN npm install --force sharp @img/sharp-linux-x64 @img/sharp-linux-arm64
+# Install sharp based on architecture
+RUN arch="$(uname -m)" && \
+    if [ "$arch" = "x86_64" ]; then \
+    npm install sharp @img/sharp-linux-x64; \
+    elif [ "$arch" = "aarch64" ]; then \
+    npm install sharp @img/sharp-linux-arm64; \
+    else \
+    npm install sharp; \
+    fi
 
 # Builder stage
 FROM base AS builder
@@ -48,8 +55,15 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./package.json
 COPY --from=builder /app/apps/api/prisma ./prisma
 
-# Force install sharp for BOTH architectures (Universal Support)
-RUN npm install --force sharp @img/sharp-linux-x64 @img/sharp-linux-arm64
+# Install sharp based on architecture
+RUN arch="$(uname -m)" && \
+    if [ "$arch" = "x86_64" ]; then \
+    npm install sharp @img/sharp-linux-x64; \
+    elif [ "$arch" = "aarch64" ]; then \
+    npm install sharp @img/sharp-linux-arm64; \
+    else \
+    npm install sharp; \
+    fi
 
 # Fix: Ensure nestjs user owns the cache created by the previous root command
 RUN chown -R nestjs:nodejs /home/nestjs
