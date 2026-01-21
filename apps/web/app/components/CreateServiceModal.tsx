@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Loader2, Briefcase, HardHat } from 'lucide-react';
 import api from '@/lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CreateServiceModalProps {
     onClose: () => void;
@@ -24,16 +25,27 @@ export default function CreateServiceModal({ onClose, onSuccess }: CreateService
         whatsapp: ''
     });
 
+    const { user } = useAuth(); // Import useAuth to check login status
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setErrors('');
 
         try {
-            await api.post('/services', {
-                ...formData,
-                type
-            });
+            if (user) {
+                // Logged in user -> Standard create
+                await api.post('/services', {
+                    ...formData,
+                    type
+                });
+            } else {
+                // Guest user -> Public create
+                await api.post('/services/public', {
+                    ...formData,
+                    type
+                });
+            }
             onSuccess();
         } catch (error) {
             console.error(error);
@@ -60,8 +72,8 @@ export default function CreateServiceModal({ onClose, onSuccess }: CreateService
                             type="button"
                             onClick={() => setType('REQUEST')}
                             className={`flex-1 p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${type === 'REQUEST'
-                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                    : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                                 }`}
                         >
                             <Briefcase size={24} />
@@ -71,8 +83,8 @@ export default function CreateServiceModal({ onClose, onSuccess }: CreateService
                             type="button"
                             onClick={() => setType('OFFER')}
                             className={`flex-1 p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${type === 'OFFER'
-                                    ? 'border-green-500 bg-green-50 text-green-700'
-                                    : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                                 }`}
                         >
                             <HardHat size={24} />
@@ -162,8 +174,8 @@ export default function CreateServiceModal({ onClose, onSuccess }: CreateService
                             type="submit"
                             disabled={isLoading}
                             className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg ${type === 'REQUEST'
-                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
-                                    : 'bg-green-600 hover:bg-green-700 shadow-green-200'
+                                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+                                : 'bg-green-600 hover:bg-green-700 shadow-green-200'
                                 }`}
                         >
                             {isLoading ? <Loader2 className="animate-spin mx-auto" /> : 'Publicar Anúncio'}

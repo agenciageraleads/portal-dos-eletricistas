@@ -29,7 +29,7 @@ export default function CatalogPage() {
         { id: 'acessorios', label: 'Acessórios', icon: '🔌', queries: ['Acessórios', 'Ferragens', 'Elétrica', 'Equipamentos'] },
         { id: 'ferramentas', label: 'Ferramentas', icon: '🔧', queries: ['Ferramentas'] },
         { id: 'automacao', label: 'Automação', icon: '🤖', queries: ['Automação'] },
-        { id: 'interruptores', label: 'Interruptores', icon: '🏠', queries: ['Acabamento'] }, // "Acabamento" backend ID renamed to "Interruptores" for UI
+        { id: 'interruptores', label: 'Interruptores e Tomadas', icon: '🏠', queries: ['Acabamento'] }, // "Acabamento" backend ID renamed to "Interruptores" for UI
         { id: 'fios', label: 'Fios e Cabos', icon: '⚡', queries: ['Cabos Diversos', 'Cabos Energia'] },
         { id: 'infra', label: 'Infra', icon: '🏗️', queries: ['Infraestrutura'] },
     ];

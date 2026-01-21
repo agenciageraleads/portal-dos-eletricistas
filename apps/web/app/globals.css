@@ -25,11 +25,26 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Force high contrast placeholders */
+::placeholder {
+  color: #000000 !important;
+  opacity: 1 !important;
+}
+
+/* Dark mode adjustment for placeholders if needed, though user asked for black */
+@media (prefers-color-scheme: dark) {
+  ::placeholder {
+    color: #a3a3a3 !important;
+    /* Lighter in dark mode */
+  }
+}
+
 @keyframes slide-up {
   from {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

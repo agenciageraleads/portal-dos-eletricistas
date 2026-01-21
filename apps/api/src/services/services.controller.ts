@@ -12,6 +12,12 @@ export class ServicesController {
         return this.servicesService.findAll(search);
     }
 
+    @Post('public')
+    createPublic(@Body() createDto: any) {
+        // Public services have no userId (or specific logic)
+        return this.servicesService.create(null, createDto);
+    }
+
     @UseGuards(AuthGuard('jwt'))
     @Post()
     create(@Request() req: any, @Body() createDto: any) {

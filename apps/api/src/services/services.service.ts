@@ -10,10 +10,10 @@ export class ServicesService {
         private notificationsService: NotificationsService
     ) { }
 
-    async create(userId: string, data: any) {
+    async create(userId: string | null, data: any) {
         const service = await this.prisma.serviceListing.create({
             data: {
-                userId,
+                userId: userId, // Can be null if schema allows, or handle guest user
                 title: data.title,
                 description: data.description,
                 price: data.price ? Number(data.price) : null,
@@ -55,7 +55,7 @@ export class ServicesService {
 
     async findAll(search?: string) {
         try {
-            return await this.prisma.serviceListing.findMany({
+            const services = await this.prisma.serviceListing.findMany({
                 where: {
                     status: 'OPEN',
                     ...(search ? {
@@ -71,6 +71,12 @@ export class ServicesService {
                     user: { select: { name: true, logo_url: true } }
                 }
             });
+
+            // Map results to ensure user object exists for Guest posts
+            return services.map(service => ({
+                ...service,
+                user: service.user || { name: 'Visitante (WhatsApp)', logo_url: null }
+            }));
         } catch (error) {
             console.error('Error in ServicesService.findAll:', error);
             throw error;

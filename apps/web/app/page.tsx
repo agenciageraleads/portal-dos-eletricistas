@@ -33,7 +33,7 @@ export default function Home() {
             title: 'Novo Orçamento',
             description: 'Criar proposta',
             icon: <FileText size={20} className="text-blue-600" />,
-            href: '/orcamento'
+            href: '/orcamento/novo'
         },
         {
             title: 'Meus Orçamentos',

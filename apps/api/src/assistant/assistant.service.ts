@@ -249,7 +249,7 @@ export class AssistantService {
                             notes: '',
                             status: 'DRAFT'
                         });
-                        result = JSON.stringify({ success: true, id: budget.id, link: `/orcamento/${budget.id}` });
+                        result = JSON.stringify({ success: true, id: budget.id, link: `/orcamento?id=${budget.id}` });
                     } else {
                         result = JSON.stringify({ error: 'Function not found' });
                     }

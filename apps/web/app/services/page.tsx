@@ -29,7 +29,7 @@ interface ServiceListing {
 }
 
 export default function ServicesPage() {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const [services, setServices] = useState<ServiceListing[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -137,7 +137,7 @@ export default function ServicesPage() {
                                 const newStatus = !user.isAvailableForWork;
                                 try {
                                     await api.patch('/users/profile', { isAvailableForWork: newStatus });
-                                    window.location.reload();
+                                    await refreshUser();
                                 } catch (e) {
                                     alert('Erro ao atualizar disponibilidade');
                                 }
@@ -162,9 +162,7 @@ export default function ServicesPage() {
                     <div className="text-center mt-10 py-10 bg-white rounded-xl border border-dashed border-gray-300">
                         <p className="text-gray-800 font-medium mb-1">Nada encontrado por enquanto.</p>
                         <p className="text-sm text-gray-600 mb-4 px-6">
-                            {viewMode === 'CLIENT'
-                                ? 'Nenhum profissional divulgou serviços recentemente.'
-                                : 'Nenhum cliente solicitou serviços na sua região.'}
+                            Seja o primeiro a postar uma oportunidade nesta categoria!
                         </p>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}

@@ -107,6 +107,7 @@ function OrcamentoContent() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
+    const mode = searchParams.get('mode') || 'full'; // 'full' or 'labor'
 
     // Load existing budget if ID present
     useEffect(() => {
@@ -201,100 +202,94 @@ function OrcamentoContent() {
             <main className="min-h-screen bg-gray-50 pb-32">
                 {/* Header Mobile */}
                 <header className="bg-white p-4 border-b border-gray-200 sticky top-0 z-20 flex items-center justify-between shadow-sm">
-                    <Link href="/" className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
+                    <Link href="/orcamento/novo" className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
                         <ArrowLeft size={24} />
                     </Link>
-                    <h1 className="font-bold text-gray-800 text-lg">Novo Orçamento</h1>
+                    <h1 className="font-bold text-gray-800 text-lg">
+                        {mode === 'labor' ? 'Orçamento de Mão de Obra' : 'Novo Orçamento'}
+                    </h1>
                     <div className="w-10"></div>
                 </header>
 
                 <div className="max-w-3xl mx-auto p-4 space-y-6 mt-4">
 
-                    <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="font-bold text-gray-800">1. Itens e Materiais</h2>
-                            <button onClick={clearCart} className="text-red-500 text-xs hover:underline">
-                                Limpar
-                            </button>
-                        </div>
+                    {mode !== 'labor' && (
+                        <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500 animate-in fade-in slide-in-from-bottom-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="font-bold text-gray-800">1. Itens e Materiais</h2>
+                                <button onClick={clearCart} className="text-red-500 text-xs hover:underline">
+                                    Limpar
+                                </button>
+                            </div>
 
-                        {items.length === 0 ? (
-                            <div className="text-center py-10 text-gray-400">
-                                <p>Nenhum item adicionado ainda.</p>
-                                <Link href="/catalogo" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
-                                    Ir para o Catálogo
-                                </Link>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {items.map((item) => (
-                                    <div key={item.id} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                                            {item.image_url ? (
-                                                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-xs text-gray-400 font-bold">FOTO</span>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
-                                            <div className="mt-1">
-                                                <QuantityInput
-                                                    value={item.quantity}
-                                                    onChange={(val) => updateQuantity(item.id, val)}
-                                                />
+                            {items.length === 0 ? (
+                                <div className="text-center py-10 text-gray-400">
+                                    <p>Nenhum item adicionado ainda.</p>
+                                    <Link href="/catalogo" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
+                                        Ir para o Catálogo
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {items.map((item) => (
+                                        <div key={item.id} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+                                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+                                                {item.image_url ? (
+                                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span className="text-xs text-gray-400 font-bold">FOTO</span>
+                                                )}
                                             </div>
-                                            <p className="text-xs text-center text-gray-400 mt-1">{formatPrice(parseFloat(item.price))} un</p>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
+                                                <div className="mt-1">
+                                                    <QuantityInput
+                                                        value={item.quantity}
+                                                        onChange={(val) => updateQuantity(item.id, val)}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-center text-gray-400 mt-1">{formatPrice(parseFloat(item.price))} un</p>
+                                            </div>
+                                            <div className="text-right flex flex-col justify-between h-16 py-1">
+                                                <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
+                                                <button
+                                                    onClick={() => removeFromCart(item.id)}
+                                                    className="text-red-500 p-1 hover:bg-red-50 rounded-full self-end"
+                                                    title="Remover item"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="text-right flex flex-col justify-between h-16 py-1">
-                                            <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
-                                            <button
-                                                onClick={() => removeFromCart(item.id)}
-                                                className="text-red-500 p-1 hover:bg-red-50 rounded-full self-end"
-                                                title="Remover item"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
+                            )}
+                            <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsServiceModalOpen(true)}
+                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
+                                    >
+                                        <PackagePlus size={24} />
+                                        Adicionar Serviço
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsManualModalOpen(true)}
+                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm"
+                                    >
+                                        <Plus size={24} />
+                                        Item Manual
+                                    </button>
+                                </div>
+                                <div className="flex justify-between items-center pt-2">
+                                    <span className="text-gray-600 font-medium">Subtotal Materiais</span>
+                                    <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                                </div>
                             </div>
-                        )}
-                        <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
-                            {/* <SmartBudgetImport
-                                onImportItems={(importedItems) => {
-                                    importedItems.forEach(item => {
-                                        addToCart({
-                                            ...item,
-                                            price: String(item.price) // Ensure price is string
-                                        }, item.quantity);
-                                    });
-                                }}
-                            /> */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsServiceModalOpen(true)}
-                                    className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
-                                >
-                                    <PackagePlus size={24} />
-                                    Adicionar Serviço
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsManualModalOpen(true)}
-                                    className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm"
-                                >
-                                    <Plus size={24} />
-                                    Item Manual
-                                </button>
-                            </div>
-                            <div className="flex justify-between items-center pt-2">
-                                <span className="text-gray-600 font-medium">Subtotal Materiais</span>
-                                <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
-                            </div>
-                        </div>
-                    </section >
+                        </section>
+                    )}
 
                     {/* 2. Mão de Obra */}
                     < section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500" >
