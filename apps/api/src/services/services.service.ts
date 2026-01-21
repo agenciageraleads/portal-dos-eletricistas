@@ -1,13 +1,17 @@
 
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ServicesService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService
+    ) { }
 
     async create(userId: string, data: any) {
-        return this.prisma.serviceListing.create({
+        const service = await this.prisma.serviceListing.create({
             data: {
                 userId,
                 title: data.title,
@@ -20,6 +24,33 @@ export class ServicesService {
                 type: data.type || 'REQUEST'
             }
         });
+
+        // Notify Electricians if it's a REQUEST
+        if (service.type === 'REQUEST') {
+            const availableElectricians = await this.prisma.user.findMany({
+                where: {
+                    role: 'ELETRICISTA',
+                    isAvailableForWork: true,
+                    // TODO: Add city filter when User has address/location
+                    id: { not: userId } // Don't notify self
+                }
+            });
+
+            const notificationPromises = availableElectricians.map(electrician =>
+                this.notificationsService.create(
+                    electrician.id,
+                    'Nova Oportunidade!',
+                    `Novo serviço em ${service.city || 'sua região'}: ${service.title}`,
+                    'NEW_SERVICE',
+                    `/services` // Link to services page
+                )
+            );
+
+            // Execute without blocking the response
+            Promise.all(notificationPromises).catch(err => console.error('Failed to send notifications', err));
+        }
+
+        return service;
     }
 
     async findAll(search?: string) {

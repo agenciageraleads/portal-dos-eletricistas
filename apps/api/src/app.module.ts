@@ -17,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { ServicesModule } from './services/services.module';
 import { AssistantModule } from './assistant/assistant.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -45,6 +46,7 @@ import { ConfigModule } from '@nestjs/config';
     UploadsModule,
     ServicesModule,
     AssistantModule,
+    NotificationsModule,
   ], controllers: [AppController],
   providers: [
     AppService,

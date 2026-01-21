@@ -75,6 +75,13 @@ export default function Home() {
                             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                         </Link>
 
+                        {/* Admin Panel Access */}
+                        {user?.role === 'ADMIN' && (
+                            <Link href="/admin" className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="Painel Administrativo">
+                                <ShieldCheck size={22} />
+                            </Link>
+                        )}
+
                         {/* User Avatar (Redirects to Profile or just display) */}
                         <Link href="/perfil" className="block relative">
                             {user?.logo_url ? (

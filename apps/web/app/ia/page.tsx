@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Zap, User, Bot, Loader2, Mic, Image as ImageIcon, X } from 'lucide-react';
+import { Send, Bot, Loader2, Mic, Image as ImageIcon, X, ArrowLeft, History, Plus, MessageSquare, User } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import api from '@/lib/api';
 
@@ -10,6 +10,12 @@ interface Message {
     content: string;
     imageUrl?: string;
     audioUrl?: string;
+}
+
+interface ChatSession {
+    id: string;
+    title: string;
+    updatedAt: string;
 }
 
 export default function IAPage() {
@@ -23,6 +29,11 @@ export default function IAPage() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Session State
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     // Multimedia states
     const [isRecording, setIsRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -34,6 +45,51 @@ export default function IAPage() {
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+
+    // Load Sessions on Mount
+    useEffect(() => {
+        const fetchSessions = async () => {
+            try {
+                const { data } = await api.get('/assistant/sessions');
+                setSessions(data);
+                // Load most recent session if exists? Or keep empty for "New Chat"?
+                // Let's start with a fresh chat or the last one if user prefers.
+                // For now, let's keep it clean or prompt user.
+            } catch (error) {
+                console.error('Failed to load sessions', error);
+            }
+        };
+        fetchSessions();
+    }, []);
+
+    // Load Messages when Session Changes
+    useEffect(() => {
+        if (!currentSessionId) {
+            setMessages([{
+                role: 'assistant',
+                content: 'Olá! Nova conversa iniciada. Como posso ajudar?'
+            }]);
+            return;
+        }
+
+        const loadSessionMessages = async () => {
+            setIsLoading(true);
+            try {
+                const { data } = await api.get(`/assistant/session/${currentSessionId}`);
+                if (data && Array.isArray(data)) {
+                    setMessages(data.map((msg: any) => ({
+                        role: msg.role,
+                        content: msg.content
+                    })));
+                }
+            } catch (error) {
+                console.error('Failed to load message', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadSessionMessages();
+    }, [currentSessionId]);
 
     useEffect(() => {
         scrollToBottom();
@@ -131,9 +187,20 @@ export default function IAPage() {
             const { data } = await api.post('/assistant/chat', {
                 message: userMsg,
                 audioUrl: currentAudio,
-                imageUrl: currentImage
+                imageUrl: currentImage,
+                sessionId: currentSessionId || 'new' // Send 'new' if creating
             });
+
             setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+
+            // If new session was returned, update state
+            if (data.sessionId && data.sessionId !== currentSessionId) {
+                setCurrentSessionId(data.sessionId);
+                // Refresh sessions list
+                const sessionsRes = await api.get('/assistant/sessions');
+                setSessions(sessionsRes.data);
+            }
+
         } catch (error) {
             setMessages(prev => [...prev, { role: 'assistant', content: 'Ops, tive um curto-circuito aqui. Tente novamente.' }]);
         } finally {
@@ -142,10 +209,78 @@ export default function IAPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
+        <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative overflow-hidden">
+
+            {/* Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 transition-opacity"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar History */}
+            <div className={`
+                fixed top-0 left-0 bottom-0 w-3/4 max-w-sm bg-white shadow-2xl z-40 transform transition-transform duration-300 ease-in-out
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
+                <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h2 className="font-bold text-gray-700">Histórico</h2>
+                    <button onClick={() => setIsSidebarOpen(false)} className="p-1 rounded-full hover:bg-gray-200">
+                        <X size={20} className="text-gray-500" />
+                    </button>
+                </div>
+
+                <div className="p-4">
+                    <button
+                        onClick={() => {
+                            setCurrentSessionId(null);
+                            setIsSidebarOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 p-3 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition mb-4"
+                    >
+                        <Plus size={20} />
+                        Nova Conversa
+                    </button>
+
+                    <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-180px)]">
+                        {sessions.map(session => (
+                            <button
+                                key={session.id}
+                                onClick={() => {
+                                    setCurrentSessionId(session.id);
+                                    setIsSidebarOpen(false);
+                                }}
+                                className={`
+                                    w-full text-left p-3 rounded-lg border flex items-center gap-3 transition
+                                    ${currentSessionId === session.id
+                                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                        : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50'
+                                    }
+                                `}
+                            >
+                                <MessageSquare size={18} className="shrink-0 opacity-70" />
+                                <div className="truncate">
+                                    <p className="text-sm font-medium truncate">{session.title || 'Sem título'}</p>
+                                    <p className="text-xs opacity-60">
+                                        {new Date(session.updatedAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </button>
+                        ))}
+                        {sessions.length === 0 && (
+                            <p className="text-center text-gray-400 text-sm mt-10">Nenhuma conversa salva.</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* Header */}
-            <header className="bg-white p-4 shadow-sm sticky top-0 z-10 flex items-center justify-center border-b border-gray-100">
+            <header className="bg-white p-4 shadow-sm sticky top-0 z-10 flex items-center justify-between border-b border-gray-100">
                 <div className="flex items-center gap-2">
+                    <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 mr-2">
+                        <ArrowLeft size={24} />
+                    </button>
                     <div className="bg-blue-600 p-2 rounded-full text-white">
                         <Bot size={24} />
                     </div>
@@ -156,6 +291,15 @@ export default function IAPage() {
                         </p>
                     </div>
                 </div>
+                <button
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition relative"
+                >
+                    <History size={24} />
+                    {sessions.length > 0 && (
+                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+                    )}
+                </button>
             </header>
 
             {/* Chat Area */}
@@ -277,6 +421,12 @@ export default function IAPage() {
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Digite ou grave..."
                                 rows={1}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSend();
+                                    }
+                                }}
                                 className="w-full bg-gray-100 border-0 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-800 placeholder-gray-500 resize-none max-h-32"
                             />
                         </div>
@@ -296,8 +446,8 @@ export default function IAPage() {
                                 onTouchStart={startRecording}
                                 onTouchEnd={stopRecording}
                                 className={`p-3 rounded-full transition-transform active:scale-95 shadow-lg ${isRecording
-                                        ? 'bg-red-500 text-white animate-pulse shadow-red-300 scale-110'
-                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
+                                    ? 'bg-red-500 text-white animate-pulse shadow-red-300 scale-110'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
                                     }`}
                             >
                                 <Mic size={24} />

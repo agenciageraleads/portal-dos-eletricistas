@@ -18,4 +18,8 @@ export class CreateFeedbackDto {
     // Looking at controller: createInput.product = { connect: { id: data.productId } };
     // Usually IDs are UUIDs in this stack, but let's stick to IsString + IsNotEmpty if defined to be safe, or just IsString.
     productId?: string;
+
+    @IsOptional()
+    @IsString()
+    userEmail?: string;
 }

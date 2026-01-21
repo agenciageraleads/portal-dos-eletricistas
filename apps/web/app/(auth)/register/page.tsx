@@ -73,7 +73,7 @@ export default function RegisterPage() {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
                             placeholder="Ex: João da Silva"
                         />
@@ -84,7 +84,7 @@ export default function RegisterPage() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
                             placeholder="seu@email.com"
                         />
@@ -108,7 +108,7 @@ export default function RegisterPage() {
                                 }
                                 setCpf(v);
                             }}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
                             placeholder="CPF ou CNPJ"
                             maxLength={18}
@@ -125,7 +125,7 @@ export default function RegisterPage() {
                                 v = v.replace(/(\d)(\d{4})$/, '$1-$2');
                                 setPhone(v);
                             }}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
                             placeholder="(11) 99999-9999"
                             maxLength={15}

@@ -41,7 +41,7 @@ export default function LoginPage() {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
                             placeholder="Digite seu email ou CPF"
                         />
@@ -52,7 +52,7 @@ export default function LoginPage() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
                         />
                         <div className="mt-1 text-right">

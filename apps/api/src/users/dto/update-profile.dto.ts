@@ -22,6 +22,5 @@ export class UpdateProfileDto {
     logo_url?: string;
 
     @IsOptional()
-    @IsString()
-    pix_key?: string;
+    isAvailableForWork?: boolean;
 }

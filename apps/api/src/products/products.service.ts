@@ -222,6 +222,17 @@ export class ProductsService {
         });
     }
 
+    async createSuggestion(data: { name: string, category?: string, description?: string, suggestedBy?: string }) {
+        return this.prisma.serviceSuggestion.create({
+            data: {
+                name: data.name,
+                category: data.category,
+                description: data.description,
+                suggestedBy: data.suggestedBy
+            }
+        });
+    }
+
     // Admin: Get Failed Searches
     async getFailedSearches(page: number = 1, limit: number = 20) {
         const skip = (page - 1) * limit;

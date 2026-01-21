@@ -19,6 +19,7 @@ export default withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  importScripts: ["/custom-worker.js"],
   runtimeCaching: [
     {
       urlPattern: /\/api\/.*/i,

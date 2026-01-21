@@ -7,8 +7,10 @@ import { ServicesModule } from '../services/services.module';
 import { BudgetsModule } from '../budgets/budgets.module';
 import { UsersModule } from '../users/users.module';
 
+import { PrismaModule } from '../prisma/prisma.module';
+
 @Module({
-    imports: [ConfigModule, ServicesModule, BudgetsModule, UsersModule],
+    imports: [ConfigModule, ServicesModule, BudgetsModule, UsersModule, PrismaModule],
     controllers: [AssistantController],
     providers: [AssistantService],
 })

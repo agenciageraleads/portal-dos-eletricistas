@@ -5,6 +5,8 @@ import OpenAI from 'openai';
 import { ServicesService } from '../services/services.service';
 import { BudgetsService } from '../budgets/budgets.service';
 
+import { PrismaService } from '../prisma/prisma.service';
+
 @Injectable()
 export class AssistantService {
     private openai: OpenAI;
@@ -12,14 +14,15 @@ export class AssistantService {
     constructor(
         private configService: ConfigService,
         private servicesService: ServicesService,
-        private budgetsService: BudgetsService
+        private budgetsService: BudgetsService,
+        private prisma: PrismaService
     ) {
         this.openai = new OpenAI({
             apiKey: this.configService.get<string>('OPENAI_API_KEY'),
         });
     }
 
-    async chat(userMessage: string, userId: string, audioUrl?: string, imageUrl?: string) {
+    async chat(userMessage: string, userId: string, audioUrl?: string, imageUrl?: string, sessionId?: string) {
         let finalMessage = userMessage;
 
         // 1. Transcribe Audio if present
@@ -36,6 +39,39 @@ export class AssistantService {
         if (!finalMessage && !imageUrl) {
             return { reply: 'Por favor, diga algo ou envie uma imagem.' };
         }
+
+        // 2. Resolve Session
+        let finalSessionId = sessionId;
+        let isNewSession = false;
+
+        if (!finalSessionId || finalSessionId === 'new') {
+            const session = await this.createSession(userId);
+            finalSessionId = session.id;
+            isNewSession = true;
+        }
+
+        // 3. Load PREVIOUS History for this Session
+        const previousMsgs = await this.prisma.chatMessage.findMany({
+            where: { sessionId: finalSessionId },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        });
+
+        const historyMessages = previousMsgs.reverse().map(msg => ({
+            role: msg.role as 'user' | 'assistant' | 'system',
+            content: msg.content
+        }));
+
+        // 4. Save User Message
+        await this.prisma.chatMessage.create({
+            data: {
+                userId,
+                sessionId: finalSessionId,
+                role: 'user',
+                content: finalMessage || '[Envio de Imagem]',
+            }
+        });
+
 
         const systemPrompt = `
       Você é o 'Eletricista GPT', o assistente oficial do aplicativo 'Portal do Eletricista'. 
@@ -64,6 +100,7 @@ export class AssistantService {
 
         const messages: any[] = [
             { role: 'system', content: systemPrompt },
+            ...historyMessages
         ];
 
         // Construct User Message with Image if present
@@ -77,8 +114,40 @@ export class AssistantService {
                 ]
             });
         } else {
-            messages.push({ role: 'user', content: finalMessage });
+            // Avoid duplicating if it was already in history? 
+            // Ideally we shouldn't fetch the *just inserted* message if we are appending it here.
+            // But we inserted it above. 
+            // Actually, OpenAI expects the last message to be user.
+            // If we fetched it in 'history', we should NOT push it again.
+            // Let's refine:
+            // 1. insert user message to DB.
+            // 2. fetch all history (including the one we just inserted).
+            // 3. send to OpenAI.
+
+            // BUT, if we use the history array, the last item IS the user message.
+            // Does OpenAI handle images in history? Yes, but `content` is simple string in DB.
+            // So for image we need to be careful.
+            // If this turn has an image, we should probably construct the array such that the last message HAS the image object.
+
+            // CORRECT APPROACH:
+            // Don't rely on DB for the *current* rich message (with image). 
+            // We DO validly want to retrieve previous context.
+            // So:
+            // 1. Fetch PREVIOUS interactions (exclude current).
+            // 2. Append CURRENT interaction (with image struct if needed).
+            // 3. Save CURRENT interaction to DB (as text representation).
+
+            // Let's adjust logic:
+            // 1. Fetch History FIRST (before saving current).
+            // 2. Save Current to DB (async or await).
+            // 3. Construct messages = [System, ...History, Current].
+            // Note: 'History' from DB is text only. If user sent image previously, we stored "[Envio de Imagem]" or description.
+
+            // Let's redo this block to follow the "Fetch first" strategy.
         }
+
+        // Re-writing the replacement block with corrected logic inside:
+
 
 
         const tools = [
@@ -134,7 +203,26 @@ export class AssistantService {
 
             // 2. If no tool call, just return text
             if (!reply.tool_calls || reply.tool_calls.length === 0) {
-                return { reply: reply.content };
+                // Save Reply
+                await this.prisma.chatMessage.create({
+                    data: {
+                        userId,
+                        sessionId: finalSessionId,
+                        role: 'assistant',
+                        content: reply.content || '...',
+                    }
+                });
+
+                // Auto-Title
+                if (isNewSession && finalMessage) {
+                    const simpleTitle = finalMessage.slice(0, 40) + (finalMessage.length > 40 ? '...' : '');
+                    await this.prisma.chatSession.update({
+                        where: { id: finalSessionId },
+                        data: { title: simpleTitle }
+                    });
+                }
+
+                return { reply: reply.content, sessionId: finalSessionId };
             }
 
             // 3. Handle Tool Calls
@@ -182,14 +270,36 @@ export class AssistantService {
             const finalCompletion = await this.openai.chat.completions.create({
                 messages: messages,
                 model: 'gpt-4o-mini',
-                // We keep tools def just in case but usually it wraps up
             });
 
-            return { reply: finalCompletion.choices[0].message.content };
+            const finalReply = finalCompletion.choices[0].message.content;
+
+            // --- NEW: Save Assistant Reply ---
+
+            await this.prisma.chatMessage.create({
+                data: {
+                    userId,
+                    sessionId: finalSessionId,
+                    role: 'assistant',
+                    content: finalReply || '...',
+                }
+            });
+
+            // Auto-title if new session and enough content
+            if (isNewSession && finalMessage.length > 0) {
+                // Simple title from first user message
+                const simpleTitle = finalMessage.slice(0, 40) + (finalMessage.length > 40 ? '...' : '');
+                await this.prisma.chatSession.update({
+                    where: { id: finalSessionId },
+                    data: { title: simpleTitle }
+                });
+            }
+
+            return { reply: finalReply, sessionId: finalSessionId };
 
         } catch (error) {
             console.error('OpenAI Error:', error);
-            return { reply: 'Desculpe, tivemos uma falha na comunicação com a central. Tente novamente.' };
+            return { reply: 'Desculpe, tivemos uma falha na comunicação. Tente novamente.' };
         }
     }
 
@@ -218,5 +328,56 @@ export class AssistantService {
             console.error('Whisper Error:', error);
             throw error;
         }
+    }
+    async getHistory(userId: string) {
+        // Deprecated? No, useful for default view or search. 
+        // But for UI we now want Sessions.
+        return [];
+    }
+
+    async getUserSessions(userId: string) {
+        return this.prisma.chatSession.findMany({
+            where: { userId },
+            orderBy: { updatedAt: 'desc' },
+            select: { id: true, title: true, updatedAt: true }
+        });
+    }
+
+    async createSession(userId: string) {
+        return this.prisma.chatSession.create({
+            data: { userId, title: 'Nova Conversa' }
+        });
+    }
+
+    async getSessionMessages(sessionId: string, userId: string) {
+        // Verify ownership?
+        // const session = ...
+        return this.prisma.chatMessage.findMany({
+            where: { sessionId, userId }, // basic security
+            orderBy: { createdAt: 'asc' }
+        });
+    }
+
+    private getSystemPrompt() {
+        return `
+      Você é o 'Eletricista GPT', o assistente oficial do aplicativo 'Portal do Eletricista'. 
+      Sua persona é a de um eletricista sênior com anos de experiência.
+      
+      **Suas Responsabilidades:**
+      1. Suporte Técnico (NBR 5410).
+      2. Guia do Sistema.
+
+      **Mapa do Sistema:**
+      - /orcamento: Criar propostas.
+      - /ferramentas: Calculadoras.
+      - /services: Mural de Vagas.
+      - /perfil: Dados.
+
+      **Tools:** 'create_budget_draft', 'post_service_listing'.
+
+      **Regras:**
+      - Responda em Português do Brasil.
+      - Seja direto.
+        `;
     }
 }

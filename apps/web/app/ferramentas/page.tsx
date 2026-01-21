@@ -5,22 +5,19 @@ import Link from 'next/link';
 import { ArrowLeft, Calculator, Zap, Cable } from 'lucide-react';
 import { BitolaCalculator } from './components/BitolaCalculator';
 import { DisjuntorCalculator } from './components/DisjuntorCalculator';
+import BottomNav from '../components/BottomNav';
+import PageHeader from '../components/PageHeader';
 
 export default function FerramentasPage() {
     const [activeTab, setActiveTab] = useState<'bitola' | 'disjuntor'>('bitola');
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            <header className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <Link href="/" className="p-2 hover:bg-gray-100 rounded-full">
-                        <ArrowLeft size={24} className="text-gray-600" />
-                    </Link>
-                    <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <Calculator className="text-blue-600" />
-                        Ferramentas & Cálculos
-                    </h1>
-                </div>
+            <header>
+                <PageHeader
+                    title="Ferramentas & Cálculos"
+                    icon={<Calculator size={20} />}
+                />
             </header>
 
             <main className="max-w-3xl mx-auto px-4 py-6">
@@ -29,8 +26,8 @@ export default function FerramentasPage() {
                     <button
                         onClick={() => setActiveTab('bitola')}
                         className={`flex-1 py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all ${activeTab === 'bitola'
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'text-gray-500 hover:bg-gray-50'
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'text-gray-500 hover:bg-gray-50'
                             }`}
                     >
                         <Cable size={20} />
@@ -39,8 +36,8 @@ export default function FerramentasPage() {
                     <button
                         onClick={() => setActiveTab('disjuntor')}
                         className={`flex-1 py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all ${activeTab === 'disjuntor'
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'text-gray-500 hover:bg-gray-50'
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'text-gray-500 hover:bg-gray-50'
                             }`}
                     >
                         <Zap size={20} />
@@ -64,6 +61,7 @@ export default function FerramentasPage() {
                     </p>
                 </div>
             </main>
+            <BottomNav />
         </div>
     );
 }

@@ -10,7 +10,8 @@ import {
     Grid,
     User,
     Zap,
-    Bell
+    Bell,
+    MessageSquare
 } from 'lucide-react';
 
 export default function BottomNav() {
@@ -18,16 +19,16 @@ export default function BottomNav() {
 
     const navItems = [
         {
-            label: 'Ferramentas',
-            href: '/ferramentas',
-            icon: Wrench,
-            isActive: pathname.startsWith('/ferramentas')
-        },
-        {
             label: 'Orçamentos',
             href: '/orcamentos',
             icon: FileText,
             isActive: pathname.startsWith('/orcamentos')
+        },
+        {
+            label: 'Serviços',
+            href: '/services',
+            icon: Grid,
+            isActive: pathname.startsWith('/services')
         },
         {
             label: 'IA',
@@ -37,16 +38,16 @@ export default function BottomNav() {
             isSpecial: true
         },
         {
-            label: 'Serviços',
-            href: '/services',
-            icon: Grid,
-            isActive: pathname.startsWith('/services')
+            label: 'Ferramentas',
+            href: '/ferramentas',
+            icon: Wrench,
+            isActive: pathname.startsWith('/ferramentas')
         },
         {
-            label: 'Notificações',
-            href: '/inbox',
-            icon: Bell,
-            isActive: pathname.startsWith('/inbox')
+            label: 'Feedback',
+            href: '/feedback',
+            icon: MessageSquare,
+            isActive: pathname.startsWith('/feedback')
         }
     ];
 

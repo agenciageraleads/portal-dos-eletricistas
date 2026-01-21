@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 
 interface User {
     id: string;
@@ -12,6 +13,7 @@ interface User {
     role?: string;
     bio?: string;
     pix_key?: string;
+    isAvailableForWork?: boolean;
     _count?: {
         budgets: number;
     };
@@ -92,6 +94,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('user', JSON.stringify(userData));
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser(userData);
+
+        // Identify user in PostHog
+        if (typeof window !== 'undefined') {
+            posthog.identify(userData.id, {
+                email: userData.email,
+                name: userData.name,
+                role: userData.role
+            });
+        }
     };
 
     const logout = () => {
@@ -99,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
         setUser(null);
+        if (typeof window !== 'undefined') posthog.reset();
         router.push('/login');
     };
 
