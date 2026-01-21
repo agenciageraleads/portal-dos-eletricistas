@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, ChevronRight, ChevronLeft, Lightbulb, Map, MessageSquare, Rocket } from 'lucide-react';
+import { X, Check, ChevronRight, ChevronLeft, Lightbulb, Map, MessageSquare, Rocket, Trophy, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function OnboardingModal() {
@@ -80,6 +80,16 @@ export function OnboardingModal() {
             title: "Seu Feedback é Vital",
             content: "Construímos este portal para VOCÊ. Se encontrar erros, tiver ideias ou sentir falta de algo, clique no botão \"Alert\" no topo da página. Sua opinião guia nosso desenvolvimento!",
             icon: <MessageSquare size={48} className="text-green-500 mb-4" />
+        },
+        {
+            title: "Instale o App",
+            content: "Para a melhor experiência, instale nosso App. Funciona offline, é mais rápido e você recebe notificações direto no celular. Procure o botão 'Instalar Aplicativo' na tela inicial.",
+            icon: <Zap size={48} className="text-blue-600 mb-4" />
+        },
+        {
+            title: "Sua Jornada Profissional",
+            content: "Acompanhe seu progresso como eletricista digital! Complete tarefas, ganhe conquistas e suba de nível. Toque no ícone de troféu para ver suas missões.",
+            icon: <Trophy size={48} className="text-yellow-500 mb-4" />
         }
     ];
 

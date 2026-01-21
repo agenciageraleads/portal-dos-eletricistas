@@ -252,6 +252,18 @@ model ServiceSuggestion {
   @@map("service_suggestions")
 }
 
+model SearchSynonym {
+  id        String   @id @default(uuid())
+  term      String   @unique // Termo principal ex: "PAINEL"
+  synonyms  String[] // Sinônimos ex: ["LUMINARIA", "PLAFON"]
+  approved  Boolean  @default(false)
+  
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@map("search_synonyms")
+}
+
 enum ServiceStatus {
   OPEN
   FILLED

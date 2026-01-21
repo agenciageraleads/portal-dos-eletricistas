@@ -51,6 +51,19 @@ export default function FerramentasPage() {
                     {activeTab === 'disjuntor' && <DisjuntorCalculator />}
                 </div>
 
+                <h3 className="text-lg font-bold text-gray-800 mt-8 mb-4">Outras Ferramentas</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Link href="/ferramentas/calculadora-led" className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:border-yellow-400 transition-all">
+                        <div className="p-3 bg-yellow-50 rounded-lg text-yellow-600">
+                            <Zap size={24} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-800">Calculadora Fonte LED</h4>
+                            <p className="text-sm text-gray-500">Dimensione fontes para fitas LED 12V e 24V.</p>
+                        </div>
+                    </Link>
+                </div>
+
                 <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100 text-sm text-blue-800">
                     <p className="font-bold flex items-center gap-2 mb-1">
                         ⚠️ Nota Importante

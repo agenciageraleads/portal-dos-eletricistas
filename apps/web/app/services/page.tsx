@@ -124,36 +124,33 @@ export default function ServicesPage() {
                 </div>
             </header>
 
-            {/* Availability Toggle for Professionals */}
+            {/* Availability Toggle for Professionals (Simplified) */}
             {viewMode === 'PROFESSIONAL' && user && (
                 <div className="px-4 mb-4">
-                    <button
-                        onClick={async () => {
-                            const newStatus = !user.isAvailableForWork;
-                            try {
-                                await api.patch('/users/profile', { isAvailableForWork: newStatus });
-                                window.location.reload();
-                            } catch (e) {
-                                alert('Erro ao atualizar disponibilidade');
-                            }
-                        }}
-                        className={`w-full py-4 rounded-xl flex items-center justify-between px-6 shadow-sm border transition-all ${user.isAvailableForWork
-                                ? 'bg-green-600 text-white border-green-600 shadow-green-200'
-                                : 'bg-white text-gray-500 border-gray-200'
-                            }`}
-                    >
-                        <div className="text-left">
-                            <span className="block font-bold text-lg">
-                                {user.isAvailableForWork ? 'Estou Disponível' : 'Indisponível'}
-                            </span>
-                            <span className="text-xs opacity-90 block">
-                                {user.isAvailableForWork ? 'Você receberá notificações de novos serviços.' : 'Toque para ativar e receber avisos.'}
-                            </span>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span className="block font-bold text-gray-900">Disponibilidade</span>
+                            <span className="text-xs text-gray-500">Receber avisos de novos serviços</span>
                         </div>
-                        <div className={`w-12 h-6 rounded-full p-1 transition-colors ${user.isAvailableForWork ? 'bg-white/30' : 'bg-gray-200'} relative`}>
-                            <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${user.isAvailableForWork ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                        </div>
-                    </button>
+                        <button
+                            onClick={async () => {
+                                const newStatus = !user.isAvailableForWork;
+                                try {
+                                    await api.patch('/users/profile', { isAvailableForWork: newStatus });
+                                    window.location.reload();
+                                } catch (e) {
+                                    alert('Erro ao atualizar disponibilidade');
+                                }
+                            }}
+                            className={`w-14 h-8 rounded-full p-1 transition-colors relative focus:outline-none ${user.isAvailableForWork ? 'bg-green-500' : 'bg-gray-300'
+                                }`}
+                        >
+                            <div
+                                className={`w-6 h-6 rounded-full bg-white shadow-sm transition-transform transform ${user.isAvailableForWork ? 'translate-x-6' : 'translate-x-0'
+                                    }`}
+                            />
+                        </button>
+                    </div>
                 </div>
             )}
 

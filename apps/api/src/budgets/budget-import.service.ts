@@ -31,7 +31,7 @@ export class BudgetImportService {
         private configService: ConfigService,
     ) {
         const key = this.configService.get<string>('OPENAI_API_KEY');
-        
+
         if (key) {
             console.log(`[DEBUG] OpenAI Key loaded: ${key.substring(0, 5)}...`);
             this.openai = new OpenAI({
@@ -43,11 +43,11 @@ export class BudgetImportService {
     }
 
     /**
-     * Main entry point: Process text or image to get budget items
+     * Main entry point: Process text or image to get budget items and their matches
+     * Can be used for "dry-run" (AI Lab) or actual budget creation.
      */
-    async processInput(input: { text?: string; imageUrl?: string }): Promise<MatchResult[]> {
+    async analyzeInput(input: { text?: string; imageUrl?: string; userId?: string; source?: 'LAB' | 'APP' }): Promise<MatchResult[]> {
         let parsedItems: ParsedItem[] = [];
-
 
         if (input.text) {
             parsedItems = await this.parseTextWithAI(input.text);
@@ -60,9 +60,20 @@ export class BudgetImportService {
         for (const item of parsedItems) {
             const match = await this.findBestMatch(item);
             results.push(match);
+
+            // Log attempt if source is LAB (or always, but maybe different type?)
+            // For now, only explicit feedback is logged via registerFeedback endpoint, 
+            // but we could auto-log the "Attempt" here if we wanted dataset building.
         }
 
         return results;
+    }
+
+    /**
+     * Legacy method wrapper if needed, or update consumers
+     */
+    async processInput(input: { text?: string; imageUrl?: string }): Promise<MatchResult[]> {
+        return this.analyzeInput(input);
     }
 
     /**

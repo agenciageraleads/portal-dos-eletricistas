@@ -42,8 +42,25 @@ export default function PushNotificationManager() {
     }, []);
 
     const subscribeToPush = async () => {
+        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+            alert('Para ativar notificações, acesse via HTTPS ou localhost.');
+            return;
+        }
+
         if (!registration || !VAPID_PUBLIC_KEY) {
             console.error('Registration or Key missing');
+            // Check if service worker is supported
+            if (!('serviceWorker' in navigator)) {
+                alert('Seu navegador não suporta Service Workers/Notificações.');
+                return;
+            }
+            // If just key missing
+            if (!VAPID_PUBLIC_KEY) {
+                console.error('VAPID Key missing in env');
+                return;
+            }
+            // If registration missing, maybe it's still loading or failed
+            alert('Aguarde o carregamento do sistema e tente novamente.');
             return;
         }
 
@@ -59,9 +76,13 @@ export default function PushNotificationManager() {
             setSubscription(sub);
             setIsSubscribed(true);
             alert('Notificações ativadas com sucesso!');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to subscribe user: ', error);
-            alert('Erro ao ativar notificações. Verifique se você deu permissão.');
+            if (error.name === 'NotAllowedError') {
+                alert('Você bloqueou as permissões. Vá nas configurações do site (cadeado na barra de endereço) e permita Notificações.');
+            } else {
+                alert('Erro ao ativar notificações: ' + error.message);
+            }
         }
     };
 

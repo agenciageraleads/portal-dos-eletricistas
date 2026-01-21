@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from './contexts/AuthContext';
+import { useInstallPrompt } from './contexts/InstallContext';
 import Link from 'next/link';
 import {
     FileText,
@@ -24,6 +25,7 @@ import BottomNav from './components/BottomNav';
 
 export default function Home() {
     const { user, logout } = useAuth();
+    const { triggerInstall, isIOS, isInstalled } = useInstallPrompt();
 
     // Gov.br style often uses lists or simpler cards for "Frequent Services"
     const quickAccess = [
@@ -148,25 +150,30 @@ export default function Home() {
                 </div>
 
                 {/* Gamification / PWA INSTALL CARD */}
-                <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden border border-white/10">
-                    <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
+                {!isInstalled && (
+                    <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden border border-white/10">
+                        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
 
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-yellow-400 text-yellow-900 text-xs font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-wider">Missão Diária</span>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="bg-yellow-400 text-yellow-900 text-xs font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-wider">Missão Diária</span>
+                            </div>
+
+                            <h3 className="text-2xl font-bold mb-2 leading-tight">Instale o App e ganhe acesso offline!</h3>
+                            <p className="text-blue-100 text-sm mb-6 leading-relaxed">
+                                Adicione o Portal à sua tela inicial para acessar orçamentos e ferramentas mesmo sem internet.
+                            </p>
+
+                            <button
+                                onClick={triggerInstall}
+                                className="w-full bg-white text-blue-900 font-bold py-3.5 rounded-xl shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Zap size={20} className="text-blue-600" />
+                                {isIOS ? 'Como Instalar no iPhone' : 'Instalar Aplicativo Agora'}
+                            </button>
                         </div>
-
-                        <h3 className="text-2xl font-bold mb-2 leading-tight">Instale o App e ganhe acesso offline!</h3>
-                        <p className="text-blue-100 text-sm mb-6 leading-relaxed">
-                            Adicione o Portal à sua tela inicial para acessar orçamentos e ferramentas mesmo sem internet.
-                        </p>
-
-                        <button className="w-full bg-white text-blue-900 font-bold py-3.5 rounded-xl shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
-                            <Zap size={20} className="text-blue-600" />
-                            Instalar Aplicativo Agora
-                        </button>
                     </div>
-                </div>
+                )}
 
                 <div className="mb-6">
                     <div className="flex items-center gap-3 mb-4 px-1">

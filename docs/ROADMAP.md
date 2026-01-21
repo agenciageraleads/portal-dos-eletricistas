@@ -1,82 +1,71 @@
 # Roadmap Estratégico - Portal do Eletricista
 
-Este documento oferece a visão executiva e estratégica dos marcos do projeto, atualizado com o **Plano de Ação Urgente** baseado no feedback dos usuários.
+Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 
 ---
 
-## 🧭 Linha do Tempo Macro (High-Level Timeline)
+## 🚀 Status Atual: Fase de Expansão e Diferenciais
 
-| Fase | Período | Foco Principal | Status |
-| :--- | :--- | :--- | :--- |
-| **Q1 2026** | Janeiro 2026 | **MVP Crítico** (Correções Fundamentais) | 🚨 **URGENTE** |
-| **Q1 2026** | Fevereiro 2026 | **Fase 2: Diferenciais** (Calculadoras e Modelos) | ⚪️ Planejado |
-| **Q2 2026** | Março 2026 | **Fase 3: Consolidação** (App e Integrações) | ⚪️ Planejado |
+O MVP Crítico foi entregue e estabilizado. O foco agora é em ferramentas que geram retenção (Calculadoras, AI, Chat) e melhorias de UX.
 
 ---
 
-## 📍 Detalhamento dos Marcos (Milestones)
+## ✅ Concluído (Done)
 
-### 🚨 Marco 1: MVP Crítico (30 Dias) - JANEIRO 2026
-> **Objetivo:** Tornar o portal tecnicamente viável e corrigir "Deal Breakers" apontados por eletricistas.
-> **Status:** � **EM ANDAMENTO**
+### Infraestrutura & Core
 
-**Semana 1: Correções Fundamentais**
-*   [x] **Busca Inteligente + Sinônimos:** "Cabo" = "Fio", "S8" = "S08".
-*   [x] **Edição de Quantidade no Orçamento:** Ajuste fácil +/- e input manual.
-*   [x] **Especificações Técnicas (MVP):** Exibir dados críticos (Bitola, Amperagem) no catálogo.
+- [x] **Staging Environment:** Ambiente beta estável com Docker/Alpine.
+- [x] **Image Persistence:** Integração com MinIO/S3.
+- [x] **Simplified Auth:** Login/Registro robusto (CPF/CNPJ).
+- [x] **Backend Optimization:** Fix de erros 500 e timeouts.
 
-**Semana 2: UX Essencial & Privacidade**
-*   [x] **Campos de Observação:** Notas, prazo, pagamento no orçamento.
-*   [x] **Privacidade Toggle:** Opção de ocultar detalhes de preço (Material vs Mão de Obra).
-*   [x] **Staging Environment:** Ambiente Beta (`beta.portaleletricos.com.br`) para validação.
-*   [ ] **Onboarding:** Tutorial rápido para novos usuários.
+### Funcionalidades (Features)
 
-**Semana 3: Ferramentas & Release v1.3.0 (CONCLUÍDO)**
-*   [x] **Hub de Ferramentas (MVP):** Calculadora de Bitola e Disjuntores (`/ferramentas`).
-*   [x] **Release v1.3.0:** Build, Tag e Deploy em Staging.
-*   [x] **Onboarding Gamificado (Jornada do Eletricista):** Tutorial guiado e checklist de progresso.
-*   [x] **Nova Home Dashboard:** Hub central com acesso rápido (Orçamentos, Catálogo, Ferramentas).
+- [x] **Busca Inteligente (+ Sinônimos):** Engine otimizado com curadoria de sinônimos via BD.
+- [x] **Catálogo "Stories":** Nova UI de filtros por categoria com scroll horizontal.
+- [x] **Orçamentos:** Fluxo completo com edição de quantidade, toggle de privacidade e observações.
+- [x] **Hub de Ferramentas (Básico):** Calculadora de Bitola e Disjuntores.
+- [x] **CRM & Dashboard:** Visão geral de orçamentos e perfil profissional.
+- [x] **Chat Sessions:** Histórico de conversas com IA (multi-sessão).
 
-**Semana 4: Diferenciais Competitivos (Próximo Foco)**
-*   [x] **Produto Extra / Manual:** Permitir adicionar itens fora do catálogo.
-*   [ ] **Correções Rápidas (Staging):**
-    *   [ ] Ferramentas: Opção Trifásico (380v).
-    *   [ ] Orçamento: Mostrar Valor Unitário e corrigir texto "Portal Distribuidora".
-    *   [ ] Foto no item manual (Medium Impact).
-*   [x] **Smart Sorting:** Ordenar por Popularidade (Backend pronto, Web pendente) e Estoque.
+### Admin & Gestão
 
-**Gestão & Polimento (Ongoing)**
-*   [x] **CRM Básico + Mini Dashboard:** Status dos orçamentos, Meus Orçamentos e Estatísticas (Total/Ticket Médio).
-*   [x] **Descrição de Mão de Obra:** Campo detalhado para justificar valor do serviço.
-*   [x] **Perfil Profissional:** Nome da Empresa/Fantasia e Logo no PDF.
-*   [x] **Failed Search Logging:** Registro de buscas sem resultado e botão "Não achei".
-*   [ ] **Dashboard de Métricas:** Taxa de conversão (Avançado).
-*   [ ] **PDF Melhorado:** Layout mais robusto.
-*   [x] **Simplified Auth:** Cadastro simplificado (CPF/CNPJ, WhatsApp).
-*   [x] **Image Persistence:** Integração com MinIO para fotos estáveis.
-
-### 🟡 Marco 2: Expansão (60 Dias) - FEVEREIRO 2026
-> **Objetivo:** Implementar ferramentas que "prendem" o usuário e diferenciais competitivos.
-
-*   [ ] **Produtos Complementares (Cross-Sell):** Sugestão automática (Disjuntor -> Barramento).
-*   [ ] **Desconto por Quantidade:** Tabela de preços progressiva (Atacado).
-*   [ ] **Especialista AI (Alpha):** Assistente GPT (Fase de Pesquisa).
-*   [ ] **Agrupamento de Produtos:** Melhor visualização de variações (cores, tamanhos).
-*   [ ] **App Mobile Nativo:** Planejamento.
-*   [x] **Admin: Gestão Completa:** Reset de senha de usuários e Gestão de Produtos (Editar/Desativar).
-*   [ ] **Gamificação Completa (Jornada):** Tornar o modal funcional com badges e conquistas (Pedidos, Convites, Orçamentos).
-*   [ ] **Referral System:** Sistema de convites com prêmios e comissionamento multinível (Planejamento).
-*   [ ] **AI Features:** Sugestões inteligentes para descrição de serviços e "Diagnóstico de Problemas" (Foto -> Solução).
-*   [ ] **Geolocalização:** Encontrar eletricistas próximos.
-*   [ ] **Hub de Ferramentas Avançado:** Motor e Tutoriais.
+- [x] **Admin Dashboard:** Painel administrativo (Visão Geral, Usuários, Orçamentos).
+- [x] **Failed Search Logging:** Monitoramento de buscas falhas.
+- [x] **AI Curator:** Ferramenta de IA para sugerir sinônimos para buscas falhas.
+- [x] **AI Budget Lab:** Ambiente de testes para o parser de orçamentos.
 
 ---
 
-## ⚠️ Riscos e Mitigação
+## 🚧 Em Progresso / Próximo Foco (In Progress / Next)
 
-1.  **Confiança nos Preços:**
-    *   *Mitigação:* Integrar com grandes distribuidores e permitir edição manual de preços no orçamento.
-2.  **Exposição de Margem (Deal Breaker):**
-    *   *Mitigação:* Implementar "Privacidade Toggle" urgente na Semana 2.
-3.  **Concorrência:**
-    *   *Mitigação:* Focar onde eles falham: Comparação multi-fornecedor e ferramentas de cálculo integradas.
+### Ferramentas & Calculadoras
+
+- [ ] **Calculadora de Fonte para Fita LED:** Dimensionamento de fontes com base na metragem e potência.
+- [ ] **Refinamento Ferramentas:** Adicionar opção Trifásico (380v) nas calculadoras existentes.
+
+### Gestão & Admin
+
+- [ ] **Gestão de Produtos (Admin):** Interface para Editar/Desativar produtos diretamente pelo painel.
+- [ ] **Reset de Senha (Admin):** Funcionalidade para administradores resetarem senhas de usuários.
+
+### Melhorias de UX/UI
+
+- [ ] **PDF Personalizado:** Melhorar layout e incluir logo da empresa do eletricista.
+- [ ] **Onboarding Gamificado:** Finalizar implementação do Tutorial interativo (Componente existe, falta fluxo completo).
+
+---
+
+## 🔮 Backlog & Futuro (Q1-Q2 2026)
+
+### Diferenciais Competitivos
+
+- [ ] **Especialista AI (Alpha):** Assistente GPT integrado ao contexto do catálogo.
+- [ ] **Produtos Cruzados (Cross-Sell):** "Quem comprou X também comprou Y".
+- [ ] **App Mobile Nativo:** Versão iOS/Android.
+- [ ] **Geolocalização:** Encontrar eletricistas próximos (marketplace).
+
+### Expansão Comercial
+
+- [ ] **Desconto por Quantidade:** Tabelas de preço para atacado.
+- [ ] **Referral System:** Sistema de indicação com recompensas.

@@ -39,5 +39,15 @@ export class ProductsController {
     updateProduct(@Param('id') id: string, @Body() data: any) {
         return this.productsService.updateProduct(id, data);
     }
+
+    @Post('admin/synonyms')
+    async addSynonym(@Body() body: { term: string, synonyms: string[] }) {
+        return this.productsService.addSynonym(body.term, body.synonyms);
+    }
+
+    @Get('admin/search-suggestions')
+    async generateSearchSuggestions(@Query('term') term: string) {
+        return this.productsService.generateSearchSuggestions(term);
+    }
 }
 

@@ -4,6 +4,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PostHogProvider } from "./providers/PostHogProvider";
 import InstallPrompt from "./components/InstallPrompt";
+import { InstallProvider } from "./contexts/InstallContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -57,8 +58,10 @@ export default function RootLayout({
         <PostHogProvider>
           <AuthProvider>
             <CartProvider>
-              {children}
-              <InstallPrompt />
+              <InstallProvider>
+                {children}
+                <InstallPrompt />
+              </InstallProvider>
             </CartProvider>
           </AuthProvider>
         </PostHogProvider>

@@ -4,9 +4,10 @@ import { BudgetsController } from './budgets.controller';
 import { BudgetsService } from './budgets.service';
 
 import { BudgetImportService } from './budget-import.service';
+import { AiLabController } from './ai-lab.controller';
 
 @Module({
-    controllers: [BudgetsController],
+    controllers: [BudgetsController, AiLabController],
     imports: [],
     providers: [BudgetsService, BudgetImportService],
     exports: [BudgetsService],

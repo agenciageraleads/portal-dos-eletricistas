@@ -221,7 +221,7 @@ function OrcamentoContent() {
                         {items.length === 0 ? (
                             <div className="text-center py-10 text-gray-400">
                                 <p>Nenhum item adicionado ainda.</p>
-                                <Link href="/" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
+                                <Link href="/catalogo" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
                                     Ir para o Catálogo
                                 </Link>
                             </div>

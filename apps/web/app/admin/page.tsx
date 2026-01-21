@@ -92,6 +92,13 @@ export default function AdminDashboard() {
             href: '/admin/metrics',
             disabled: true,
             badge: 'Em breve'
+        },
+        {
+            title: 'AI Lab',
+            description: 'Ambiente de testes e treinamento da IA.',
+            icon: <div className="text-xl">🧠</div>,
+            href: '/admin/ai-lab',
+            badge: 'BETA'
         }
     ];
 

@@ -6,7 +6,7 @@
  */
 
 // Mapa Base de Sinônimos e Abreviações (Unidirecional ou Bidirecional explícito)
-const RAW_SYNONYMS: Record<string, string[]> = {
+export const RAW_SYNONYMS: Record<string, string[]> = {
     // Iluminação
     'PAINEL': ['LUMINARIA', 'PLAFON', 'LED', 'LUM', 'LUMIN'],
     'LUMINARIA': ['PAINEL', 'PLAFON', 'LED', 'LUM', 'LUMIN'],
@@ -70,24 +70,44 @@ const RAW_SYNONYMS: Record<string, string[]> = {
 };
 
 // Gerar mapa reverso e normalizado (Upper Case)
-export const SEARCH_SYNONYMS: Record<string, Set<string>> = {};
+// Agora mutável para permitir recarregamento do Banco
+export let SEARCH_SYNONYMS: Record<string, Set<string>> = {};
+// Mantemos referência ao mapa raw atual para prefix search
+let CURRENT_RAW_SYNONYMS: Record<string, string[]> = RAW_SYNONYMS;
 
 // Inicialização
-Object.entries(RAW_SYNONYMS).forEach(([key, values]) => {
-    const normalizedKey = key.toUpperCase();
-    if (!SEARCH_SYNONYMS[normalizedKey]) SEARCH_SYNONYMS[normalizedKey] = new Set();
+function buildSynonymMap(raw: Record<string, string[]>) {
+    const map: Record<string, Set<string>> = {};
+    Object.entries(raw).forEach(([key, values]) => {
+        const normalizedKey = key.toUpperCase();
+        if (!map[normalizedKey]) map[normalizedKey] = new Set();
 
-    values.forEach(v => {
-        const normalizedVal = v.toUpperCase();
+        values.forEach(v => {
+            const normalizedVal = v.toUpperCase();
 
-        // Adiciona Forward: KEY -> VAL
-        SEARCH_SYNONYMS[normalizedKey].add(normalizedVal);
+            // Adiciona Forward: KEY -> VAL
+            map[normalizedKey].add(normalizedVal);
 
-        // Adiciona Reverse: VAL -> KEY
-        if (!SEARCH_SYNONYMS[normalizedVal]) SEARCH_SYNONYMS[normalizedVal] = new Set();
-        SEARCH_SYNONYMS[normalizedVal].add(normalizedKey);
+            // Adiciona Reverse: VAL -> KEY
+            if (!map[normalizedVal]) map[normalizedVal] = new Set();
+            map[normalizedVal].add(normalizedKey);
+        });
     });
-});
+    return map;
+}
+
+// Build initial map from static file (Fallback)
+SEARCH_SYNONYMS = buildSynonymMap(RAW_SYNONYMS);
+
+/**
+ * Atualiza os sinônimos em memória.
+ * Chamado pelo Service ao iniciar ou ao atualizar via Admin.
+ */
+export function reloadSynonyms(newRawSynonyms: Record<string, string[]>) {
+    CURRENT_RAW_SYNONYMS = newRawSynonyms;
+    SEARCH_SYNONYMS = buildSynonymMap(newRawSynonyms);
+    console.log(`[SearchEngineering] Synonyms reloaded. ${Object.keys(SEARCH_SYNONYMS).length} terms indexed.`);
+}
 
 /**
  * Retorna todas as variações conhecidas para um token
@@ -104,7 +124,7 @@ export function getVariations(token: string): string[] {
 
     // 2. Match parcial (prefixo)
     if (normalized.length >= 3) {
-        Object.keys(RAW_SYNONYMS).forEach(key => {
+        Object.keys(CURRENT_RAW_SYNONYMS).forEach(key => {
             if (key.startsWith(normalized)) {
                 variations.add(key);
                 if (SEARCH_SYNONYMS[key]) {

@@ -1,12 +1,79 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { getVariations, STOPWORDS } from './search-engineering';
+import { getVariations, STOPWORDS, reloadSynonyms, RAW_SYNONYMS } from './search-engineering';
+import OpenAI from 'openai';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements OnModuleInit {
+    private openai: OpenAI;
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private configService: ConfigService,
+    ) {
+        const key = this.configService.get<string>('OPENAI_API_KEY');
+        if (key) {
+            this.openai = new OpenAI({ apiKey: key });
+        }
+    }
+
+    async onModuleInit() {
+        await this.syncSynonyms();
+    }
+
+    async syncSynonyms() {
+        // Load from DB
+        const dbSynonyms = await this.prisma.searchSynonym.findMany({
+            where: { approved: true }
+        });
+
+        const newRawSynonyms: Record<string, string[]> = { ...RAW_SYNONYMS };
+
+        // Merge DB synonyms
+        dbSynonyms.forEach(s => {
+            newRawSynonyms[s.term] = s.synonyms;
+        });
+
+        // Reload memory
+        reloadSynonyms(newRawSynonyms);
+    }
+
+    async addSynonym(term: string, synonyms: string[]) {
+        // Upsert
+        await this.prisma.searchSynonym.upsert({
+            where: { term },
+            update: { synonyms, approved: true },
+            create: { term, synonyms, approved: true }
+        });
+        await this.syncSynonyms();
+    }
+
+    async generateSearchSuggestions(failedTerm: string) {
+        if (!this.openai) return { error: 'AI not configured' };
+
+        const completion = await this.openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a search query optimizer for an Electrical Material store.
+                    The user searched for a term that yielded no results.
+                    Your goal is to suggest synonyms or corrected terms that likely exist in our catalog (standard industry terms).
+                    Return a JSON with "synonyms": string[].
+                    Ex: "lampada led 9w" -> synonyms: ["LAMPADA", "BULBO", "E27"]
+                    Ex: "fita isolante" -> synonyms: ["ISOLANTE"]`
+                },
+                { role: 'user', content: failedTerm }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        const content = completion.choices[0].message.content;
+        return JSON.parse(content || '{}');
+    }
 
 
 
@@ -16,9 +83,17 @@ export class ProductsService {
                 is_available: true,
             };
 
-            // ... (Category logic remains)
             if (category) {
-                where.category = { equals: category, mode: 'insensitive' as Prisma.QueryMode };
+                const categories = category.split(',').map(c => c.trim());
+                if (categories.length > 1) {
+                    // Use OR for multiple categories
+                    where.OR = [
+                        ...(where.OR as Prisma.ProductWhereInput[] || []),
+                        ...categories.map(c => ({ category: { equals: c, mode: 'insensitive' as Prisma.QueryMode } }))
+                    ];
+                } else {
+                    where.category = { equals: category, mode: 'insensitive' as Prisma.QueryMode };
+                }
             }
 
             if (type) {
