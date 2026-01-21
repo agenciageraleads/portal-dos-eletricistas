@@ -22,6 +22,7 @@ import {
 import { OnboardingModal } from './components/OnboardingModal';
 import JornadaModal from './components/JornadaModal';
 import BottomNav from './components/BottomNav';
+import UserMenu from './components/UserMenu';
 
 export default function Home() {
     const { user, logout } = useAuth();
@@ -84,20 +85,8 @@ export default function Home() {
                             </Link>
                         )}
 
-                        {/* User Avatar (Redirects to Profile or just display) */}
-                        <Link href="/perfil" className="block relative">
-                            {user?.logo_url ? (
-                                <img
-                                    src={user.logo_url.startsWith('http') ? user.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${user.logo_url}`}
-                                    alt="Profile"
-                                    className="w-9 h-9 rounded-full object-cover border border-gray-200"
-                                />
-                            ) : (
-                                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 border border-blue-200">
-                                    <User size={20} />
-                                </div>
-                            )}
-                        </Link>
+                        {/* User UserMenu (Dropdown) */}
+                        <UserMenu user={user} logout={logout} />
                     </div>
                 </div>
             </header>

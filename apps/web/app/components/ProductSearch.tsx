@@ -28,7 +28,7 @@ export function ProductSearch({ onSearch }: ProductSearchProps) {
             <input
                 ref={inputRef}
                 type="text"
-                placeholder="O que você vai instalar hoje? (ex: cabo, disjuntor...)"
+                placeholder="Buscar produtos..."
                 className="w-full pl-10 pr-10 py-4 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg"
                 onChange={(e) => onSearch(e.target.value)}
             />

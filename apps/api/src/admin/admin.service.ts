@@ -147,6 +147,12 @@ export class AdminService {
                 skip,
                 take: pageSize,
                 include: {
+                    user: {
+                        select: {
+                            name: true,
+                            email: true
+                        }
+                    },
                     product: {
                         select: {
                             name: true,

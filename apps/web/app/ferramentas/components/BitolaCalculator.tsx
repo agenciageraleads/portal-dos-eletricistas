@@ -9,40 +9,35 @@ export function BitolaCalculator() {
     const [distance, setDistance] = useState('');
     const [result, setResult] = useState<{ gauge: string; drop: number } | null>(null);
 
-    const calculate = () => {
+    const calculate = (e?: React.MouseEvent) => {
+        if (e) e.preventDefault();
+
         const V = parseFloat(voltage);
         const P = parseFloat(power);
         const L = parseFloat(distance);
 
-        if (!V || !P || !L) return;
+        console.log('Calculando com:', { V, P, L });
+
+        if (!V || !P || !L) {
+            console.warn('Valores inválidos ou faltando');
+            return;
+        }
 
         // Corrente (I)
-        // Monofásico/Bifásico (127/220): I = P / V
-        // Trifásico (380): I = P / (V * sqrt(3))
         const isThreePhase = V === 380;
         const sqrt3 = 1.732;
         const I = isThreePhase ? P / (V * sqrt3) : P / V;
 
         // Queda de Tensão Admitida (4%)
-        // DeltaV = (k * L * I * rho) / S
-        // k = 2 (Mono/Bi), k = sqrt(3) (Tri)
-        // S = (k * L * I * 0.0172) / (V * 0.04)   (Cobre)
-
         // rho cobre = 0.0172 ohm.mm²/m
         const rho = 0.0172;
-        const maxDropV = V * 0.04; // 4%
+        const maxDropV = V * 0.04;
 
         // S_drop calculation
         const k = isThreePhase ? sqrt3 : 2;
         const S_drop = (k * L * I * rho) / maxDropV;
 
-        // Capacidade de conducão (Tabela simplificada B1 - 2 condutores carregados PVC)
-        // 1.5mm -> 17.5A
-        // 2.5mm -> 24A
-        // 4.0mm -> 32A
-        // 6.0mm -> 41A
-        // 10.mm -> 57A
-        // 16.mm -> 76A
+        // Tabela de Ampacidade (Simplificada)
         const ampacityTable = [
             { gauge: 1.5, amp: 17.5 },
             { gauge: 2.5, amp: 24.0 },
@@ -51,29 +46,31 @@ export function BitolaCalculator() {
             { gauge: 10.0, amp: 57.0 },
             { gauge: 16.0, amp: 76.0 },
             { gauge: 25.0, amp: 101.0 },
+            { gauge: 35.0, amp: 125.0 },
+            { gauge: 50.0, amp: 150.0 },
         ];
 
         // Encontrar bitola por Corrente
-        let gaugeByAmp = 1.5;
+        let gaugeByAmp = 50.0; // Default para max safety
         for (const row of ampacityTable) {
             if (I <= row.amp) {
                 gaugeByAmp = row.gauge;
                 break;
-            } else {
-                gaugeByAmp = 25.0; // Fallback max
             }
         }
 
-        // Bitola final é o MAIOR entre (Queda de tensão e Capacidade)
+        // Bitola final (Maior entre Queda e Corrente)
         const finalGaugeRaw = Math.max(S_drop, gaugeByAmp);
 
         // Normalizar para comercial
         const commercialGauges = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
         let finalGauge = commercialGauges.find(g => g >= finalGaugeRaw) || 50;
 
+        console.log('Resultado:', { I, S_drop, finalGaugeRaw, finalGauge });
+
         setResult({
             gauge: finalGauge.toString(),
-            drop: (k * L * I * rho / finalGauge) // Recalcula drop real
+            drop: (k * L * I * rho / finalGauge)
         });
     };
 

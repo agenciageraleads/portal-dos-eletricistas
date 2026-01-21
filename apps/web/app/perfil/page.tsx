@@ -9,7 +9,7 @@ import Link from 'next/link';
 import ImageCropModal from '../components/ImageCropModal';
 
 export default function PerfilPage() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -26,6 +26,8 @@ export default function PerfilPage() {
     const [tempImageSrc, setTempImageSrc] = useState('');
 
     useEffect(() => {
+        if (authLoading) return;
+
         if (!user) {
             router.push('/login');
             return;
@@ -110,6 +112,14 @@ export default function PerfilPage() {
             setLoading(false);
         }
     };
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+        );
+    }
 
     if (!user) return null;
 

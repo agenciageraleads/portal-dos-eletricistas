@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, Users, FileText, BarChart2, Package, Settings, ChevronRight } from 'lucide-react';
+import { Shield, Users, FileText, BarChart2, Package, Settings, ChevronRight, MessageSquare } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function AdminDashboard() {
@@ -13,7 +13,8 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalBudgets: 0,
-        activeProducts: 0
+        activeProducts: 0,
+        totalFeedbacks: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -30,20 +31,32 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            // We can fetch these stats from new endpoints or existing ones
-            const usersRes = await api.get('/users');
-            const budgetsRes = await api.get('/budgets/admin/all');
-            // For products, we use the standard findAll but maybe filter active
-            const productsRes = await api.get('/products');
+            const { data } = await api.get('/admin/stats');
 
             setStats({
-                totalUsers: usersRes.data.length,
-                totalBudgets: budgetsRes.data.length,
-                activeProducts: productsRes.data.length
+                totalUsers: data.users.total,
+                totalBudgets: data.budgets.total,
+                activeProducts: data.products.active,
+                totalFeedbacks: data.feedbacks.total
             });
             setLoading(false);
         } catch (error) {
             console.error('Error fetching admin stats:', error);
+            // Fallback to individual fetches if admin/stats fails (backward compatibility)
+            try {
+                const usersRes = await api.get('/users');
+                const budgetsRes = await api.get('/budgets/admin/all');
+                const productsRes = await api.get('/products');
+
+                setStats({
+                    totalUsers: usersRes.data.length,
+                    totalBudgets: budgetsRes.data.length,
+                    activeProducts: productsRes.data.length,
+                    totalFeedbacks: 0
+                });
+            } catch (innerError) {
+                console.error('Fallback fetch failed:', innerError);
+            }
             setLoading(false);
         }
     };
@@ -79,11 +92,18 @@ export default function AdminDashboard() {
             count: stats.activeProducts,
         },
         {
+            title: 'Feedbacks',
+            description: 'Visualizar sugestões e reportes de usuários.',
+            icon: <MessageSquare size={24} className="text-pink-600" />,
+            href: '/admin/feedbacks',
+            count: stats.totalFeedbacks,
+            badge: stats.totalFeedbacks > 0 ? 'Novo' : undefined
+        },
+        {
             title: 'Buscas Falhas',
             description: 'Termos que os usuários buscaram e não encontraram.',
             icon: <div className="text-xl">🔍</div>,
             href: '/admin/failed-searches',
-            badge: 'Novo'
         },
         {
             title: 'Métricas',
@@ -120,7 +140,7 @@ export default function AdminDashboard() {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
                         <div className="p-3 bg-blue-50 rounded-xl">
                             <Users className="text-blue-600" size={28} />
@@ -146,6 +166,15 @@ export default function AdminDashboard() {
                         <div>
                             <p className="text-sm text-gray-500 font-medium">Produtos no Catálogo</p>
                             <p className="text-3xl font-bold text-gray-900">{stats.activeProducts}</p>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-pink-50 rounded-xl">
+                            <MessageSquare className="text-pink-600" size={28} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Feedbacks</p>
+                            <p className="text-3xl font-bold text-gray-900">{stats.totalFeedbacks}</p>
                         </div>
                     </div>
                 </div>

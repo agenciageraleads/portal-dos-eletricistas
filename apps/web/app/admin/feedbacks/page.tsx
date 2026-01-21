@@ -13,6 +13,10 @@ interface Feedback {
     message: string;
     userEmail: string | null;
     createdAt: string;
+    user?: {
+        name: string;
+        email: string;
+    } | null;
     product: {
         name: string;
         sankhya_code: number;
@@ -114,11 +118,20 @@ export default function AdminFeedbacks() {
                                         </div>
                                     </div>
                                 </div>
-                                {feedback.userEmail && (
+                                {feedback.user ? (
+                                    <div className="text-right">
+                                        <div className="text-sm font-semibold text-gray-800">
+                                            {feedback.user.name}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {feedback.user.email}
+                                        </div>
+                                    </div>
+                                ) : (feedback.userEmail && (
                                     <div className="text-sm text-gray-600">
                                         {feedback.userEmail}
                                     </div>
-                                )}
+                                ))}
                             </div>
 
                             {feedback.product && (
