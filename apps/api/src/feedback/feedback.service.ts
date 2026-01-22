@@ -19,4 +19,14 @@ export class FeedbackService {
             include: { product: true }
         });
     }
+
+    async reply(id: string, reply: string) {
+        return this.prisma.feedback.update({
+            where: { id },
+            data: {
+                reply,
+                repliedAt: new Date()
+            }
+        });
+    }
 }

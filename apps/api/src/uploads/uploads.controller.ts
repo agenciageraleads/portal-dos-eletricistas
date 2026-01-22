@@ -29,7 +29,23 @@ export class UploadsController {
         const fileName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
         const key = `uploads/${fileName}`;
 
-        const url = await this.s3Service.uploadBuffer(file.buffer, key, file.mimetype);
+        let url: string;
+
+        if (this.s3Service.isEnabled()) {
+            url = await this.s3Service.uploadBuffer(file.buffer, key, file.mimetype);
+        } else {
+            // Fallback logic
+            const fs = require('fs');
+            const uploadDir = path.join(process.cwd(), 'uploads');
+
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            const filePath = path.join(uploadDir, fileName);
+            fs.writeFileSync(filePath, file.buffer);
+            url = `/uploads/${fileName}`;
+        }
 
         return {
             url,

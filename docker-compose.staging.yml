@@ -68,6 +68,8 @@ services:
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       FRONTEND_URL: ${FRONTEND_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - portal_uploads:/app/uploads
     networks:
       - portal_staging_overlay
       - Portainer
@@ -99,3 +101,4 @@ networks:
 
 volumes:
   db_staging_data:
+  portal_uploads:

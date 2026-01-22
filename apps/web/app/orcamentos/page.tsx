@@ -105,7 +105,7 @@ export default function MyBudgetsPage() {
                     </div>
 
                     <Link
-                        href="/orcamento"
+                        href="/orcamento/novo"
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
                     >
                         + Novo

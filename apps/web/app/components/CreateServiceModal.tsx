@@ -8,11 +8,12 @@ import { useAuth } from '../contexts/AuthContext';
 interface CreateServiceModalProps {
     onClose: () => void;
     onSuccess: () => void;
+    initialType?: 'REQUEST' | 'OFFER';
 }
 
-export default function CreateServiceModal({ onClose, onSuccess }: CreateServiceModalProps) {
+export default function CreateServiceModal({ onClose, onSuccess, initialType = 'REQUEST' }: CreateServiceModalProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [type, setType] = useState<'REQUEST' | 'OFFER'>('REQUEST'); // Default: Preciso de ajuda
+    const [type, setType] = useState<'REQUEST' | 'OFFER'>(initialType);
     const [errors, setErrors] = useState('');
 
     const [formData, setFormData] = useState({
@@ -66,30 +67,9 @@ export default function CreateServiceModal({ onClose, onSuccess }: CreateService
                 </div>
 
                 <div className="p-4 overflow-y-auto">
-                    {/* Type Selector */}
-                    <div className="flex gap-4 mb-6">
-                        <button
-                            type="button"
-                            onClick={() => setType('REQUEST')}
-                            className={`flex-1 p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${type === 'REQUEST'
-                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                                }`}
-                        >
-                            <Briefcase size={24} />
-                            <span className="font-bold text-sm">Preciso de Ajuda</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setType('OFFER')}
-                            className={`flex-1 p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${type === 'OFFER'
-                                ? 'border-green-500 bg-green-50 text-green-700'
-                                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                                }`}
-                        >
-                            <HardHat size={24} />
-                            <span className="font-bold text-sm">Sou Profissional</span>
-                        </button>
+                    {/* Type Selector Removed - Fixed to context or Offer */}
+                    <div className="hidden">
+                        {/* Hidden input to keep logic working if needed, or just remove */}
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">

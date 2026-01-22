@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, MessageSquare, Send } from 'lucide-react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import BottomNav from '../components/BottomNav';
 import PageHeader from '../components/PageHeader';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function FeedbackPage() {
     const router = useRouter();
@@ -14,6 +15,23 @@ export default function FeedbackPage() {
     const [type, setType] = useState('GENERAL');
     const [isLoading, setIsLoading] = useState(false);
     const [sent, setSent] = useState(false);
+
+    const { user } = useAuth(); // Need to import useAuth
+    const [feedbacks, setFeedbacks] = useState<any[]>([]);
+
+    // Fetch feedbacks
+    useEffect(() => {
+        api.get('/feedback').then(({ data }) => setFeedbacks(data)).catch(console.error);
+    }, [sent]);
+
+    const handleReply = async (id: string, reply: string) => {
+        try {
+            await api.patch(`/feedback/${id}/reply`, { reply });
+            setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, reply, repliedAt: new Date() } : f));
+        } catch (error) {
+            alert('Erro ao responder');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,8 +62,14 @@ export default function FeedbackPage() {
                     Sua opinião é fundamental para melhorarmos o Portal dos Eletricistas.
                 </p>
                 <button
-                    onClick={() => router.back()}
+                    onClick={() => { setSent(false); setMessage(''); }}
                     className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-blue-700 transition"
+                >
+                    Enviar Outro
+                </button>
+                <button
+                    onClick={() => router.back()}
+                    className="mt-4 text-blue-600 font-bold hover:underline"
                 >
                     Voltar
                 </button>
@@ -56,25 +80,24 @@ export default function FeedbackPage() {
     return (
         <div className="min-h-screen bg-gray-50 pb-safe">
             <PageHeader
-                title="Enviar Feedback"
+                title="Feedback e Sugestões"
                 showBack={true}
             />
 
-            <main className="max-w-md mx-auto p-4">
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <main className="max-w-md mx-auto p-4 pb-24">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="bg-blue-100 p-3 rounded-full text-blue-600">
                             <MessageSquare size={24} />
                         </div>
                         <div>
-                            <h2 className="font-bold text-gray-900">O que você achou?</h2>
+                            <h2 className="font-bold text-gray-900">Novo Feedback</h2>
                             <p className="text-sm text-gray-500">Ajude-nos a melhorar o app.</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Feedback</label>
                             <select
                                 value={type}
                                 onChange={(e) => setType(e.target.value)}
@@ -86,12 +109,11 @@ export default function FeedbackPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Sua mensagem</label>
                             <textarea
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Conte-nos o que você gostou ou o que podemos melhorar..."
-                                rows={6}
+                                placeholder="Sua mensagem..."
+                                rows={4}
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                 required
                             />
@@ -100,23 +122,73 @@ export default function FeedbackPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"
                         >
-                            {isLoading ? 'Enviando...' : (
-                                <>
-                                    <span>Enviar Feedback</span>
-                                    <Send size={18} />
-                                </>
-                            )}
+                            {isLoading ? 'Enviando...' : <span>Enviar</span>}
                         </button>
                     </form>
                 </div>
 
-                <p className="text-center text-xs text-gray-400 mt-6">
-                    Seu feedback será analisado pela nossa equipe de produto.
-                </p>
+                <h3 className="font-bold text-gray-800 mb-4 px-1">Histórico</h3>
+                <div className="space-y-4">
+                    {feedbacks.map(item => (
+                        <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.type === 'GENERAL' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {item.type === 'GENERAL' ? 'Sugestão' : 'Report'}
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                    {new Date(item.createdAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                            <p className="text-gray-800 text-sm mb-3">{item.message}</p>
+
+                            {item.reply ? (
+                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                    <p className="text-xs font-bold text-blue-800 mb-1">Resposta do Admin:</p>
+                                    <p className="text-sm text-blue-900">{item.reply}</p>
+                                </div>
+                            ) : (
+                                user?.role === 'ADMIN' && (
+                                    <div className="mt-2 pt-2 border-t border-gray-100">
+                                        <input
+                                            type="text"
+                                            placeholder="Responder..."
+                                            className="w-full text-sm p-2 border rounded-lg"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleReply(item.id, e.currentTarget.value);
+                                                    e.currentTarget.value = '';
+                                                }
+                                            }}
+                                        />
+                                        <p className="text-[10px] text-gray-400 mt-1">Pressione Enter para enviar.</p>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    ))}
+                    {feedbacks.length === 0 && (
+                        <p className="text-center text-gray-400 text-sm py-4">Nenhum feedback enviado.</p>
+                    )}
+                </div>
             </main>
             <BottomNav />
         </div>
     );
-}
+
+    function FeedbackList() {
+        const [feedbacks, setFeedbacks] = useState<any[]>([]);
+        const [loading, setLoading] = useState(true);
+        const { user } = useLayoutEffect(() => { }, []); // Dummy hook to hint we need user, actually we need to import useAuth
+        // Since we are in the same file, let's just make it a clean component or use the parent's data?
+        // Better to fetch here.
+
+        // We need api and user role. 
+        // I can't easily import useAuth inside this pasted function without modifying imports at top.
+        // I will modify the MAIN component to include this logic, instead of separate component outside scope.
+        return null;
+    }
+// wait, I can't inject a new function easily if I don't replace the whole file or carefully insert.
+// I'll rewrite the main default function to include Fetch Logic and Render Logic.
+

@@ -9,6 +9,16 @@ async function bootstrap() {
   // Security Headers
   app.use(helmet());
 
+  // Serve Static Assets (Uploads)
+  // Check if platform-express is used (default)
+  const expressApp = app as any; // Cast to avoid type issues without platform-express import if strictly typed
+  if (expressApp.useStaticAssets) {
+    const path = require('path');
+    expressApp.useStaticAssets(path.join(process.cwd(), 'uploads'), {
+      prefix: '/uploads',
+    });
+  }
+
   // Global Validation (Invisible Mode: removes extra props but doesn't error on them yet)
   app.useGlobalPipes(new ValidationPipe({
     transform: true,

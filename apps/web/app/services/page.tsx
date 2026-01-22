@@ -260,6 +260,7 @@ export default function ServicesPage() {
             {isCreateModalOpen && (
                 <CreateServiceModal
                     onClose={() => setIsCreateModalOpen(false)}
+                    initialType={viewMode === 'CLIENT' ? 'REQUEST' : 'OFFER'}
                     onSuccess={() => {
                         setIsCreateModalOpen(false);
                         fetchServices();

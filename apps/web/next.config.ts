@@ -18,7 +18,7 @@ export default withPWA({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
+  disable: false, // Enabled for testing PWA features
   importScripts: ["/custom-worker.js"],
   runtimeCaching: [
     {

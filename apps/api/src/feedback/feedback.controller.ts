@@ -47,4 +47,10 @@ export class FeedbackController {
     findAll() {
         return this.feedbackService.findAll();
     }
+
+    @Patch(':id/reply')
+    @UseGuards(OptionalJwtAuthGuard)
+    async reply(@Param('id') id: string, @Body() body: { reply: string }) {
+        return this.feedbackService.reply(id, body.reply);
+    }
 }

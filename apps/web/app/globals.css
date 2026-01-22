@@ -31,13 +31,7 @@ body {
   opacity: 1 !important;
 }
 
-/* Dark mode adjustment for placeholders if needed, though user asked for black */
-@media (prefers-color-scheme: dark) {
-  ::placeholder {
-    color: #a3a3a3 !important;
-    /* Lighter in dark mode */
-  }
-}
+/* Dark mode override removed as requested */
 
 @keyframes slide-up {
   from {

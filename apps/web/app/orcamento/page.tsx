@@ -63,7 +63,7 @@ const QuantityInput = ({ value, onChange }: { value: number, onChange: (val: num
 };
 
 function OrcamentoContent() {
-    const { items, total, removeFromCart, updateQuantity, clearCart, addManualItem, addToCart } = useCart();
+    const { items, total, removeFromCart, updateQuantity, updatePrice, clearCart, addManualItem, addToCart } = useCart();
 
     // State
     const [laborValue, setLaborValue] = useState('');
@@ -167,7 +167,15 @@ function OrcamentoContent() {
         setLoading(true);
         try {
             const payload = {
-                items: items.map(i => ({ product_id: i.id, quantity: i.quantity, price: parseFloat(i.price) })),
+                items: items.map(i => ({
+                    product_id: i.isExternal ? null : i.id,
+                    quantity: i.quantity,
+                    price: parseFloat(i.price),
+                    is_external: i.isExternal,
+                    custom_name: i.isExternal ? i.name : undefined,
+                    custom_photo_url: i.isExternal ? i.image_url : undefined,
+                    suggested_source: i.isExternal ? i.suggestedSource : undefined
+                })),
                 labor_value: labor,
                 labor_description: laborDescription,
                 customer_name: customerName,
@@ -208,9 +216,12 @@ function OrcamentoContent() {
             <main className="min-h-screen bg-gray-50 pb-32">
                 {/* Header Mobile */}
                 <header className="bg-white p-4 border-b border-gray-200 sticky top-0 z-20 flex items-center justify-between shadow-sm">
-                    <Link href="/orcamento/novo" className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
+                    <button onClick={() => {
+                        if (isEditMode) router.push('/orcamentos');
+                        else router.push('/orcamento/novo');
+                    }} className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
                         <ArrowLeft size={24} />
-                    </Link>
+                    </button>
                     <h1 className="font-bold text-gray-800 text-lg">
                         {mode === 'labor' ? 'Orçamento de Mão de Obra' : 'Novo Orçamento'}
                     </h1>
@@ -256,7 +267,23 @@ function OrcamentoContent() {
                                                     onChange={(val) => updateQuantity(item.id, val)}
                                                 />
                                             </div>
-                                            <p className="text-xs text-center text-gray-400 mt-1">{formatPrice(parseFloat(item.price))} un</p>
+                                            {/* Price Input (Editable for Services/Manual, Read-only for Products) */}
+                                            <div className="mt-2 flex justify-center">
+                                                {(item.type === 'SERVICE' || item.isExternal) ? (
+                                                    <div className="relative w-20">
+                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">R$</span>
+                                                        <input
+                                                            type="number"
+                                                            className="w-full pl-6 pr-1 py-1 text-xs text-center border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                                                            value={item.price}
+                                                            onChange={(e) => updatePrice(item.id, e.target.value)}
+                                                            step="0.01"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-xs text-center text-gray-400 py-1">{formatPrice(parseFloat(item.price))} un</p>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="text-right flex flex-col justify-between h-16 py-1">
                                             <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
@@ -290,8 +317,17 @@ function OrcamentoContent() {
                                     className={`flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm ${mode !== 'labor' ? 'col-span-2' : ''}`}
                                 >
                                     <Plus size={24} />
-                                    {mode === 'labor' ? 'Serviço Manual' : 'Adicionar Item Manual'}
+                                    {mode !== 'labor' ? 'Adicionar Item Manual' : 'Serviço Manual'}
                                 </button>
+                                {mode !== 'labor' && (
+                                    <Link
+                                        href="/catalogo"
+                                        className="col-span-2 flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
+                                    >
+                                        <PackagePlus size={24} />
+                                        Adicionar do Catálogo
+                                    </Link>
+                                )}
                             </div>
                             <div className="flex justify-between items-center pt-2">
                                 <span className="text-gray-600 font-medium">{mode === 'labor' ? 'Total Serviços' : 'Subtotal Materiais'}</span>
@@ -301,7 +337,7 @@ function OrcamentoContent() {
                     </section>
 
                     {/* 2. Mão de Obra (Apenas para modo FULL) */}
-                    {mode !== 'labor' && (
+                    {mode !== 'labor' && mode !== 'product' && (
                         <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
                             <h2 className="font-bold text-gray-800 mb-2">2. Valor da sua Mão de Obra</h2>
                             <div className="relative">
@@ -549,7 +585,7 @@ function OrcamentoContent() {
                                         type="text"
                                         value={manualName}
                                         onChange={(e) => setManualName(e.target.value)}
-                                        placeholder="Ex: Fita Isolante 3M Alta Fusão"
+                                        placeholder={mode === 'labor' ? "Ex: Instalação de Chuveiro" : "Ex: Fita Isolante 3M Alta Fusão"}
                                         className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                     />
                                 </div>
