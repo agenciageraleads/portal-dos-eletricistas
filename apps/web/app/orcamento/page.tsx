@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, PackagePlus, X } from 'lucide-react';
+import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, Package, X } from 'lucide-react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -307,7 +307,7 @@ function OrcamentoContent() {
                                         onClick={() => setIsServiceModalOpen(true)}
                                         className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-green-50 border-2 border-green-100 rounded-xl text-green-700 hover:bg-green-100 transition-all font-bold text-sm"
                                     >
-                                        <PackagePlus size={24} />
+                                        <Package size={24} />
                                         Adicionar Serviço
                                     </button>
                                 )}
@@ -324,7 +324,7 @@ function OrcamentoContent() {
                                         href="/catalogo"
                                         className="col-span-2 flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
                                     >
-                                        <PackagePlus size={24} />
+                                        <Package size={24} />
                                         Adicionar do Catálogo
                                     </Link>
                                 )}
@@ -641,7 +641,7 @@ function OrcamentoContent() {
                                             </div>
                                         ) : (
                                             <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                                {uploading ? <Loader2 className="animate-spin text-gray-400" /> : <PackagePlus className="text-gray-400" />}
+                                                {uploading ? <Loader2 className="animate-spin text-gray-400" /> : <Package className="text-gray-400" />}
                                                 <span className="text-[10px] text-gray-500 mt-1">{uploading ? '...' : 'Foto'}</span>
                                                 <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
                                             </label>

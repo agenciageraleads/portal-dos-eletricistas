@@ -18,7 +18,7 @@ export interface CartItem {
     type?: 'MATERIAL' | 'SERVICE';
 }
 
-interface CartContextType {
+export interface CartContextType {
     items: CartItem[];
     addToCart: (product: Product, quantity?: number) => void;
     addManualItem: (item: Partial<CartItem>) => void;
