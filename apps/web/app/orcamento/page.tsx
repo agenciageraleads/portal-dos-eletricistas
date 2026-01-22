@@ -219,137 +219,142 @@ function OrcamentoContent() {
 
                 <div className="max-w-3xl mx-auto p-4 space-y-6 mt-4">
 
-                    {mode !== 'labor' && (
-                        <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500 animate-in fade-in slide-in-from-bottom-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="font-bold text-gray-800">1. Itens e Materiais</h2>
-                                <button onClick={clearCart} className="text-red-500 text-xs hover:underline">
-                                    Limpar
-                                </button>
-                            </div>
+                    {/* 1. Itens / Serviços */}
+                    <section className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${mode === 'labor' ? 'border-green-500' : 'border-yellow-500'} animate-in fade-in slide-in-from-bottom-4`}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="font-bold text-gray-800">{mode === 'labor' ? '1. Serviços Executados' : '1. Itens e Materiais'}</h2>
+                            <button onClick={clearCart} className="text-red-500 text-xs hover:underline">
+                                Limpar
+                            </button>
+                        </div>
 
-                            {items.length === 0 ? (
-                                <div className="text-center py-10 text-gray-400">
-                                    <p>Nenhum item adicionado ainda.</p>
+                        {items.length === 0 ? (
+                            <div className="text-center py-10 text-gray-400">
+                                <p>{mode === 'labor' ? 'Nenhum serviço adicionado.' : 'Nenhum item adicionado ainda.'}</p>
+                                {mode !== 'labor' && (
                                     <Link href="/catalogo" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
                                         Ir para o Catálogo
                                     </Link>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {items.map((item) => (
-                                        <div key={item.id} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-                                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                                                {item.image_url ? (
-                                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-xs text-gray-400 font-bold">FOTO</span>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
-                                                <div className="mt-1">
-                                                    <QuantityInput
-                                                        value={item.quantity}
-                                                        onChange={(val) => updateQuantity(item.id, val)}
-                                                    />
-                                                </div>
-                                                <p className="text-xs text-center text-gray-400 mt-1">{formatPrice(parseFloat(item.price))} un</p>
-                                            </div>
-                                            <div className="text-right flex flex-col justify-between h-16 py-1">
-                                                <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
-                                                <button
-                                                    onClick={() => removeFromCart(item.id)}
-                                                    className="text-red-500 p-1 hover:bg-red-50 rounded-full self-end"
-                                                    title="Remover item"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {items.map((item) => (
+                                    <div key={item.id} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+                                            {item.image_url ? (
+                                                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs text-gray-400 font-bold">FOTO</span>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                            <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
-                                <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
+                                            <div className="mt-1">
+                                                <QuantityInput
+                                                    value={item.quantity}
+                                                    onChange={(val) => updateQuantity(item.id, val)}
+                                                />
+                                            </div>
+                                            <p className="text-xs text-center text-gray-400 mt-1">{formatPrice(parseFloat(item.price))} un</p>
+                                        </div>
+                                        <div className="text-right flex flex-col justify-between h-16 py-1">
+                                            <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
+                                            <button
+                                                onClick={() => removeFromCart(item.id)}
+                                                className="text-red-500 p-1 hover:bg-red-50 rounded-full self-end"
+                                                title="Remover item"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
+                            <div className="grid grid-cols-2 gap-3">
+                                {mode === 'labor' && (
                                     <button
                                         type="button"
                                         onClick={() => setIsServiceModalOpen(true)}
-                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
+                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-green-50 border-2 border-green-100 rounded-xl text-green-700 hover:bg-green-100 transition-all font-bold text-sm"
                                     >
                                         <PackagePlus size={24} />
                                         Adicionar Serviço
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsManualModalOpen(true)}
-                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm"
-                                    >
-                                        <Plus size={24} />
-                                        Item Manual
-                                    </button>
-                                </div>
-                                <div className="flex justify-between items-center pt-2">
-                                    <span className="text-gray-600 font-medium">Subtotal Materiais</span>
-                                    <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsManualModalOpen(true)}
+                                    className={`flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm ${mode !== 'labor' ? 'col-span-2' : ''}`}
+                                >
+                                    <Plus size={24} />
+                                    {mode === 'labor' ? 'Serviço Manual' : 'Adicionar Item Manual'}
+                                </button>
+                            </div>
+                            <div className="flex justify-between items-center pt-2">
+                                <span className="text-gray-600 font-medium">{mode === 'labor' ? 'Total Serviços' : 'Subtotal Materiais'}</span>
+                                <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* 2. Mão de Obra (Apenas para modo FULL) */}
+                    {mode !== 'labor' && (
+                        <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+                            <h2 className="font-bold text-gray-800 mb-2">2. Valor da sua Mão de Obra</h2>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">R$</span>
+                                <input
+                                    type="number"
+                                    value={laborValue}
+                                    onChange={(e) => setLaborValue(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-4 text-2xl font-bold text-gray-900 bg-gray-50 rounded-xl border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Serviço (Opcional)</label>
+                                <textarea
+                                    value={laborDescription}
+                                    onChange={(e) => setLaborDescription(e.target.value)}
+                                    placeholder="Descreva o que será feito (ex: Troca de fiação, instalação de 5 pontos...)"
+                                    className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
+                                />
+                            </div>
+
+                            {/* Privacy Toggles v1.2.0 */}
+                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                <h3 className="text-sm font-bold text-gray-700 mb-3">⚙️ Configurações de Privacidade</h3>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={showUnitPrices}
+                                            onChange={(e) => setShowUnitPrices(e.target.checked)}
+                                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-900">Mostrar preços unitários</span>
+                                            <p className="text-xs text-gray-500">Se desativado, o cliente verá apenas o total</p>
+                                        </div>
+                                    </label>
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={showLaborTotal}
+                                            onChange={(e) => setShowLaborTotal(e.target.checked)}
+                                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-900">Mostrar valor de mão de obra separado</span>
+                                            <p className="text-xs text-gray-500">Se desativado, mão de obra será incluída no total geral</p>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
                         </section>
                     )}
-
-                    {/* 2. Mão de Obra */}
-                    < section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500" >
-                        <h2 className="font-bold text-gray-800 mb-2">2. Valor da sua Mão de Obra</h2>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">R$</span>
-                            <input
-                                type="number"
-                                value={laborValue}
-                                onChange={(e) => setLaborValue(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 text-2xl font-bold text-gray-900 bg-gray-50 rounded-xl border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                            />
-                        </div>
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Serviço (Opcional)</label>
-                            <textarea
-                                value={laborDescription}
-                                onChange={(e) => setLaborDescription(e.target.value)}
-                                placeholder="Descreva o que será feito (ex: Troca de fiação, instalação de 5 pontos...)"
-                                className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
-                            />
-                        </div>
-
-                        {/* Privacy Toggles v1.2.0 */}
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                            <h3 className="text-sm font-bold text-gray-700 mb-3">⚙️ Configurações de Privacidade</h3>
-                            <div className="space-y-3">
-                                <label className="flex items-center gap-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={showUnitPrices}
-                                        onChange={(e) => setShowUnitPrices(e.target.checked)}
-                                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-900">Mostrar preços unitários</span>
-                                        <p className="text-xs text-gray-500">Se desativado, o cliente verá apenas o total</p>
-                                    </div>
-                                </label>
-                                <label className="flex items-center gap-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={showLaborTotal}
-                                        onChange={(e) => setShowLaborTotal(e.target.checked)}
-                                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-900">Mostrar valor de mão de obra separado</span>
-                                        <p className="text-xs text-gray-500">Se desativado, mão de obra será incluída no total geral</p>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </section >
 
                     {/* 3. Observações e Condições */}
                     < section className="bg-white rounded-xl shadow-sm p-6" >
