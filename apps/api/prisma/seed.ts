@@ -90,6 +90,22 @@ async function main() {
     });
     console.log('✅ Orçamento Exemplo criado:', budget.id);
 
+    // 4. Popular Serviços Padrão (via seed_services)
+    console.log('🔧 Populando serviços padrão...');
+    try {
+        // Importar dinamicamente para evitar problemas de circular dependency
+        const { exec } = await import('child_process');
+        const { promisify } = await import('util');
+        const execAsync = promisify(exec);
+        
+        await execAsync('npx ts-node prisma/seed_services.ts', {
+            cwd: path.resolve(__dirname, '..')
+        });
+        console.log('✅ Serviços padrão populados!');
+    } catch (error) {
+        console.warn('⚠️  Aviso: Erro ao popular serviços (pode ser ignorado se já existem):', error.message);
+    }
+
     console.log('🚀 Seed finalizado com sucesso!');
 }
 

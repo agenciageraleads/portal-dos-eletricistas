@@ -62,6 +62,82 @@ async function main() {
         console.log(`Upserted: ${service.name}`);
     }
 
+    console.log('Povoando serviços de exemplo...');
+
+    // ServiceListings de exemplo (para ter conteúdo inicial na Central de Oportunidades)
+    const sampleServiceListings = [
+        {
+            id: 'sample-request-1',
+            title: 'Preciso de Eletricista - Instalação Residencial',
+            description: 'Preciso instalar 10 tomadas e 5 interruptores em casa nova. Zona Norte de São Paulo.',
+            price: 850.00,
+            city: 'São Paulo',
+            state: 'SP',
+            date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 dias no futuro
+            type: 'REQUEST',
+            whatsapp: '11999991234',
+            status: 'OPEN'
+        },
+        {
+            id: 'sample-offer-1',
+            title: 'Eletricista Disponível - Zona Sul SP',
+            description: 'Profissional com 10 anos de experiência disponível para serviços residenciais e comerciais. Atendo zona sul e adjacências.',
+            price: 150.00,
+            city: 'São Paulo',
+            state: 'SP',
+            date: new Date(),
+            type: 'OFFER',
+            whatsapp: '11988881234',
+            status: 'OPEN'
+        },
+        {
+            id: 'sample-request-2',
+            title: 'Urgente - Problema Elétrico em Comércio',
+            description: 'Loja com problema de falta de energia em alguns pontos. Preciso resolver hoje.',
+            price: 300.00,
+            city: 'Campinas',
+            state: 'SP',
+            date: new Date(),
+            type: 'REQUEST',
+            whatsapp: '19977771234',
+            status: 'OPEN'
+        },
+        {
+            id: 'sample-offer-2',
+            title: 'Instalador de CFTV e Alarmes',
+            description: 'Especialista em instalação de câmeras de segurança e sistemas de alarme. Atendo toda região do ABC.',
+            price: 200.00,
+            city: 'Santo André',
+            state: 'SP',
+            date: new Date(),
+            type: 'OFFER',
+            whatsapp: '11966661234',
+            status: 'OPEN'
+        }
+    ];
+
+    for (const serviceListing of sampleServiceListings) {
+        await prisma.serviceListing.upsert({
+            where: { id: serviceListing.id },
+            update: {
+                title: serviceListing.title,
+                description: serviceListing.description,
+                price: serviceListing.price,
+                city: serviceListing.city,
+                state: serviceListing.state,
+                date: serviceListing.date,
+                type: serviceListing.type as any,
+                whatsapp: serviceListing.whatsapp,
+                status: serviceListing.status as any
+            },
+            create: {
+                ...serviceListing,
+                userId: null // Serviços criados sem usuário (guest/exemplo)
+            }
+        });
+        console.log(`Upserted ServiceListing: ${serviceListing.title}`);
+    }
+
     console.log('Concluído!');
 }
 

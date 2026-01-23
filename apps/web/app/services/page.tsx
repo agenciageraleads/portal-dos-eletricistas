@@ -115,22 +115,11 @@ export default function ServicesPage() {
                     </div>
                 </div>
 
-                <div className={`p-3 rounded-lg text-sm mb-2 transition-colors ${viewMode === 'CLIENT' ? 'bg-blue-50 text-blue-800' : 'bg-green-50 text-green-800'}`}>
-                    <p className="font-medium text-center text-xs sm:text-sm">
-                        {viewMode === 'CLIENT'
-                            ? '📢 Veja profissionais disponíveis ou publique um pedido.'
-                            : '⚡ Encontre serviços solicitados e ofereça sua mão de obra.'}
-                    </p>
-                </div>
-            </header>
-
-            {/* Availability Toggle for Professionals (Simplified) */}
-            {viewMode === 'PROFESSIONAL' && user && (
-                <div className="px-4 mb-4">
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <span className="block font-bold text-gray-900">Disponibilidade</span>
-                            <span className="text-xs text-gray-500">Receber avisos de novos serviços</span>
+                {/* Toggle de Disponibilidade - Integrado no Header */}
+                {viewMode === 'PROFESSIONAL' && user && (
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">🔔 Notificações de serviços</span>
                         </div>
                         <button
                             onClick={async () => {
@@ -151,8 +140,8 @@ export default function ServicesPage() {
                             />
                         </button>
                     </div>
-                </div>
-            )}
+                )}
+            </header>
 
             {/* Content */}
             <main className="flex-1 px-4 py-4 max-w-md mx-auto w-full space-y-4">
