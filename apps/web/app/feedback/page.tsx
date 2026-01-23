@@ -176,19 +176,4 @@ export default function FeedbackPage() {
             <BottomNav />
         </div>
     );
-
-    function FeedbackList() {
-        const [feedbacks, setFeedbacks] = useState<any[]>([]);
-        const [loading, setLoading] = useState(true);
-        const { user } = useLayoutEffect(() => { }, []); // Dummy hook to hint we need user, actually we need to import useAuth
-        // Since we are in the same file, let's just make it a clean component or use the parent's data?
-        // Better to fetch here.
-
-        // We need api and user role. 
-        // I can't easily import useAuth inside this pasted function without modifying imports at top.
-        // I will modify the MAIN component to include this logic, instead of separate component outside scope.
-        return null;
-    }
-// wait, I can't inject a new function easily if I don't replace the whole file or carefully insert.
-// I'll rewrite the main default function to include Fetch Logic and Render Logic.
-
+}
