@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, Request, Injectable } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Param, UseGuards, Request, Injectable } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { Prisma } from '@prisma/client';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
