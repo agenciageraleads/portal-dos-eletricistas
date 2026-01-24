@@ -112,7 +112,7 @@ export class AuthService {
             console.error('[REGISTER] Erro ao registrar:', error);
             // DEBUG: Exposing error to client to debug 500
             // @ts-ignore
-            throw new InternalServerErrorException(`Debug Error: ${error?.message || JSON.stringify(error)}`);
+            throw new BadRequestException(`Debug Error: ${error?.message || JSON.stringify(error)}`);
         }
     }
 
