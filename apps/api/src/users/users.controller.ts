@@ -1,4 +1,4 @@
-import { Controller, Patch, Body, Request, UseGuards, Get, Post, UseInterceptors, UploadedFile, BadRequestException, Param, ForbiddenException } from '@nestjs/common';
+import { Controller, Patch, Body, Request, UseGuards, Get, Post, UseInterceptors, UploadedFile, BadRequestException, Param, ForbiddenException, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { extname, join } from 'path';

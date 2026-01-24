@@ -5,6 +5,13 @@ Todos as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-01-24
+
+### Fixed
+
+- **Build**: Correção de dependências corrompidas (`zod`) e erro de importação (`Query`) no `UsersController`.
+- **API**: Sincronização da versão do pacote da API para 1.5.2.
+
 ## [1.5.1] - 2026-01-21
 
 ### Added
