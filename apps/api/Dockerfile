@@ -65,21 +65,21 @@ RUN arch="$(uname -m)" && \
     npm install sharp; \
     fi
 
+# Criar script de startup que roda migrations + seed + inicia app
+RUN echo '#!/bin/sh\n\
+    echo "🔄 Running database migrations..."\n\
+    npx prisma migrate deploy\n\
+    echo "🌱 Running database seed..."\n\
+    npx prisma db seed || echo "⚠️  Seed already executed or failed (skipping)"\n\
+    echo "🚀 Starting application..."\n\
+    node dist/main.js\n\
+    ' > /app/start.sh && chmod +x /app/start.sh
+
 # Fix: Ensure nestjs user owns the cache created by the previous root command
 RUN chown -R nestjs:nodejs /home/nestjs
 
 USER nestjs
 
 EXPOSE 3333
-
-# Criar script de startup que roda migrations + seed + inicia app
-RUN echo '#!/bin/sh\n\
-echo "🔄 Running database migrations..."\n\
-npx prisma migrate deploy\n\
-echo "🌱 Running database seed..."\n\
-npx prisma db seed || echo "⚠️  Seed already executed or failed (skipping)"\n\
-echo "🚀 Starting application..."\n\
-node dist/main.js\n\
-' > /app/start.sh && chmod +x /app/start.sh
 
 CMD ["/app/start.sh"]
