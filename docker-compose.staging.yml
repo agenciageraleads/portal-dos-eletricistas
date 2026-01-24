@@ -38,7 +38,7 @@ services:
     image: lucasborgessb/portal_dos_eletricistas:api-1.4.1
     platform: linux/amd64
     command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
+      sh -c "npx prisma migrate deploy && node dist/src/main.js"
     deploy:
       mode: replicated
       replicas: 1

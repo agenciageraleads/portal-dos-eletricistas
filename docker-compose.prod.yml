@@ -8,7 +8,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.portaleletricos.com.br}
     image: lucasborgessb/portal_dos_eletricistas:web-1.2.0
     deploy:
       mode: replicated
@@ -23,7 +23,7 @@ services:
     environment:
       NODE_ENV: production
       # Aponta para o proxy interno do Traefik
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.portaleletricos.com.br}
     networks:
       - portal_overlay
       - Portainer
@@ -36,7 +36,7 @@ services:
       dockerfile: apps/api/Dockerfile
     image: lucasborgessb/portal_dos_eletricistas:api-1.2.0
     command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
+      sh -c "npx prisma migrate deploy && node dist/src/main.js"
     deploy:
       mode: replicated
       replicas: 1
@@ -50,7 +50,7 @@ services:
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
-      PORT: ${PORT}
+      PORT: 3000
       JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: ${DATABASE_URL}
       # S3 / MinIO Configuration (Corrigido com nome do Bucket REAL)
