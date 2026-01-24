@@ -26,7 +26,7 @@ export class AuthController {
 
     @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 attempts per hour
     @Post('register')
-    @Post('register')
+
     async register(@Body() createUserDto: any) {
         try {
             return await this.authService.register(createUserDto);
