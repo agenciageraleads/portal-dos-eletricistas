@@ -72,7 +72,7 @@ RUN echo '#!/bin/sh\n\
     echo "🌱 Running database seed..."\n\
     npx prisma db seed || echo "⚠️  Seed already executed or failed (skipping)"\n\
     echo "🚀 Starting application..."\n\
-    node dist/main.js\n\
+    node dist/src/main.js\n\
     ' > /app/start.sh && chmod +x /app/start.sh
 
 # Fix: Ensure nestjs user owns the cache created by the previous root command

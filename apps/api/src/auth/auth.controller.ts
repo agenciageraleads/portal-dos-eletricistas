@@ -1,4 +1,4 @@
-import { Controller, Request, Post, UseGuards, Body, Get, UnauthorizedException } from '@nestjs/common';
+import { Controller, Request, Post, UseGuards, Body, Get, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-recovery.dto';
