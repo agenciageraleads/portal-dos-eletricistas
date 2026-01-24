@@ -1,5 +1,5 @@
-
-import { Injectable } from '@nestjs/common';
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { ServicesService } from '../services/services.service';
@@ -9,7 +9,8 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AssistantService {
-    private openai: OpenAI;
+    private openai: OpenAI | null = null;
+    private readonly logger = new Logger(AssistantService.name);
 
     constructor(
         private configService: ConfigService,
@@ -17,19 +18,28 @@ export class AssistantService {
         private budgetsService: BudgetsService,
         private prisma: PrismaService
     ) {
-        this.openai = new OpenAI({
-            apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-        });
+        const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+        if (apiKey) {
+            this.openai = new OpenAI({
+                apiKey: apiKey,
+            });
+        } else {
+            this.logger.warn('OPENAI_API_KEY not found. Assistant features will be disabled.');
+        }
     }
 
     async chat(userMessage: string, userId: string, audioUrl?: string, imageUrl?: string, sessionId?: string) {
+        if (!this.openai) {
+            return { reply: 'O assistente inteligente está indisponível no momento devido a configurações do servidor. Por favor, tente novamente mais tarde.' };
+        }
+
         let finalMessage = userMessage;
 
         // 1. Transcribe Audio if present
         if (audioUrl) {
             try {
                 const transcription = await this.transcribeAudio(audioUrl);
-                finalMessage = transcription ? `${transcription} ${userMessage || ''}` : userMessage;
+                finalMessage = transcription ? `${ transcription } ${ userMessage || '' } ` : userMessage;
             } catch (error) {
                 console.error('Transcription failed', error);
                 return { reply: 'Desculpe, não consegui ouvir seu áudio. Pode escrever?' };
@@ -77,23 +87,23 @@ export class AssistantService {
       Você é o 'Eletricista GPT', o assistente oficial do aplicativo 'Portal do Eletricista'. 
       Sua persona é a de um eletricista sênior com anos de experiência, amigável, direto e prestativo.
 
-      **Suas Responsabilidades:**
-      1. **Suporte Técnico:** Tirar dúvidas sobre elétrica, instalações, normas (NBR 5410) e materiais.
-      2. **Guia e Operador do Sistema:** Ensinar o usuário a navegar E realizar ações por ele (criar orçamentos, postar vagas).
+      ** Suas Responsabilidades:**
+    1. ** Suporte Técnico:** Tirar dúvidas sobre elétrica, instalações, normas(NBR 5410) e materiais.
+      2. ** Guia e Operador do Sistema:** Ensinar o usuário a navegar E realizar ações por ele(criar orçamentos, postar vagas).
 
-      **Mapa do Sistema:**
-      - **Orçamentos (/orcamento):** Criar propostas para clientes.
-      - **Ferramentas (/ferramentas):** Calcular bitola de cabos e disjuntores.
-      - **Mural de Vagas (/services):** Anunciar vagas ou disponibilidade.
-      - **Perfil (/perfil):** Editar dados.
+      ** Mapa do Sistema:**
+      - ** Orçamentos(/orcamento):** Criar propostas para clientes.
+      - ** Ferramentas(/ferramentas):** Calcular bitola de cabos e disjuntores.
+      - ** Mural de Vagas(/services):** Anunciar vagas ou disponibilidade.
+      - ** Perfil(/perfil):** Editar dados.
 
-      **Uso de Ferramentas (Tools):**
-      - Se o usuário pedir para criar um orçamento, use 'create_budget_draft'.
-      - Se o usuário pedir para postar uma vaga/serviço, use 'post_service_listing'.
+      ** Uso de Ferramentas(Tools):**
+    - Se o usuário pedir para criar um orçamento, use 'create_budget_draft'.
+      - Se o usuário pedir para postar uma vaga / serviço, use 'post_service_listing'.
       - Se o usuário perguntar algo que dependa dessas ações, execute a ação primeiro.
 
-      **Diretrizes de Resposta:**
-      - Seja conciso.
+      ** Diretrizes de Resposta:**
+    - Seja conciso.
       - Responda sempre em Português do Brasil.
       - Se criar algo, forneça o link no formato Markdown: [Ver Item](/rota/ID).
     `;
@@ -105,7 +115,7 @@ export class AssistantService {
 
         // Construct User Message with Image if present
         if (imageUrl) {
-            const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${process.env.APP_URL || 'http://localhost:3333'}${imageUrl}`;
+            const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${ process.env.APP_URL || 'http://localhost:3333' }${ imageUrl } `;
             messages.push({
                 role: 'user',
                 content: [
@@ -237,7 +247,7 @@ export class AssistantService {
                 try {
                     if (fnName === 'post_service_listing') {
                         const service = await this.servicesService.create(userId, fnArgs);
-                        result = JSON.stringify({ success: true, id: service.id, link: `/services` });
+                        result = JSON.stringify({ success: true, id: service.id, link: `/ services` });
                     } else if (fnName === 'create_budget_draft') {
                         // Create budget with empty items
                         const budget = await this.budgetsService.create(userId, {
@@ -249,7 +259,7 @@ export class AssistantService {
                             notes: '',
                             status: 'DRAFT'
                         });
-                        result = JSON.stringify({ success: true, id: budget.id, link: `/orcamento?id=${budget.id}` });
+                        result = JSON.stringify({ success: true, id: budget.id, link: `/ orcamento ? id = ${ budget.id } ` });
                     } else {
                         result = JSON.stringify({ error: 'Function not found' });
                     }
@@ -270,6 +280,8 @@ export class AssistantService {
             const finalCompletion = await this.openai.chat.completions.create({
                 messages: messages,
                 model: 'gpt-4o-mini',
+                tools: tools as any,
+                tool_choice: 'auto',
             });
 
             const finalReply = finalCompletion.choices[0].message.content;
@@ -308,9 +320,13 @@ export class AssistantService {
         // For simplicity, assuming local dev environment where we can fetch via fetch() or FS if path is known.
         // But OpenAI SDK expects a File object or ReadStream.
 
+        if (!this.openai) {
+             throw new Error("OpenAI is not initialized");
+        }
+
         try {
             // Fetch file
-            const fullUrl = audioUrl.startsWith('http') ? audioUrl : `${process.env.APP_URL || 'http://localhost:3333'}${audioUrl}`;
+            const fullUrl = audioUrl.startsWith('http') ? audioUrl : `${ process.env.APP_URL || 'http://localhost:3333' }${ audioUrl } `;
             const response = await fetch(fullUrl);
             const blob = await response.blob();
 
@@ -363,21 +379,22 @@ export class AssistantService {
       Você é o 'Eletricista GPT', o assistente oficial do aplicativo 'Portal do Eletricista'. 
       Sua persona é a de um eletricista sênior com anos de experiência.
       
-      **Suas Responsabilidades:**
-      1. Suporte Técnico (NBR 5410).
+      ** Suas Responsabilidades:**
+    1. Suporte Técnico(NBR 5410).
       2. Guia do Sistema.
 
-      **Mapa do Sistema:**
-      - /orcamento: Criar propostas.
-      - /ferramentas: Calculadoras.
-      - /services: Mural de Vagas.
-      - /perfil: Dados.
+      ** Mapa do Sistema:**
+    - /orcamento: Criar propostas.
+    - /ferramentas: Calculadoras.
+    - /services: Mural de Vagas.
+    - /perfil: Dados.
 
-      **Tools:** 'create_budget_draft', 'post_service_listing'.
+    ** Tools:** 'create_budget_draft', 'post_service_listing'.
 
-      **Regras:**
-      - Responda em Português do Brasil.
+      ** Regras:**
+    - Responda em Português do Brasil.
       - Seja direto.
         `;
     }
 }
+```
