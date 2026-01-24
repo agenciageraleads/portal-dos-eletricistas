@@ -88,7 +88,7 @@ export default function ServicesPage() {
                     <Link href="/" className="p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-full">
                         <ArrowLeft size={24} />
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">Central de Oportunidades</h1>
+                    <h1 className="text-xl font-bold text-gray-900">Central de Oportunidades <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full ml-2">v2.0</span></h1>
                     <div className="w-10"></div>
                 </div>
 
