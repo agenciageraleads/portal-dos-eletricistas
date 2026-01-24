@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -110,9 +110,13 @@ export class AuthService {
             return result;
         } catch (error) {
             console.error('[REGISTER] Erro ao registrar:', error);
-            throw error;
+            // DEBUG: Exposing error to client to debug 500
+            // @ts-ignore
+            throw new InternalServerErrorException(`Debug Error: ${error?.message || JSON.stringify(error)}`);
         }
     }
+
+    // (Removed BundleError class)
 
     async requestPasswordReset(identifier: string) {
         // Find user by email or CPF/CNPJ
