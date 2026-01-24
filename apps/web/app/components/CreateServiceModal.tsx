@@ -1,9 +1,6 @@
-'use client';
-
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
-import { useAuth } from '../contexts/AuthContext';
 import { useAuth } from '../contexts/AuthContext';
 
 interface CreateServiceModalProps {

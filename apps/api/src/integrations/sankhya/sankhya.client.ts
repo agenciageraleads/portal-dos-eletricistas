@@ -273,4 +273,5 @@ export class SankhyaClient {
             throw error;
         }
     }
+
 }
