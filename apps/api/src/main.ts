@@ -2,8 +2,28 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+async function runMigrations() {
+  console.log('🔄 Running database migrations...');
+  try {
+    const { stdout, stderr } = await execAsync('npx prisma migrate deploy');
+    console.log(stdout);
+    if (stderr) console.error(stderr);
+    console.log('✅ Migrations completed successfully');
+  } catch (error) {
+    console.error('❌ Migration failed:', error);
+    throw error;
+  }
+}
 
 async function bootstrap() {
+  // Run migrations before starting the app
+  await runMigrations();
+
   const app = await NestFactory.create(AppModule);
 
   // Security Headers
