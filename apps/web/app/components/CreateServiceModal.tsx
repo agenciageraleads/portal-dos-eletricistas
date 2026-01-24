@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import api from '@/lib/api';

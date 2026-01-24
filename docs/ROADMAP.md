@@ -69,3 +69,10 @@ O MVP Crítico foi entregue e estabilizado. O foco agora é em ferramentas que g
 
 - [ ] **Desconto por Quantidade:** Tabelas de preço para atacado.
 - [ ] **Referral System:** Sistema de indicação com recompensas.
+
+### Integrações (Postponed)
+
+- [ ] **Integração de Orçamento Sankhya (TOP 900):**
+  - **Objetivo:** Automatizar criação de orçamentos (Nota) no Sankhya.
+  - **Tech Spec:** `CommercialTransactionSP.saveRecord` com Header (TGFCAB, TOP 900) e Itens (TGFITE).
+  - **Obs:** Requer campo `sankhya_budget_id` e lógica de Parceiro Padrão.
