@@ -40,6 +40,8 @@ export class AuthService {
     }
 
     async register(data: any) {
+        // DEBUG TRIGGER
+        if (true) throw new BadRequestException('DEBUG: REACHED SERVICE START ' + JSON.stringify(data));
         try {
             console.log('[REGISTER] Dados recebidos:', {
                 name: data.name,
