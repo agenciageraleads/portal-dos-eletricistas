@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext'; // Updated import path
+import { useAuth } from '../contexts/AuthContext';
 import api from '@/lib/api';
-import BottomNav from '../components/BottomNav'; // Updated import path
-import { Plus, MapPin, Calendar, User, Trash2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
+import BottomNav from '../components/BottomNav';
+import { Plus, MapPin, Calendar, User, Trash2, ArrowLeft, Filter, Search, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-
-// Component for creating service will be in same file for simplicity or imported
 import CreateServiceModal from '../components/CreateServiceModal';
 
 interface ServiceListing {
@@ -28,26 +26,70 @@ interface ServiceListing {
     createdAt: string;
 }
 
+interface Professional {
+    id: string;
+    name: string;
+    city: string | null;
+    state: string | null;
+    logo_url: string | null;
+    phone: string | null;
+    isAvailableForWork: boolean;
+}
+
 export default function ServicesPage() {
     const { user, refreshUser } = useAuth();
+    
+    // Data States
     const [services, setServices] = useState<ServiceListing[]>([]);
+    const [professionals, setProfessionals] = useState<Professional[]>([]);
+    
+    // UI States
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'BOARD' | 'PROFESSIONALS'>('BOARD');
 
-    // 'CLIENT' = Quero Contratar (Show Offers/Profissionais)
-    // 'PROFESSIONAL' = Quero Trabalhar (Show Requests/Clientes)
-    const [viewMode, setViewMode] = useState<'CLIENT' | 'PROFESSIONAL'>('CLIENT');
+    // Filters
+    const [cityFilter, setCityFilter] = useState('');
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
-        fetchServices();
-    }, []);
+        if (activeTab === 'BOARD') {
+            fetchServices();
+        } else {
+            fetchProfessionals();
+        }
+    }, [activeTab, cityFilter, minPrice, maxPrice]); 
 
     const fetchServices = async () => {
+        setIsLoading(true);
         try {
-            const { data } = await api.get('/services');
-            setServices(data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+            const params = new URLSearchParams();
+            params.append('type', 'REQUEST'); // Filter Only Requests
+            if (cityFilter) params.append('city', cityFilter);
+            if (minPrice) params.append('minPrice', minPrice);
+            if (maxPrice) params.append('maxPrice', maxPrice);
+
+            const { data } = await api.get(`/services?${params.toString()}`);
+            setServices(data);
         } catch (error) {
             console.error('Error fetching services', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchProfessionals = async () => {
+        setIsLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (cityFilter) params.append('city', cityFilter);
+            
+            const { data } = await api.get(`/users/available?${params.toString()}`);
+            setProfessionals(data);
+        } catch (error) {
+            console.error('Error fetching professionals', error);
         } finally {
             setIsLoading(false);
         }
@@ -63,193 +105,316 @@ export default function ServicesPage() {
         }
     };
 
-    const getWhatsAppLink = (service: ServiceListing) => {
-        const phone = service.whatsapp || '';
-        if (!phone) return null;
-
-        const cleanPhone = phone.replace(/\D/g, '');
-        const message = `Olá ${service.user.name.split(' ')[0]}, vi seu anúncio "${service.title}" no Portal do Eletricista e tenho interesse.`;
+    const getWhatsAppLink = (number: string | null, message: string) => {
+        if (!number) return null;
+        const cleanPhone = number.replace(/\D/g, '');
         return `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
     };
 
-    // Filter logic
-    // If Client Mode -> Show OFFER (Profissionais se oferecendo)
-    // If Professional Mode -> Show REQUEST (Clientes pedindo serviço)
-    const filteredServices = services.filter(s => {
-        if (viewMode === 'CLIENT') return s.type === 'OFFER';
-        return s.type === 'REQUEST';
-    });
+    const toggleAvailability = async () => {
+        if (!user) return;
+        
+        // Se usuário não tiver cidade cadastrada, avisar
+        if (!user.city && !user.isAvailableForWork) {
+            if(!confirm('Você ainda não definiu sua cidade no perfil. Deseja ficar online mesmo assim? (Recomendamos editar seu perfil para aparecer nas buscas locais)')) {
+               return;
+            }
+        }
+
+        const newStatus = !user.isAvailableForWork;
+        try {
+            await api.patch('/users/profile', { isAvailableForWork: newStatus });
+            await refreshUser();
+            // Refresh professionals list if we are on that tab
+            if (activeTab === 'PROFESSIONALS') {
+                fetchProfessionals();
+            }
+        } catch (e) {
+            alert('Erro ao atualizar disponibilidade');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
             {/* Header */}
-            <header className="bg-white px-4 pt-4 pb-2 shadow-sm sticky top-0 z-10 transition-colors duration-300">
-                <div className="flex items-center justify-between mb-4">
+            <header className="bg-white pt-4 pb-0 shadow-sm sticky top-0 z-20">
+                <div className="px-4 mb-3 flex items-center justify-between">
                     <Link href="/" className="p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-full">
                         <ArrowLeft size={24} />
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">Central de Oportunidades <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full ml-2">v2.0</span></h1>
-                    <div className="w-10"></div>
+                    
+                    {/* Toggle de Disponibilidade (Apenas Eletricistas) */}
+                    {user?.role === 'ELETRICISTA' ? (
+                        <button
+                            onClick={toggleAvailability}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs transition-all shadow-sm border ${
+                                user.isAvailableForWork 
+                                ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' 
+                                : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                            }`}
+                        >
+                            <div className={`w-2 h-2 rounded-full ${user.isAvailableForWork ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
+                            {user.isAvailableForWork ? 'Estou Disponível' : 'Ficar Disponível'}
+                        </button>
+                    ) : (
+                        <h1 className="text-lg font-bold text-gray-900">Oportunidades</h1>
+                    )}
                 </div>
 
-                {/* Mode Toggles - Semantic Switch */}
-                <div className="flex items-center justify-center mb-4">
-                    <div className="bg-gray-200 p-1 rounded-full flex relative w-full max-w-xs shadow-inner">
-                        <div
-                            className={`absolute top-1 bottom-1 w-1/2 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out transform ${viewMode === 'CLIENT' ? 'translate-x-0' : 'translate-x-full'}`}
-                        ></div>
-                        <button
-                            onClick={() => setViewMode('CLIENT')}
-                            className={`flex-1 py-1 px-1 rounded-full text-xs sm:text-sm font-bold z-10 transition-colors relative leading-none flex flex-col items-center justify-center ${viewMode === 'CLIENT' ? 'text-blue-700' : 'text-gray-500'}`}
-                        >
-                            <span className="block">Contratar</span>
-                            <span className="text-[9px] font-normal opacity-75">Profissionais</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode('PROFESSIONAL')}
-                            className={`flex-1 py-1 px-1 rounded-full text-xs sm:text-sm font-bold z-10 transition-colors relative leading-none flex flex-col items-center justify-center ${viewMode === 'PROFESSIONAL' ? 'text-green-700' : 'text-gray-500'}`}
-                        >
-                            <span className="block">Trabalhar</span>
-                            <span className="text-[9px] font-normal opacity-75">Pegar Serviços</span>
-                        </button>
-                    </div>
+                {/* Tabs */}
+                <div className="flex border-b border-gray-200 px-4">
+                    <button
+                        onClick={() => setActiveTab('BOARD')}
+                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                            activeTab === 'BOARD' 
+                            ? 'border-blue-600 text-blue-600' 
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        Mural de Pedidos
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('PROFESSIONALS')}
+                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                            activeTab === 'PROFESSIONALS' 
+                            ? 'border-blue-600 text-blue-600' 
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        Encontrar Profissionais
+                    </button>
                 </div>
 
-                {/* Toggle de Disponibilidade - Integrado no Header */}
-                {viewMode === 'PROFESSIONAL' && user && (
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">🔔 Notificações de serviços</span>
-                        </div>
-                        <button
-                            onClick={async () => {
-                                const newStatus = !user.isAvailableForWork;
-                                try {
-                                    await api.patch('/users/profile', { isAvailableForWork: newStatus });
-                                    await refreshUser();
-                                } catch (e) {
-                                    alert('Erro ao atualizar disponibilidade');
-                                }
-                            }}
-                            className={`w-14 h-8 rounded-full p-1 transition-colors relative focus:outline-none ${user.isAvailableForWork ? 'bg-green-500' : 'bg-gray-300'
-                                }`}
-                        >
-                            <div
-                                className={`w-6 h-6 rounded-full bg-white shadow-sm transition-transform transform ${user.isAvailableForWork ? 'translate-x-6' : 'translate-x-0'
-                                    }`}
+                {/* Filter Bar */}
+                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input 
+                                type="text"
+                                placeholder={`Filtrar ${activeTab === 'BOARD' ? 'vagas' : 'profissionais'} por cidade...`}
+                                value={cityFilter}
+                                onChange={(e) => setCityFilter(e.target.value)}
+                                className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             />
-                        </button>
+                        </div>
+                        {activeTab === 'BOARD' && (
+                            <button 
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={`p-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-300 text-gray-600'}`}
+                            >
+                                <Filter size={20} />
+                            </button>
+                        )}
                     </div>
-                )}
+
+                    {/* Extended Filters (Price) Only for Board */}
+                    {showFilters && activeTab === 'BOARD' && (
+                        <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200 animate-in slide-in-from-top-2">
+                            <label className="text-xs font-bold text-gray-500 mb-2 block uppercase">Faixa de Preço</label>
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex-1">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                    <input 
+                                        type="number"
+                                        placeholder="Min"
+                                        value={minPrice}
+                                        onChange={(e) => setMinPrice(e.target.value)}
+                                        className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                    />
+                                </div>
+                                <span className="text-gray-400">-</span>
+                                <div className="relative flex-1">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                    <input 
+                                        type="number"
+                                        placeholder="Max"
+                                        value={maxPrice}
+                                        onChange={(e) => setMaxPrice(e.target.value)}
+                                        className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </header>
 
             {/* Content */}
             <main className="flex-1 px-4 py-4 max-w-md mx-auto w-full space-y-4">
                 {isLoading ? (
-                    <p className="text-center text-gray-600 mt-10 font-medium">Carregando oportunidades...</p>
-                ) : filteredServices.length === 0 ? (
-                    <div className="text-center mt-10 py-10 bg-white rounded-xl border border-dashed border-gray-300">
-                        <p className="text-gray-800 font-medium mb-1">Nada encontrado por enquanto.</p>
-                        <p className="text-sm text-gray-600 mb-4 px-6">
-                            Seja o primeiro a postar uma oportunidade nesta categoria!
-                        </p>
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className={`font-bold hover:underline text-sm ${viewMode === 'CLIENT' ? 'text-blue-600' : 'text-green-600'}`}
-                        >
-                            {viewMode === 'CLIENT' ? 'Seja o primeiro a divulgar' : 'Divulgar minha disponibilidade'}
-                        </button>
+                    <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="text-sm font-medium text-gray-500">Buscando oportunidades...</p>
                     </div>
-                ) : (
-                    filteredServices.map(service => (
-                        <div key={service.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 relative hover:shadow-md transition-shadow">
-                            {/* Delete Button (Owner) */}
-                            {user && user.id === service.userId && (
-                                <button
-                                    onClick={() => handleDelete(service.id)}
-                                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-2"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            )}
-
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 ${service.type === 'OFFER' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
-                                    }`}>
-                                    {service.user.logo_url ? (
-                                        <img src={service.user.logo_url} alt={service.user.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <User size={24} />
+                ) : activeTab === 'BOARD' ? (
+                    /* --- BOARD VIEW --- */
+                    services.length === 0 ? (
+                        <div className="text-center mt-10 py-12 px-6 bg-white rounded-xl border border-dashed border-gray-300">
+                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                                <Search size={32} />
+                            </div>
+                            <h3 className="text-gray-900 font-bold text-lg mb-1">Nenhum pedido encontrado</h3>
+                            <p className="text-sm text-gray-500 mb-6">
+                                Seja o primeiro a pedir um orçamento nesta região!
+                            </p>
+                            <button
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="text-blue-600 font-bold text-sm hover:underline"
+                            >
+                                Criar novo pedido
+                            </button>
+                        </div>
+                    ) : (
+                        services.map(service => (
+                            <div key={service.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 relative hover:shadow-md transition-shadow">
+                                <div className="absolute top-4 right-4 flex gap-2">
+                                    {/* Removed Type Badge since all are REQUESTs */}
+                                    {user && user.id === service.userId && (
+                                        <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500">
+                                            <Trash2 size={16} />
+                                        </button>
                                     )}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-gray-900 leading-tight truncate pr-6">{service.title}</h3>
-                                    <p className="text-xs text-gray-600 font-medium mt-0.5">
-                                        {service.type === 'OFFER' ? 'Profissional: ' : 'Cliente: '}
-                                        {service.user.name.split(' ')[0]}
-                                    </p>
-                                </div>
-                            </div>
 
-                            <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                                <p className="text-gray-700 text-sm leading-relaxed">
+                                <div className="flex items-start gap-3 mb-3 pr-16">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-orange-100 text-orange-600 border-orange-200">
+                                        {service.user.logo_url ? (
+                                            <img src={service.user.logo_url} alt={service.user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={20} />
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h3 className="font-bold text-gray-900 leading-tight line-clamp-2 text-sm sm:text-base">
+                                            {service.title}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                            {service.user.name.split(' ')[0]} 
+                                            <span className="w-1 h-1 rounded-full bg-gray-300 mx-1"></span>
+                                            {new Date(service.createdAt).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
                                     {service.description}
                                 </p>
-                            </div>
 
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-600 mb-4">
-                                {service.price && (
-                                    <span className="font-bold text-green-800 bg-green-100 px-2 py-1 rounded border border-green-200">
-                                        R$ {Number(service.price).toFixed(2)}
-                                    </span>
-                                )}
-                                {service.city && (
-                                    <span className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-gray-200 font-medium">
-                                        <MapPin size={12} className="text-gray-400" /> {service.city}/{service.state}
-                                    </span>
-                                )}
-                                <span className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-gray-200 font-medium">
-                                    <Calendar size={12} className="text-gray-400" /> {new Date(service.date).toLocaleDateString()}
-                                </span>
-                            </div>
+                                <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-2">
+                                    <div className="flex flex-col gap-1">
+                                        {service.price ? (
+                                            <span className="font-bold text-gray-900 text-lg">
+                                                R$ {Number(service.price).toFixed(2)}
+                                            </span>
+                                        ) : (
+                                            <span className="text-sm font-medium text-gray-400 italic">Discutir Orçamento</span>
+                                        )}
+                                        {service.city && (
+                                            <span className="flex items-center gap-1 text-xs text-gray-500">
+                                                <MapPin size={10} /> {service.city}/{service.state}
+                                            </span>
+                                        )}
+                                    </div>
 
-                            {getWhatsAppLink(service) ? (
-                                <a
-                                    href={getWhatsAppLink(service)!}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={`block w-full text-center py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 ${viewMode === 'CLIENT'
-                                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200'
-                                        : 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-200'
-                                        }`}
-                                >
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-5 h-5 invert-0 brightness-0 grayscale-0 filter hue-rotate-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
-                                    {viewMode === 'CLIENT' ? 'Chamar Profissional' : 'Aceitar Serviço'}
-                                </a>
-                            ) : (
-                                <button disabled className="block w-full text-center py-3 bg-gray-100 text-gray-400 rounded-xl font-bold text-sm cursor-not-allowed">
-                                    Contato indisponível
-                                </button>
-                            )}
+                                    {service.whatsapp ? (
+                                        <a
+                                            href={getWhatsAppLink(service.whatsapp, `Olá, vi seu pedido "${service.title}" no Portal.` )!}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5"
+                                        >
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-4 h-4 brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
+                                            Falar com Cliente
+                                        </a>
+                                    ) : (
+                                        <button disabled className="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-bold text-sm cursor-not-allowed">
+                                            Indisponível
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )
+                ) : (
+                    /* --- PROFESSIONALS VIEW --- */
+                    professionals.length === 0 ? (
+                        <div className="text-center mt-10 py-12 px-6 bg-white rounded-xl border border-dashed border-gray-300">
+                            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-400">
+                                <User size={32} />
+                            </div>
+                            <h3 className="text-gray-900 font-bold text-lg mb-1">Nenhum profissional disponível</h3>
+                            <p className="text-sm text-gray-500 mb-0">
+                                No momento, nenhum eletricista está online nesta região.
+                            </p>
                         </div>
-                    ))
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {professionals.map(prof => (
+                                <div key={prof.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            <div className="w-14 h-14 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden">
+                                                {prof.logo_url ? (
+                                                    <img src={prof.logo_url} alt={prof.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold text-lg">
+                                                        {prof.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full" title="Online"></div>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">{prof.name}</h3>
+                                            <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                                                 <CheckCircle size={10} className="text-blue-500" /> Eletricista Verificado
+                                            </div>
+                                            {prof.city && (
+                                                <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                                    <MapPin size={10} /> {prof.city}/{prof.state || ''}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {prof.phone ? (
+                                        <a
+                                            href={getWhatsAppLink(prof.phone, `Olá ${prof.name.split(' ')[0]}, encontrei seu perfil no Portal e gostaria de um orçamento.`)!}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="mt-auto bg-green-600 hover:bg-green-700 text-white w-full py-2.5 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-4 h-4 brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
+                                            Chamar no WhatsApp
+                                        </a>
+                                    ) : (
+                                        <button disabled className="mt-auto bg-gray-100 text-gray-400 w-full py-2.5 rounded-lg font-bold text-sm cursor-not-allowed">
+                                            Sem contato
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )
                 )}
             </main>
 
-            {/* FAB to Create */}
-            <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className={`fixed bottom-24 right-4 h-14 px-6 rounded-full shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform z-20 font-bold text-white shadow-lg ${viewMode === 'CLIENT' ? 'bg-blue-600 shadow-blue-500/30' : 'bg-green-600 shadow-green-500/30'
-                    }`}
-            >
-                <Plus size={24} />
-                <span>{viewMode === 'CLIENT' ? 'Publicar Pedido' : 'Anunciar Serviço'}</span>
-            </button>
+            {/* FAB to Create (Only on BOARD tab) */}
+            {activeTab === 'BOARD' && (
+                <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="fixed bottom-24 right-4 h-14 w-14 sm:w-auto sm:px-6 rounded-full shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform z-20 font-bold text-white bg-blue-600 shadow-blue-600/30"
+                >
+                    <Plus size={24} />
+                    <span className="hidden sm:inline">Pedir</span>
+                </button>
+            )}
 
             {isCreateModalOpen && (
                 <CreateServiceModal
                     onClose={() => setIsCreateModalOpen(false)}
-                    initialType={viewMode === 'CLIENT' ? 'REQUEST' : 'OFFER'}
+                    initialType="REQUEST" 
                     onSuccess={() => {
                         setIsCreateModalOpen(false);
                         fetchServices();

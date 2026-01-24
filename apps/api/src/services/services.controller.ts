@@ -8,8 +8,14 @@ export class ServicesController {
     constructor(private readonly servicesService: ServicesService) { }
 
     @Get()
-    findAll(@Query('search') search?: string) {
-        return this.servicesService.findAll(search);
+    findAll(
+        @Query('search') search?: string,
+        @Query('city') city?: string,
+        @Query('type') type?: 'REQUEST' | 'OFFER',
+        @Query('minPrice') minPrice?: string,
+        @Query('maxPrice') maxPrice?: string,
+    ) {
+        return this.servicesService.findAll({ search, city, type, minPrice, maxPrice });
     }
 
     @Post('public')

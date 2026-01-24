@@ -61,9 +61,9 @@ export default function AddServiceModal({ isOpen, onClose, onAddService }: AddSe
                     <div>
                         <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                             <Calculator className="text-blue-600" />
-                            Catálogo de Serviços
+                            Catálogo de Serviços Padrão
                         </h3>
-                        <p className="text-sm text-gray-500">Adicione mão de obra padronizada ao orçamento.</p>
+                        <p className="text-sm text-gray-500">Mão de obra padronizada (Tabela Referenciada).</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                         <X size={24} className="text-gray-500" />

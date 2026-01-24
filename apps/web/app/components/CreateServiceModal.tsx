@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Loader2, Briefcase, HardHat } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
+import { useAuth } from '../contexts/AuthContext';
 import { useAuth } from '../contexts/AuthContext';
 
 interface CreateServiceModalProps {
@@ -13,7 +14,7 @@ interface CreateServiceModalProps {
 
 export default function CreateServiceModal({ onClose, onSuccess, initialType = 'REQUEST' }: CreateServiceModalProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [type, setType] = useState<'REQUEST' | 'OFFER'>(initialType);
+    const [type, setType] = useState<'REQUEST' | 'OFFER'>('REQUEST');
     const [errors, setErrors] = useState('');
 
     const [formData, setFormData] = useState({
@@ -27,30 +28,34 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
     });
 
     const { user } = useAuth(); // Import useAuth to check login status
+    
+    // ... input masks ...
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setErrors('');
-
         try {
+            const payload = {
+                title: formData.title,
+                description: formData.description,
+                price: formData.price ? parseFloat(formData.price) : null,
+                city: formData.city,
+                date: new Date(formData.date),
+                whatsapp: formData.whatsapp,
+                type: type // Fixed to REQUEST
+            };
+            
             if (user) {
-                // Logged in user -> Standard create
-                await api.post('/services', {
-                    ...formData,
-                    type
-                });
+                await api.post('/services', payload);
             } else {
-                // Guest user -> Public create
-                await api.post('/services/public', {
-                    ...formData,
-                    type
-                });
+                await api.post('/services/public', payload);
             }
+            
             onSuccess();
         } catch (error) {
             console.error(error);
-            setErrors('Erro ao criar anúncio. Verifique os dados.');
+            setErrors('Erro ao publicar. Verifique os dados.');
         } finally {
             setIsLoading(false);
         }
@@ -67,18 +72,13 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                 </div>
 
                 <div className="p-4 overflow-y-auto">
-                    {/* Type Selector Removed - Fixed to context or Offer */}
-                    <div className="hidden">
-                        {/* Hidden input to keep logic working if needed, or just remove */}
-                    </div>
-
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Título do Anúncio</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Título do Pedido</label>
                             <input
                                 required
                                 type="text"
-                                placeholder={type === 'REQUEST' ? "Ex: Preciso de Ajudante para hoje" : "Ex: Eletricista disponível para diária"}
+                                placeholder="Ex: Preciso de Eletricista para Instalação"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                                 className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -90,7 +90,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                             <textarea
                                 required
                                 rows={3}
-                                placeholder="Descreva o serviço, ferramentas necessárias ou suas especialidades..."
+                                placeholder="Descreva o serviço que você precisa..."
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
@@ -99,7 +99,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Orçamento (R$)</label>
                                 <input
                                     type="number"
                                     placeholder="0,00"
@@ -133,7 +133,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Data Prevista</label>
                                 <input
                                     required
                                     type="date"
@@ -153,12 +153,9 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg ${type === 'REQUEST'
-                                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
-                                : 'bg-green-600 hover:bg-green-700 shadow-green-200'
-                                }`}
+                            className="w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg bg-blue-600 hover:bg-blue-700 shadow-blue-200"
                         >
-                            {isLoading ? <Loader2 className="animate-spin mx-auto" /> : 'Publicar Anúncio'}
+                            {isLoading ? <Loader2 className="animate-spin mx-auto" /> : 'Publicar Pedido'}
                         </button>
                     </form>
                 </div>

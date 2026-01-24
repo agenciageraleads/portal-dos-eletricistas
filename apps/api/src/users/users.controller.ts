@@ -138,4 +138,9 @@ export class UsersController {
         }
         return this.usersService.generateManualResetToken(userId);
     }
+    // Public: Find available electricians
+    @Get('available')
+    async findAvailable(@Query('city') city?: string) {
+        return this.usersService.findAvailable(city);
+    }
 }

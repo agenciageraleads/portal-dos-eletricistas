@@ -26,6 +26,8 @@ model User {
   reset_token_expires  DateTime?
   terms_accepted_at    DateTime?
   business_name        String?
+  city                 String?
+  state                String?
   isAvailableForWork   Boolean    @default(false)
   budgets              Budget[]
   ai_corrections       AiMatchFeedback[]

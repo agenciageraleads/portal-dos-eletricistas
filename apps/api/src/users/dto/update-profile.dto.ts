@@ -22,5 +22,17 @@ export class UpdateProfileDto {
     logo_url?: string;
 
     @IsOptional()
+    @IsString()
+    city?: string;
+
+    @IsOptional()
+    @IsString()
+    state?: string;
+
+    @IsOptional()
+    @IsString()
+    pix_key?: string;
+
+    @IsOptional()
     isAvailableForWork?: boolean;
 }

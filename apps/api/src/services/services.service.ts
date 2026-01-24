@@ -53,19 +53,47 @@ export class ServicesService {
         return service;
     }
 
-    async findAll(search?: string) {
+    async findAll(filters: {
+        search?: string;
+        city?: string;
+        type?: 'REQUEST' | 'OFFER';
+        minPrice?: string;
+        maxPrice?: string;
+    }) {
         try {
+            const { search, city, type, minPrice, maxPrice } = filters;
+
+            const where: any = {
+                status: 'OPEN',
+            };
+
+            // Search filter (text)
+            if (search) {
+                where.OR = [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                ];
+            }
+
+            // City filter
+            if (city) {
+                where.city = { contains: city, mode: 'insensitive' };
+            }
+
+            // Type filter
+            if (type) {
+                where.type = type;
+            }
+
+            // Price range filter
+            if (minPrice || maxPrice) {
+                where.price = {};
+                if (minPrice) where.price.gte = Number(minPrice);
+                if (maxPrice) where.price.lte = Number(maxPrice);
+            }
+
             const services = await this.prisma.serviceListing.findMany({
-                where: {
-                    status: 'OPEN',
-                    ...(search ? {
-                        OR: [
-                            { title: { contains: search, mode: 'insensitive' } },
-                            { description: { contains: search, mode: 'insensitive' } },
-                            { city: { contains: search, mode: 'insensitive' } }
-                        ]
-                    } : {})
-                },
+                where,
                 orderBy: { createdAt: 'desc' },
                 include: {
                     user: { select: { name: true, logo_url: true } }

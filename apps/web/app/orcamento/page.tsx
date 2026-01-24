@@ -218,6 +218,7 @@ function OrcamentoContent() {
                 <header className="bg-white p-4 border-b border-gray-200 sticky top-0 z-20 flex items-center justify-between shadow-sm">
                     <button onClick={() => {
                         if (isEditMode) router.push('/orcamentos');
+                        else if (searchParams.get('mode')) router.push('/orcamento/novo');
                         else router.push('/orcamento/novo');
                     }} className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
                         <ArrowLeft size={24} />

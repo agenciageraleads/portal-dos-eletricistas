@@ -74,4 +74,29 @@ export class UsersService {
 
         return { token };
     }
+    // Services: Find available electricians (v2.0)
+    async findAvailable(city?: string) {
+        const where: any = {
+            role: 'ELETRICISTA',
+            isAvailableForWork: true
+        };
+
+        if (city) {
+            where.city = { contains: city, mode: 'insensitive' };
+        }
+
+        return this.prisma.user.findMany({
+            where,
+            select: {
+                id: true,
+                name: true,
+                city: true,
+                state: true,
+                logo_url: true,
+                phone: true, // Needed for Whatsapp link
+                isAvailableForWork: true
+            },
+            orderBy: { name: 'asc' }
+        });
+    }
 }
