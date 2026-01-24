@@ -5,8 +5,10 @@ import type { NextRequest } from 'next/server';
 const publicRoutes = [
     '/',
     '/login',
+    '/register',
     '/cadastro',
     '/esqueci-senha',
+    '/redefinir-senha',
     '/services', // Mural de Vagas é público para visualização
     '/ferramentas', // Calculadoras
 ];
@@ -31,9 +33,9 @@ export function middleware(request: NextRequest) {
     }
 
     // Verificar se é arquivo estático ou api (deixar API lidar com auth por guard)
-    if (pathname.startsWith('/_next') || 
-        pathname.startsWith('/api') || 
-        pathname.startsWith('/static') || 
+    if (pathname.startsWith('/_next') ||
+        pathname.startsWith('/api') ||
+        pathname.startsWith('/static') ||
         pathname.includes('.')) {
         return NextResponse.next();
     }
