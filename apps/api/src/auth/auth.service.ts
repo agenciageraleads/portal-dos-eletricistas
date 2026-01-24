@@ -40,8 +40,6 @@ export class AuthService {
     }
 
     async register(data: any) {
-        // DEBUG TRIGGER
-        if (true) throw new BadRequestException('DEBUG: REACHED SERVICE START ' + JSON.stringify(data));
         try {
             console.log('[REGISTER] Dados recebidos:', {
                 name: data.name,
@@ -112,9 +110,7 @@ export class AuthService {
             return result;
         } catch (error) {
             console.error('[REGISTER] Erro ao registrar:', error);
-            // DEBUG: Exposing error to client to debug 500
-            // @ts-ignore
-            throw new BadRequestException(`Debug Error: ${error?.message || JSON.stringify(error)}`);
+            throw error;
         }
     }
 

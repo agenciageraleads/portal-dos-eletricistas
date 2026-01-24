@@ -26,14 +26,8 @@ export class AuthController {
 
     @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 attempts per hour
     @Post('register')
-
     async register(@Body() createUserDto: any) {
-        try {
-            return await this.authService.register(createUserDto);
-        } catch (e) {
-            // @ts-ignore
-            throw new BadRequestException('DEBUG CONTROLLER: ' + (e.message || e));
-        }
+        return await this.authService.register(createUserDto);
     }
 
     @UseGuards(AuthGuard('jwt'))
