@@ -72,4 +72,14 @@ USER nestjs
 
 EXPOSE 3333
 
-CMD ["node", "dist/main.js"]
+# Criar script de startup que roda migrations + seed + inicia app
+RUN echo '#!/bin/sh\n\
+echo "🔄 Running database migrations..."\n\
+npx prisma migrate deploy\n\
+echo "🌱 Running database seed..."\n\
+npx prisma db seed || echo "⚠️  Seed already executed or failed (skipping)"\n\
+echo "🚀 Starting application..."\n\
+node dist/main.js\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
