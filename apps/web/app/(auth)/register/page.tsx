@@ -46,8 +46,13 @@ export default function RegisterPage() {
             // Mensagens de erro mais específicas
             let errorMessage = 'Erro ao cadastrar. Tente novamente.';
 
-            if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
+            if (error.response?.status === 429) {
+                errorMessage = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+            } else if (error.response?.data?.message) {
+                // Prioriza a mensagem que vem do backend (ex: CPF inválido)
+                errorMessage = Array.isArray(error.response.data.message)
+                    ? error.response.data.message[0]
+                    : error.response.data.message;
             } else if (error.response?.status === 409) {
                 errorMessage = 'CPF/CNPJ ou email já cadastrado. Tente fazer login.';
             } else if (error.response?.status === 400) {

@@ -8,7 +8,7 @@ import { Throttle } from '@nestjs/throttler';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
-    @Throttle({ default: { limit: 5, ttl: 900000 } }) // 5 attempts per 15 minutes
+    @Throttle({ default: { limit: 20, ttl: 900000 } }) // 20 attempts per 15 minutes
     @Post('login')
     async login(@Body() req: any) {
         // Aceita email, cpf_cnpj, ou um campo genérico 'username'
@@ -24,7 +24,7 @@ export class AuthController {
         return this.authService.login(user);
     }
 
-    @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 attempts per hour
+    @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 attempts per hour
     @Post('register')
     async register(@Body() createUserDto: any) {
         return this.authService.register(createUserDto);
@@ -36,7 +36,7 @@ export class AuthController {
         return req.user;
     }
 
-    @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 attempts per hour
+    @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 attempts per hour
     @Post('forgot-password')
     async forgotPassword(@Body() dto: ForgotPasswordDto) {
         return this.authService.requestPasswordReset(dto.identifier);
