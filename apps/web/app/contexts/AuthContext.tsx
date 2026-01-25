@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import posthog from 'posthog-js';
+import Cookies from 'js-cookie';
 
 interface User {
     id: string;
@@ -41,10 +42,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        // Check cookies first (middleware source of truth), fall back to localStorage
+        const token = Cookies.get('token') || localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
 
         if (token) {
+            // Ensure consistency between cookies and localStorage
+            if (!Cookies.get('token')) Cookies.set('token', token, { expires: 7 }); // 7 days
+            if (!localStorage.getItem('token')) localStorage.setItem('token', token);
+
             // Set header immediately
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
@@ -64,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 })
                 .catch(() => {
                     // If token is invalid, clear everything
+                    Cookies.remove('token');
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                     delete axios.defaults.headers.common['Authorization'];
@@ -90,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const login = (token: string, userData: User) => {
+        Cookies.set('token', token, { expires: 7 }); // 7 days
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -106,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = () => {
+        Cookies.remove('token');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
