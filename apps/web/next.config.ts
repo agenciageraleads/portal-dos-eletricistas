@@ -1,23 +1,6 @@
 import type { NextConfig } from "next";
-import withPWA from "next-pwa";
 
-const nextConfig: NextConfig = {
-  output: "standalone",
-  /* config options here */
-  turbopack: {}, // Silence Next.js 16 webpack/turbopack warning
-  devIndicators: {
-    buildActivity: false,
-    appIsrStatus: false,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-};
-
-export default withPWA({
+const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
   register: true,
   skipWaiting: true,
@@ -80,4 +63,19 @@ export default withPWA({
       },
     },
   ],
-})(nextConfig);
+});
+
+const nextConfig: NextConfig = {
+  output: "standalone",
+  // @ts-expect-error - turbopack option is not yet in types but valid
+  turbopack: {}, // Silence Next.js 16 webpack/turbopack warning
+  devIndicators: {
+    buildActivity: false,
+    appIsrStatus: false,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+};
+
+export default withPWA(nextConfig);
