@@ -36,7 +36,7 @@ services:
       dockerfile: apps/api/Dockerfile
     image: lucasborgessb/portal_dos_eletricistas:api-staging
     command: >
-      sh -c "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/ts-node prisma/seed_services.ts && node dist/src/main.js"
+      sh -c "npx prisma migrate deploy && node dist/src/main.js"
     deploy:
       mode: replicated
       replicas: 1
