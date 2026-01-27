@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { User, LogOut, Settings, UserCircle } from 'lucide-react';
+import { User, LogOut, Settings, UserCircle, FileText } from 'lucide-react';
 
 interface UserMenuProps {
     user: any;
@@ -60,7 +60,7 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
                             onClick={() => setIsOpen(false)}
                         >
                             <UserCircle size={18} className="text-blue-600" />
-                            Meu Perfil
+                            Meus Dados
                         </Link>
 
                         <Link
@@ -70,6 +70,15 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
                         >
                             <Settings size={18} className="text-gray-500" />
                             Configurações
+                        </Link>
+
+                        <Link
+                            href="/termos"
+                            className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            <FileText size={18} className="text-gray-500" />
+                            Termos de Uso
                         </Link>
 
                         <div className="h-px bg-gray-100 my-1"></div>

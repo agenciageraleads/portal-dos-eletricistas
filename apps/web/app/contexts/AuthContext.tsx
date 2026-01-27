@@ -49,7 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (token) {
             // Sincronizar token entre cookies e localStorage
-            if (!Cookies.get('token')) Cookies.set('token', token, { expires: 7 });
+            // Middleware só lê Cookies, então garantimos que ele esteja lá
+            Cookies.set('token', token, { expires: 7, path: '/' });
             if (!localStorage.getItem('token')) localStorage.setItem('token', token);
 
             // Configurar header para requisições

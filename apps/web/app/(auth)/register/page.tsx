@@ -187,7 +187,7 @@ export default function RegisterPage() {
                             className="w-4 h-4 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
-                            Li e concordo com os <Link href="/termos/page" target="_blank" className="text-blue-600 hover:underline">Termos de Uso</Link> e Política de Privacidade.
+                            Li e concordo com os <Link href="/termos" target="_blank" className="text-blue-600 hover:underline">Termos de Uso</Link> e Política de Privacidade.
                         </label>
                     </div>
 
