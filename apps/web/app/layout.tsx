@@ -5,6 +5,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { PostHogProvider } from "./providers/PostHogProvider";
 import InstallPrompt from "./components/InstallPrompt";
 import { InstallProvider } from "./contexts/InstallContext";
+import { ToastProvider } from "./components/Toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -57,14 +58,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <PostHogProvider>
-          <AuthProvider>
-            <CartProvider>
-              <InstallProvider>
-                {children}
-                <InstallPrompt />
-              </InstallProvider>
-            </CartProvider>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <CartProvider>
+                <InstallProvider>
+                  {children}
+                  <InstallPrompt />
+                </InstallProvider>
+              </CartProvider>
+            </AuthProvider>
+          </ToastProvider>
         </PostHogProvider>
       </body>
     </html>
