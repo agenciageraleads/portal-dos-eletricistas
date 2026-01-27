@@ -94,14 +94,35 @@ export default function Home() {
             {/* 2. BLUE BANNER (Greeting & Account Level) */}
             <div className="bg-blue-600 text-white pt-6 pb-12 px-4 rounded-b-[2rem] shadow-md mb-[-2rem] relative z-0">
                 <div className="max-w-md mx-auto">
-                    <h2 className="text-2xl font-bold mb-1">
-                        Olá, {user?.name.split(' ')[0] || 'Parceiro'}
-                    </h2>
-                    <div className="flex items-center gap-2 opacity-90">
-                        <span className="text-sm font-medium bg-blue-700/50 px-2 py-0.5 rounded text-blue-100 border border-blue-500/30">
-                            Conta Profissional
-                        </span>
-                    </div>
+                    {user ? (
+                        <>
+                            <h2 className="text-2xl font-bold mb-1">
+                                Olá, {user.name.split(' ')[0]}
+                            </h2>
+                            <div className="flex items-center gap-2 opacity-90">
+                                <span className="text-sm font-medium bg-blue-700/50 px-2 py-0.5 rounded text-blue-100 border border-blue-500/30">
+                                    Conta Profissional
+                                </span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="text-center py-2">
+                            <h2 className="text-2xl font-bold mb-2">
+                                Bem-vindo ao Portal!
+                            </h2>
+                            <p className="text-blue-100 text-sm mb-4">
+                                A ferramenta completa para eletricistas profissionais.
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <Link href="/login" className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors shadow-sm border border-blue-500/30">
+                                    Entrar
+                                </Link>
+                                <Link href="/register" className="bg-white text-blue-600 px-6 py-2 rounded-full font-semibold text-sm hover:bg-gray-100 transition-colors shadow-sm">
+                                    Cadastrar Grátis
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

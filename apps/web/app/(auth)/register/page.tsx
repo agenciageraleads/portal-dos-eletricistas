@@ -4,30 +4,48 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Spinner } from '../../components/Spinner';
+import { useToast } from '../../components/Toast';
+import { isValidCPF } from '../../../api/src/common/validators/cpf-validator-utils'; // Suposição ou helper local
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [cpf, setCpf] = useState('');
+    const [cpfError, setCpfError] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { showToast } = useToast();
+
+    // Helper simples para validação local de CPF se o import falhar
+    const isValidCPFLocal = (cpf: string) => {
+        if (typeof cpf !== 'string') return false;
+        cpf = cpf.replace(/[^\d]+/g, '');
+        if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) return false;
+        const cpfArr = cpf.split('').map(el => +el);
+        const rest = (count: number) => (cpfArr.slice(0, count - 12).reduce((soma, el, index) => soma + el * (count - index), 0) * 10) % 11 % 10;
+        return rest(10) === cpfArr[9] && rest(11) === cpfArr[10];
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!acceptedTerms) {
-            alert('Você precisa aceitar os Termos de Uso para criar uma conta.');
+            showToast('Você precisa aceitar os Termos de Uso para criar uma conta.', 'warning');
+            return;
+        }
+
+        // Validar CPF antes de enviar
+        const cleanCpf = cpf.replace(/\D/g, '');
+        if (cleanCpf.length === 11 && !isValidCPFLocal(cleanCpf)) {
+            showToast('CPF inválido. Verifique o número digitado.', 'error');
             return;
         }
 
         setLoading(true);
         try {
-            // Remove formatação do CPF/CNPJ antes de enviar
-            const cleanCpf = cpf.replace(/\D/g, '');
-
             console.log('[REGISTER] Enviando dados:', { name, email, cpf_cnpj: cleanCpf, phone });
 
             await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/register`, {
@@ -38,8 +56,13 @@ export default function RegisterPage() {
                 password,
                 termsAccepted: true
             });
-            alert('Cadastro realizado com sucesso! Faça login.');
-            router.push('/login');
+
+            showToast('Cadastro realizado com sucesso! Redirecionando...', 'success');
+
+            // Aguardar 2 segundos para usuário ver mensagem
+            setTimeout(() => {
+                router.push('/login');
+            }, 2000);
         } catch (error: any) {
             console.error('[REGISTER] Erro:', error);
 
@@ -49,7 +72,6 @@ export default function RegisterPage() {
             if (error.response?.status === 429) {
                 errorMessage = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
             } else if (error.response?.data?.message) {
-                // Prioriza a mensagem que vem do backend (ex: CPF inválido)
                 errorMessage = Array.isArray(error.response.data.message)
                     ? error.response.data.message[0]
                     : error.response.data.message;
@@ -61,7 +83,7 @@ export default function RegisterPage() {
                 errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
             }
 
-            alert(errorMessage);
+            showToast(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
@@ -95,7 +117,7 @@ export default function RegisterPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">CPF ou CNPJ</label>
+                        <label className={`block text-sm font-medium ${cpfError ? 'text-red-600' : 'text-gray-700'}`}>CPF ou CNPJ</label>
                         <input
                             type="text"
                             value={cpf}
@@ -112,12 +134,21 @@ export default function RegisterPage() {
                                     v = v.replace(/(\d{4})(\d)/, '$1-$2');
                                 }
                                 setCpf(v);
+
+                                // Validação real-time
+                                const clean = v.replace(/\D/g, '');
+                                if (clean.length === 11) {
+                                    setCpfError(isValidCPFLocal(clean) ? '' : 'CPF inválido');
+                                } else {
+                                    setCpfError('');
+                                }
                             }}
-                            className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
+                            className={`w-full p-2 border ${cpfError ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-lg mt-1 placeholder-gray-500 transition-colors`}
                             required
                             placeholder="CPF ou CNPJ"
                             maxLength={18}
                         />
+                        {cpfError && <p className="text-red-500 text-xs mt-1">{cpfError}</p>}
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">WhatsApp</label>

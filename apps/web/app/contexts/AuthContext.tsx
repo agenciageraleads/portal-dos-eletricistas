@@ -42,34 +42,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        // Check cookies first (middleware source of truth), fall back to localStorage
+        // Verificar token e buscar dados do usuário do backend
+        // IMPORTANTE: Não mostra dados em cache antes de validar com backend
         const token = Cookies.get('token') || localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        console.log('[AuthContext] 🔑 Verificando autenticação, token presente:', !!token);
 
         if (token) {
-            // Ensure consistency between cookies and localStorage
-            if (!Cookies.get('token')) Cookies.set('token', token, { expires: 7 }); // 7 days
+            // Sincronizar token entre cookies e localStorage
+            if (!Cookies.get('token')) Cookies.set('token', token, { expires: 7 });
             if (!localStorage.getItem('token')) localStorage.setItem('token', token);
 
-            // Set header immediately
+            // Configurar header para requisições
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-            // If we have stored user, set it first for instant UI
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-
-            // Fetch fresh user data from backend
+            // Buscar dados FRESCOS do backend - NÃO usar cache primeiro
+            console.log('[AuthContext] 🔄 Validando token com backend...');
             axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/me`)
                 .then(response => {
-                    // Update user with fresh data (including new role)
                     const freshUser = response.data;
-                    console.log('[AuthContext] Fetched fresh user:', freshUser); // DEBUG
+                    console.log('[AuthContext] ✅ Token válido, usuário:', freshUser.name);
                     setUser(freshUser);
                     localStorage.setItem('user', JSON.stringify(freshUser));
                 })
-                .catch(() => {
-                    // If token is invalid, clear everything
+                .catch((error) => {
+                    // Token inválido - limpar TUDO
+                    console.log('[AuthContext] ❌ Token inválido, limpando sessão...', error?.response?.status);
                     Cookies.remove('token');
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
@@ -77,10 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setUser(null);
                 })
                 .finally(() => {
-                    console.log('[AuthContext] Loading finished. User:', user); // DEBUG
                     setLoading(false);
                 });
         } else {
+            console.log('[AuthContext] 🚫 Nenhum token encontrado');
             setLoading(false);
         }
     }, []);
