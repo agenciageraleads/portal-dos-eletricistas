@@ -33,11 +33,12 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Login Eletricista</h1>
+                <h1 data-testid="login-title" className="text-2xl font-bold mb-6 text-center text-gray-800">Login Eletricista</h1>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Email ou CPF/CNPJ</label>
                         <input
+                            data-testid="email-input"
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -49,6 +50,7 @@ export default function LoginPage() {
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Senha</label>
                         <input
+                            data-testid="password-input"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -62,6 +64,7 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <button
+                        data-testid="login-button"
                         type="submit"
                         disabled={loading}
                         className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"

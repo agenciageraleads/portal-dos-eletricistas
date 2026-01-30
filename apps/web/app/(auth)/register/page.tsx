@@ -130,8 +130,8 @@ export default function RegisterPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-2 text-center text-gray-800">Cadastro Eletricista</h1>
-                <p className="text-gray-500 text-center text-sm mb-6">
+                <h1 data-testid="register-title" className="text-2xl font-bold mb-2 text-center text-gray-800">Cadastro Eletricista</h1>
+                <p data-testid="register-subtitle" className="text-gray-500 text-center text-sm mb-6">
                     {step === 1 ? 'Informe seu CPF para começar' : 'Complete seus dados de acesso'}
                 </p>
 
@@ -140,6 +140,7 @@ export default function RegisterPage() {
                         <div>
                             <label className={`block text-sm font-medium ${cpfError ? 'text-red-600' : 'text-gray-700'}`}>CPF ou CNPJ</label>
                             <input
+                                data-testid="cpf-input"
                                 type="text"
                                 value={cpf}
                                 onChange={(e) => {
@@ -170,6 +171,7 @@ export default function RegisterPage() {
                             {cpfError && <p className="text-red-500 text-xs mt-1">{cpfError}</p>}
                         </div>
                         <button
+                            data-testid="continue-button"
                             onClick={handleCheckCpf}
                             disabled={loading || !cpf || !!cpfError}
                             className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-300 transition-all flex items-center justify-center gap-2"
@@ -191,6 +193,7 @@ export default function RegisterPage() {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Nome Completo</label>
                             <input
+                                data-testid="name-input"
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
@@ -202,6 +205,7 @@ export default function RegisterPage() {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Email</label>
                             <input
+                                data-testid="email-input"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -213,6 +217,7 @@ export default function RegisterPage() {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
                             <input
+                                data-testid="phone-input"
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => {
@@ -230,6 +235,7 @@ export default function RegisterPage() {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Escolha uma Senha</label>
                             <input
+                                data-testid="password-input"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -241,6 +247,7 @@ export default function RegisterPage() {
 
                         <div className="flex items-start space-x-2 pt-2">
                             <input
+                                data-testid="terms-checkbox"
                                 type="checkbox"
                                 id="terms"
                                 checked={acceptedTerms}
@@ -254,6 +261,7 @@ export default function RegisterPage() {
 
                         <div className="flex gap-2">
                             <button
+                                data-testid="back-button"
                                 type="button"
                                 onClick={() => setStep(1)}
                                 className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg font-bold hover:bg-gray-200 transition"
@@ -261,6 +269,7 @@ export default function RegisterPage() {
                                 Voltar
                             </button>
                             <button
+                                data-testid="submit-button"
                                 type="submit"
                                 disabled={loading}
                                 className="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition flex items-center justify-center gap-2"
