@@ -7,7 +7,7 @@ import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { S3Service } from '../common/s3.service';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 @Controller('users')
 export class UsersController {
