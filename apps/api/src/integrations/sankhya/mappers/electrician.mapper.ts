@@ -10,6 +10,14 @@ export class ElectricianMapper {
     static toPortalUser(sankhyaElectrician: any): any {
         let codparc, nome, cpf, telefone, codvendtec, nomeTecnico, cidade, estado, qtdPedidos, vlrTotal, ticketMedio, indiceComercial;
 
+        const toTitleCase = (str: string) => {
+            if (!str) return '';
+            return str.toLowerCase().split(' ').map(word => {
+                if (word.length <= 2 && ['de', 'do', 'da', 'dos', 'das', 'e'].includes(word)) return word;
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }).join(' ');
+        };
+
         if (Array.isArray(sankhyaElectrician)) {
             [codparc, nome, cpf, telefone, codvendtec, nomeTecnico, cidade, estado, qtdPedidos, vlrTotal, ticketMedio, indiceComercial] = sankhyaElectrician;
         } else {
@@ -41,13 +49,13 @@ export class ElectricianMapper {
         const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
         return {
-            name: String(nome || nomeTecnico || 'Eletricista').trim(),
+            name: toTitleCase(String(nome || nomeTecnico || 'Eletricista').trim()),
             email: tempEmail,
             password: randomPassword, // Será hasheado no service
             cpf_cnpj: cleanCpf,
             phone: whatsappPhone,
-            city: cidade ? String(cidade).trim() : null,
-            state: estado ? String(estado).trim() : null,
+            city: toTitleCase(cidade ? String(cidade).trim() : ''),
+            state: estado ? String(estado).trim().toUpperCase() : null,
             role: 'ELETRICISTA',
 
             // Flags de pré-cadastro

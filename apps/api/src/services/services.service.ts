@@ -31,7 +31,8 @@ export class ServicesService {
                 where: {
                     role: 'ELETRICISTA',
                     isAvailableForWork: true,
-                    // TODO: Add city filter when User has address/location
+                    // Filter by city if set, to avoid spamming everyone
+                    city: service.city ? { contains: service.city, mode: 'insensitive' } : undefined,
                     id: { not: userId } // Don't notify self
                 }
             });

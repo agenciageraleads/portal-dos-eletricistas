@@ -143,4 +143,9 @@ export class UsersController {
     async findAvailable(@Query('city') city?: string) {
         return this.usersService.findAvailable(city);
     }
+
+    @Get('profile/public/:id')
+    async getPublicProfile(@Param('id') id: string) {
+        return this.usersService.getPublicProfile(id);
+    }
 }

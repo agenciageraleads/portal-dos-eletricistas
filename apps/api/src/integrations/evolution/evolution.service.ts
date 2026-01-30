@@ -38,8 +38,13 @@ export class EvolutionService {
         }
 
         try {
-            // Remove caracteres não numéricos
-            const cleanNumber = phoneNumber.replace(/\D/g, '');
+            // Garante que o número tenha o prefixo 55 se tiver 11 dígitos (Brasil sem DDI)
+            let cleanNumber = phoneNumber.replace(/\D/g, '');
+            if (cleanNumber.length === 11 || cleanNumber.length === 10) {
+                cleanNumber = '55' + cleanNumber;
+            }
+
+            this.logger.log(`Buscando foto de perfil para: ${cleanNumber}`);
 
             // Endpoint: POST /chat/fetchProfilePictureUrl/{instance}
             const response = await this.httpClient.post(
@@ -49,12 +54,15 @@ export class EvolutionService {
                 }
             );
 
-            if (response.data?.profilePictureUrl) {
+            // Suporta formatos 'profilePictureUrl' (v2) ou 'url' (v1/v2-legacy)
+            const photoUrl = response.data?.profilePictureUrl || response.data?.url;
+
+            if (photoUrl) {
                 this.logger.log(`✅ Foto encontrada para ${cleanNumber}`);
-                return response.data.profilePictureUrl;
+                return photoUrl;
             }
 
-            this.logger.log(`ℹ️ Nenhuma foto de perfil para ${cleanNumber}`);
+            this.logger.log(`ℹ️ Nenhuma foto de perfil encontrada para ${cleanNumber}`);
             return null;
 
         } catch (error: any) {

@@ -14,6 +14,8 @@ interface User {
     role?: string;
     bio?: string;
     pix_key?: string;
+    city?: string;
+    state?: string;
     isAvailableForWork?: boolean;
     _count?: {
         budgets: number;

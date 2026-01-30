@@ -101,15 +101,51 @@ export class UsersService {
                 city: true,
                 state: true,
                 logo_url: true,
-                phone: true, // Needed for Whatsapp link
+                phone: true,
                 isAvailableForWork: true,
                 pre_cadastrado: true,
-                cadastro_finalizado: true
+                cadastro_finalizado: true,
+                commercial_index: true // Adicionado para ranking
             },
             orderBy: [
+                { commercial_index: 'desc' }, // Prioridade máxima: índice comercial Sankhya
                 { cadastro_finalizado: 'desc' },
                 { name: 'asc' }
             ]
         });
+    }
+
+    async getPublicProfile(id: string) {
+        // Increment view count asynchronously
+        this.prisma.user.update({
+            where: { id },
+            data: { view_count: { increment: 1 } }
+        }).catch(err => console.error('Error incrementing view_count:', err));
+
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                business_name: true,
+                city: true,
+                state: true,
+                bio: true,
+                logo_url: true,
+                role: true,
+                phone: true,
+                cadastro_finalizado: true,
+                commercial_index: true,
+                total_orders: true,
+                view_count: true,
+                createdAt: true,
+            }
+        });
+
+        if (!user) {
+            return null;
+        }
+
+        return user;
     }
 }

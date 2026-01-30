@@ -128,12 +128,15 @@ export default function CatalogPage() {
     return (
         <div className="min-h-screen bg-gray-50 pb-24"> {/* pb-24 space for floating cart */}
             {/* Header */}
-            <header className="bg-white shadow-sm sticky top-0 z-10">
+            <header className="bg-white shadow-sm sticky top-0 z-20">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/" className="text-gray-500 hover:text-gray-700">
+                        <button
+                            onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
+                            className="text-gray-500 hover:text-gray-700 p-1"
+                        >
                             <ArrowLeft size={24} />
-                        </Link>
+                        </button>
                         <div className="flex items-center gap-2">
                             <h1 className="text-xl font-bold text-gray-800">Catálogo PortalElétricos</h1>
                         </div>
@@ -142,7 +145,9 @@ export default function CatalogPage() {
             </header >
 
             <main className="max-w-5xl mx-auto px-4 py-6">
-                <ProductSearch onSearch={handleSearch} />
+                <div className="sticky top-[73px] z-10 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 py-2 border-b border-gray-200/50 mb-6">
+                    <ProductSearch onSearch={handleSearch} />
+                </div>
 
                 {/* Categories Navigation - Stories Style */}
                 {/* Always show unless strictly searching text? User asked: "nao precisa desaparecer, mas nao precisa filtrar com a categoria, ficam somente nas pesquisas saca?"

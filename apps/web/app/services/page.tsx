@@ -36,6 +36,7 @@ interface Professional {
     isAvailableForWork: boolean;
     pre_cadastrado: boolean;
     cadastro_finalizado: boolean;
+    commercial_index: number | null;
 }
 
 export default function ServicesPage() {
@@ -246,7 +247,7 @@ export default function ServicesPage() {
             </header>
 
             {/* Content */}
-            <main className="flex-1 px-4 py-4 max-w-md mx-auto w-full space-y-4">
+            <main className="flex-1 px-4 py-4 max-w-5xl mx-auto w-full space-y-4">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-10 opacity-50">
                         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -354,21 +355,21 @@ export default function ServicesPage() {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {professionals.map(prof => (
-                                <div key={prof.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col gap-3">
-                                    <div className="flex items-center gap-3">
+                                <div key={prof.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col gap-3 hover:border-blue-300 transition-all">
+                                    <Link href={`/perfil/${prof.id}`} className="flex items-center gap-3">
                                         <div className="relative">
                                             <div className="w-14 h-14 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden">
                                                 {prof.logo_url ? (
-                                                    <img src={prof.logo_url} alt={prof.name} className="w-full h-full object-cover" />
+                                                    <img src={prof.logo_url.startsWith('http') ? prof.logo_url : `${process.env.NEXT_PUBLIC_API_URL || ''}${prof.logo_url}`} alt={prof.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold text-lg">
                                                         {prof.name.charAt(0)}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className={`absolute bottom-0 right-0 w-4 h-4 border-2 border-white rounded-full ${prof.cadastro_finalizado ? 'bg-green-500' : 'bg-gray-300'}`} title={prof.cadastro_finalizado ? 'Online' : 'Inativo'}></div>
+                                            <div className={`absolute bottom-0 right-0 w-4 h-4 border-2 border-white rounded-full ${prof.isAvailableForWork ? 'bg-green-500' : 'bg-gray-300'}`} title={prof.isAvailableForWork ? 'Online' : 'Inativo'}></div>
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-gray-900">{prof.name}</h3>
@@ -378,6 +379,11 @@ export default function ServicesPage() {
                                                 ) : (
                                                     <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">Aguardando Ativação</span>
                                                 )}
+                                                {prof.commercial_index && Number(prof.commercial_index) > 0 && (
+                                                    <span className="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
+                                                        Rank #{Math.round(Number(prof.commercial_index))}
+                                                    </span>
+                                                )}
                                             </div>
                                             {prof.city && (
                                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -385,7 +391,7 @@ export default function ServicesPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </Link>
 
                                     {prof.cadastro_finalizado && prof.phone ? (
                                         <a

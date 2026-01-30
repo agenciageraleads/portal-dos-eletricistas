@@ -81,7 +81,10 @@ export class ProductsService implements OnModuleInit {
         try {
             const where: Prisma.ProductWhereInput = {
                 is_available: true,
-                price: { gt: 0 }, // Filter out 0-price products (Item 2.6)
+                OR: [
+                    { price: { gt: 0 } },
+                    { type: 'SERVICE' }
+                ]
             };
 
             if (category) {

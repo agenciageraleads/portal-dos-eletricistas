@@ -52,6 +52,14 @@ export class SyncController {
     async getSyncStatus() {
         return this.syncService.getStatus();
     }
+
+    /**
+     * Popula banco com serviços padrão (Tabela Engehall 2025)
+     */
+    @Post('seed-services')
+    async seedServices() {
+        return this.syncService.seedServices();
+    }
 }
 
 

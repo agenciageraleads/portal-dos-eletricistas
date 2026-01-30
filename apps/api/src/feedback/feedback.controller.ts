@@ -44,8 +44,9 @@ export class FeedbackController {
     }
 
     @Get()
-    findAll() {
-        return this.feedbackService.findAll();
+    @UseGuards(AuthGuard('jwt'))
+    findAll(@Request() req: any) {
+        return this.feedbackService.findAll(req.user);
     }
 
     @Patch(':id/reply')

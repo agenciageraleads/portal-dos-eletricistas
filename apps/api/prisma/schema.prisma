@@ -49,6 +49,7 @@ model User {
   total_revenue        Decimal?   @db.Decimal(12, 2) // VLR_TOTAL_1100
   average_ticket       Decimal?   @db.Decimal(10, 2) // TICKET_MEDIO
   sankhya_synced_at    DateTime?  // Última sincronização
+  view_count           Int        @default(0) // Contador de visualizações (Gamificação)
 
   chatMessages       ChatMessage[]
   chatSessions       ChatSession[]

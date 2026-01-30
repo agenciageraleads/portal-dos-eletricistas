@@ -77,16 +77,22 @@ export default function InboxPage() {
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
                 ) : notifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
-                            <Bell size={32} />
+                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-400">
+                            <Bell size={40} className="animate-bounce" />
                         </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800">Tudo limpo por aqui!</h2>
-                            <p className="text-gray-500 max-w-xs mx-auto mt-1">
+                        <div className="space-y-2">
+                            <h2 className="text-xl font-bold text-gray-800">Tudo limpo por aqui! 🚀</h2>
+                            <p className="text-sm text-gray-500 max-w-xs mx-auto">
                                 Você não tem novas notificações no momento. Avisaremos quando algo importante acontecer.
                             </p>
                         </div>
+                        <Link
+                            href="/"
+                            className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all"
+                        >
+                            Voltar ao Início
+                        </Link>
                     </div>
                 ) : (
                     <div className="space-y-3">

@@ -12,9 +12,17 @@ export class FeedbackService {
         });
     }
 
-    // Admin use only
-    async findAll() {
+    // List feedbacks with privacy (Item 2.5)
+    async findAll(user: any) {
+        const where: Prisma.FeedbackWhereInput = {};
+
+        // If not ADMIN, only see own feedbacks
+        if (user.role !== 'ADMIN') {
+            where.userId = user.id;
+        }
+
         return this.prisma.feedback.findMany({
+            where,
             orderBy: { createdAt: 'desc' },
             include: { product: true }
         });

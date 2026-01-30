@@ -447,6 +447,13 @@ function OrcamentoContent() {
                                     onChange={(e) => setExecutionTime(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {['5 dias úteis', '10 dias úteis', '15 dias úteis'].map(val => (
+                                        <button key={val} type="button" onClick={() => setExecutionTime(val)} className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                            {val}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
@@ -457,6 +464,13 @@ function OrcamentoContent() {
                                     onChange={(e) => setPaymentTerms(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {['50% entrada + 50% final', 'À vista', 'Cartão 3x'].map(val => (
+                                        <button key={val} type="button" onClick={() => setPaymentTerms(val)} className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                            {val}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Validade do Orçamento</label>
@@ -467,6 +481,13 @@ function OrcamentoContent() {
                                     onChange={(e) => setValidity(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {['7 dias', '15 dias', '30 dias'].map(val => (
+                                        <button key={val} type="button" onClick={() => setValidity(val)} className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                            {val}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Garantia (Mão de Obra)</label>
@@ -477,6 +498,13 @@ function OrcamentoContent() {
                                     onChange={(e) => setWarranty(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {['90 dias', '6 meses', '1 ano'].map(val => (
+                                        <button key={val} type="button" onClick={() => setWarranty(val)} className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                            {val}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 

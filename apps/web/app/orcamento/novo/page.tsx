@@ -14,11 +14,11 @@ export default function BudgetTypeSelection() {
                     <h1 className="text-2xl font-bold text-gray-900">Novo Orçamento</h1>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                     {/* Option 1: Full Budget */}
                     <Link
                         href="/orcamento?mode=full"
-                        className="group bg-white p-8 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 hover:shadow-xl transition-all cursor-pointer flex flex-col items-center text-center"
+                        className="group bg-white p-6 md:p-8 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 hover:shadow-xl transition-all cursor-pointer flex flex-col items-center text-center"
                     >
                         <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                             <PackagePlus size={40} />
@@ -48,7 +48,7 @@ export default function BudgetTypeSelection() {
 
                     {/* Option 3: Products Only */}
                     <Link
-                        href="/orcamento?mode=product"
+                        href="/catalogo?mode=product"
                         className="group bg-white p-8 rounded-2xl shadow-sm border-2 border-transparent hover:border-purple-500 hover:shadow-xl transition-all cursor-pointer flex flex-col items-center text-center md:col-span-2 lg:col-span-1"
                     >
                         <div className="w-20 h-20 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
