@@ -180,7 +180,14 @@ export class ElectricianSyncService {
     private async downloadAndUploadWhatsAppPhoto(phone: string, cpf: string): Promise<string | null> {
         try {
             // 1. Buscar URL da foto via Evolution API
-            const photoUrl = await this.evolutionService.getProfilePicture(phone);
+            let photoUrl = await this.evolutionService.getProfilePicture(phone);
+
+            // Caso falhe, tenta sem o nono dígito (para números antigos)
+            if (!photoUrl && phone.length === 13 && phone.startsWith('55')) {
+                const legacyNumber = phone.slice(0, 4) + phone.slice(5);
+                this.logger.log(`   🔄 Tentando número legado (sem nono dígito): ${legacyNumber}`);
+                photoUrl = await this.evolutionService.getProfilePicture(legacyNumber);
+            }
 
             if (!photoUrl) {
                 return null;
@@ -212,7 +219,10 @@ export class ElectricianSyncService {
             return publicUrl;
 
         } catch (error: any) {
-            this.logger.warn(`Erro ao processar foto do WhatsApp: ${error.message}`);
+            this.logger.warn(`   ⚠️ Erro ao processar foto do WhatsApp (${phone}): ${error.message}`);
+            if (error.response) {
+                this.logger.warn(`   DEBUG: Evolution API respondeu: ${JSON.stringify(error.response.data)}`);
+            }
             return null;
         }
     }

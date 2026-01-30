@@ -7,6 +7,7 @@ import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { S3Service } from '../common/s3.service';
+import * as sharp from 'sharp';
 
 @Controller('users')
 export class UsersController {
@@ -56,11 +57,30 @@ export class UsersController {
             throw new BadRequestException('Arquivo não enviado');
         }
 
+        let processedBuffer = file.buffer;
+        let processedMimetype = file.mimetype;
+        let processedExtension = extname(file.originalname).toLowerCase();
+
+        // Conversão de HEIC/HEIF para JPG (Sharp)
+        if (processedExtension === '.heic' || processedExtension === '.heif' || file.mimetype.includes('heic') || file.mimetype.includes('heif')) {
+            try {
+                console.log('🔄 Converting HEIC/HEIF to JPG...');
+                processedBuffer = await sharp(file.buffer)
+                    .toFormat('jpeg')
+                    .toBuffer();
+                processedMimetype = 'image/jpeg';
+                processedExtension = '.jpg';
+                console.log('✅ Conversion successful');
+            } catch (error) {
+                console.error('❌ HEIC Conversion failed:', error);
+                // Continua com o original se falhar, mas avisa
+            }
+        }
+
         // Now safe to use req.user.id or req.user.sub (aliases in Strategy)
         const userId = req.user.sub || req.user.id || req.user.userId;
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const extension = extname(file.originalname);
-        const filename = `logos/logo-${userId}-${uniqueSuffix}${extension}`;
+        const filename = `logos/logo-${userId}-${uniqueSuffix}${processedExtension}`;
 
         let logoUrl: string;
 
@@ -70,9 +90,9 @@ export class UsersController {
             try {
                 console.log('Attempting S3 upload...');
                 logoUrl = await this.s3Service.uploadBuffer(
-                    file.buffer,
+                    processedBuffer,
                     filename,
-                    file.mimetype
+                    processedMimetype
                 );
                 console.log('S3 Upload success:', logoUrl);
             } catch (error) {
@@ -87,12 +107,12 @@ export class UsersController {
                 mkdirSync(uploadDir, { recursive: true });
             }
 
-            const localFilename = `logo-${userId}-${uniqueSuffix}${extension}`;
+            const localFilename = `logo-${userId}-${uniqueSuffix}${processedExtension}`;
             const filePath = join(uploadDir, localFilename);
 
             try {
                 console.log('Attempting Local FS upload to:', filePath);
-                writeFileSync(filePath, file.buffer);
+                writeFileSync(filePath, processedBuffer);
                 logoUrl = `/uploads/logos/${localFilename}`;
                 console.log('Local Upload success:', logoUrl);
             } catch (error) {

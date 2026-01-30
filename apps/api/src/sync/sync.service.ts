@@ -123,6 +123,7 @@ export class SyncService implements OnModuleInit {
                         lt: new Date(startTime), // Menor que o início do sync
                     },
                     is_available: true, // Apenas os que estão ativos
+                    type: 'MATERIAL', // NÃO desativar serviços (seeding manual)
                 },
                 data: {
                     is_available: false,

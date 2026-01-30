@@ -81,37 +81,31 @@ export class ProductsService implements OnModuleInit {
         try {
             const where: Prisma.ProductWhereInput = {
                 is_available: true,
-                OR: [
-                    { price: { gt: 0 } },
-                    { type: 'SERVICE' }
-                ]
             };
+
+            // Regra v2.1: Materiais só aparecem se preço > 0. Serviços sempre aparecem.
+            if (type === 'SERVICE') {
+                where.type = 'SERVICE';
+            } else if (type === 'MATERIAL') {
+                where.type = 'MATERIAL';
+                where.price = { gt: 0 };
+            } else {
+                // Catálogo geral: esconde materiais com preço zero, mas mostra serviços
+                where.OR = [
+                    { type: 'MATERIAL', price: { gt: 0 } },
+                    { type: 'SERVICE' }
+                ];
+            }
 
             if (category) {
                 const categories = category.split(',').map(c => c.trim());
                 if (categories.length > 1) {
-                    // Use OR for multiple categories
-                    where.OR = [
-                        ...(where.OR as Prisma.ProductWhereInput[] || []),
-                        ...categories.map(c => ({ category: { equals: c, mode: 'insensitive' as Prisma.QueryMode } }))
+                    where.AND = [
+                        { OR: categories.map(c => ({ category: { equals: c, mode: 'insensitive' as Prisma.QueryMode } })) }
                     ];
                 } else {
                     where.category = { equals: category, mode: 'insensitive' as Prisma.QueryMode };
                 }
-            }
-
-            if (type) {
-                where.type = { equals: type as any };
-            } else {
-                // Default behavior: if no type specified, show only MATERIAL?
-                // User requested explicit separate lists.
-                // If I don't filter, it shows mixed.
-                // Let's keep it mixed by default unless specified, OR default to MATERIAL if most existing calls rely on it.
-                // But browsing mixed is weird.
-                // Let's default to MATERIAL if type is not present AND generic browsing.
-                // Actually, existing frontend expects Products (Materials).
-                // So if type is undefined, lets filter standard MATERIAL to hide services from general catalog.
-                where.type = 'MATERIAL';
             }
 
             let isSearch = false;
