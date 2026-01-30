@@ -98,7 +98,7 @@ export default function InstallPrompt() {
             <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-violet-600 text-white p-4 shadow-2xl z-50 animate-slide-up pb-safe">
                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
                     <div className="flex-1">
-                        <p className="text-sm font-semibold mb-1">Instalar Portal dos Eletricistas</p>
+                        <p className="text-sm font-semibold mb-1">Instalar PortalElétricos</p>
                         <p className="text-xs opacity-90">
                             Adicione à tela inicial para acesso rápido e recursos offline
                         </p>

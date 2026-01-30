@@ -67,7 +67,7 @@ export default function Home() {
                             <Zap size={28} fill="currentColor" />
                         </div>
                         <span className="font-bold text-lg text-blue-900 tracking-tight">
-                            Portal<span className="text-blue-600">Eletricista</span>
+                            Portal<span className="text-blue-600">Elétricos</span>
                         </span>
                     </div>
 

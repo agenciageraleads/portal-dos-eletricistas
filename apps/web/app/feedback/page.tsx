@@ -59,7 +59,7 @@ export default function FeedbackPage() {
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Obrigado pelo Feedback!</h1>
                 <p className="text-gray-600 mb-8 max-w-sm">
-                    Sua opinião é fundamental para melhorarmos o Portal dos Eletricistas.
+                    Sua opinião é fundamental para melhorarmos o PortalElétricos.
                 </p>
                 <button
                     onClick={() => { setSent(false); setMessage(''); }}

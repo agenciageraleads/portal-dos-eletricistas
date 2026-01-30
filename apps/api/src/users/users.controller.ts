@@ -34,8 +34,8 @@ export class UsersController {
     @UseInterceptors(FileInterceptor('logo', {
         storage: memoryStorage(),
         fileFilter: (req, file, cb) => {
-            if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-                return cb(new Error('Apenas imagens são permitidas!'), false);
+            if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp|heic|heif)$/)) {
+                return cb(new Error('Apenas imagens são permitidas (JPG, PNG, WEBP, HEIC)!'), false);
             }
             cb(null, true);
         },

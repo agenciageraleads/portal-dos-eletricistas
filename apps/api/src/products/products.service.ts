@@ -81,6 +81,7 @@ export class ProductsService implements OnModuleInit {
         try {
             const where: Prisma.ProductWhereInput = {
                 is_available: true,
+                price: { gt: 0 }, // Filter out 0-price products (Item 2.6)
             };
 
             if (category) {
@@ -204,8 +205,18 @@ export class ProductsService implements OnModuleInit {
                             score += maxStartScore;
                             let maxWordScore = 0;
                             const nameWords = name.split(/[\s\-\/\.]+/);
+                            // Deep split: break digit-to-alphabet transitions (e.g. 10mm -> 10, mm)
+                            const nameWordsDeep: string[] = [];
+                            nameWords.forEach(w => {
+                                nameWordsDeep.push(w);
+                                const parts = w.split(/(?<=[a-zA-Z])(?=\d)|(?<=\d)(?=[a-zA-Z])/);
+                                if (parts.length > 1) {
+                                    parts.forEach(p => nameWordsDeep.push(p));
+                                }
+                            });
+
                             allVariations.forEach(term => {
-                                if (nameWords.includes(term)) maxWordScore = Math.max(maxWordScore, 50);
+                                if (nameWordsDeep.includes(term)) maxWordScore = Math.max(maxWordScore, 50);
                                 else if (name.includes(term)) score += 10;
                             });
                             score += maxWordScore;

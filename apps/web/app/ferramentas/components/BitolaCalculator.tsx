@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { ChevronRight, RefreshCw, Cable } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function BitolaCalculator() {
+    const router = useRouter();
     const [voltage, setVoltage] = useState('220');
     const [power, setPower] = useState('');
     const [distance, setDistance] = useState('');
@@ -142,7 +144,10 @@ export function BitolaCalculator() {
                         </div>
                     </div>
 
-                    <button className="mt-4 w-full bg-white border border-gray-200 text-blue-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50">
+                    <button
+                        onClick={() => router.push(`/catalogo?q=CABO+${result.gauge}MM`)}
+                        className="mt-4 w-full bg-white border border-gray-200 text-blue-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50"
+                    >
                         Buscar Cabos {result.gauge}mm <ChevronRight size={16} />
                     </button>
                 </div>

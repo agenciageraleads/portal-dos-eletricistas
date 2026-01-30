@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .catch((error) => {
                     // Token inválido - limpar TUDO
                     console.log('[AuthContext] ❌ Token inválido, limpando sessão...', error?.response?.status);
-                    Cookies.remove('token');
+                    Cookies.remove('token', { path: '/' });
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                     delete axios.defaults.headers.common['Authorization'];
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const login = (token: string, userData: User) => {
-        Cookies.set('token', token, { expires: 7 }); // 7 days
+        Cookies.set('token', token, { expires: 7, path: '/' }); // 7 days
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = () => {
-        Cookies.remove('token');
+        Cookies.remove('token', { path: '/' });
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];

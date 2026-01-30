@@ -155,6 +155,14 @@ export function getVariations(token: string): string[] {
         variations.add(withComma);
     }
 
+    // Numbers: 10 <-> 10,0
+    const intMatch = normalized.match(/^(\d+)$/);
+    if (intMatch) {
+        const val = intMatch[1];
+        variations.add(`${val},0`);
+        variations.add(`${val}.0`);
+    }
+
     // Units: 2.5mm -> 2.5
     // Regex para pegar numero seguido de mm (ex: 2.5mm, 4mm)
     const mmMatch = normalized.match(/^(\d+(?:[\.,]\d+)?)MM$/);
@@ -167,13 +175,13 @@ export function getVariations(token: string): string[] {
         const withComma = numberPart.replace('.', ',');
         variations.add(withDot);
         variations.add(withComma);
-    }
 
-    // Se é só número, talvez adicionar variação com mm?
-    // Ex: "2.5" -> "2.5mm"? Perigoso (pode ser R$2.5). Melhor não.
-    // O contexto de busca "cabo 2.5" vai achar "cabo 2.5mm" se o produto tiver "2.5mm" no nome?
-    // Se produto tem "Cabo 2,5mm", e busco "2.5", o contains pega? Não necessariamente se "2.5" != "2,5".
-    // Mas agora adicionamos "2,5" como variação de "2.5". Então "contains(2,5)" vai pegar.
+        // Adiciona também a versão com ",0" se for inteiro
+        if (!numberPart.includes('.') && !numberPart.includes(',')) {
+            variations.add(`${numberPart},0`);
+            variations.add(`${numberPart}.0`);
+        }
+    }
 
     return Array.from(variations);
 }

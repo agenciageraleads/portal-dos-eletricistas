@@ -27,13 +27,13 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Portal dos Eletricistas",
+  title: "PortalElétricos",
   description: "Crie orçamentos profissionais de materiais elétricos de forma rápida e fácil",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Portal dos Eletricistas",
+    title: "PortalElétricos",
   },
   icons: {
     icon: [

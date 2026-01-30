@@ -48,7 +48,7 @@ export default function DashboardPage() {
                 <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">P</div>
-                        <h1 className="font-bold text-gray-800 hidden sm:block">Painel do Eletricista</h1>
+                        <h1 className="font-bold text-gray-800 hidden sm:block">Painel PortalElétricos</h1>
                     </div>
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-gray-600 hidden sm:block">Olá, <strong>{user.name}</strong></span>

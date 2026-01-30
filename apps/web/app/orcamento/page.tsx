@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, Package, X } from 'lucide-react';
+import { useToast } from '../components/Toast';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -163,9 +164,38 @@ function OrcamentoContent() {
         setManualImage('');
     };
 
+    // Auto-save draft to localStorage to prevent data loss
+    useEffect(() => {
+        if (items.length > 0 || labor > 0) {
+            const draft = {
+                items,
+                laborValue,
+                laborDescription,
+                customerName,
+                customerPhone,
+                executionTime,
+                paymentTerms,
+                validity,
+                warranty,
+                notes
+            };
+            localStorage.setItem('budget_draft_backup', JSON.stringify(draft));
+        }
+    }, [items, laborValue, laborDescription, customerName, customerPhone, executionTime, paymentTerms, validity, warranty, notes, labor]);
+
+    const { showToast } = useToast();
+
     const handleFinish = async (type: 'DRAFT' | 'SHARED') => {
+        if (loading) return;
         setLoading(true);
         try {
+            // Basic validation
+            if (items.length === 0 && labor === 0) {
+                showToast('Adicione pelo menos um item ou valor de mão de obra.', 'warning');
+                setLoading(false);
+                return;
+            }
+
             const payload = {
                 items: items.map(i => ({
                     product_id: i.isExternal ? null : i.id,
@@ -187,10 +217,14 @@ function OrcamentoContent() {
                 notes: notes,
                 show_unit_prices: showUnitPrices,
                 show_labor_total: showLaborTotal,
-                status: 'DRAFT'
+                status: 'DRAFT' // Always save as draft first, then generate link if shared
             };
 
             const { data } = await api.post('/budgets', payload);
+
+            // Clear backup on success
+            localStorage.removeItem('budget_draft_backup');
+
             if (type === 'SHARED') {
                 const link = `${window.location.origin}/o/${data.id}`;
                 setShareData({
@@ -200,12 +234,18 @@ function OrcamentoContent() {
                 setShowSuccessModal(true);
                 setEditId(data.id);
                 setIsEditMode(true);
+                showToast('Orçamento salvo e link gerado!', 'success');
             } else {
-                alert('Rascunho salvo!');
+                showToast('Rascunho salvo com sucesso!', 'success');
+                // Optional: Redirect or just confirmation
             }
-        } catch (error) {
-            console.error(error);
-            alert('Erro ao salvar.');
+        } catch (error: any) {
+            console.error('Erro ao salvar orçamento:', error);
+            const errorMsg = error.response?.data?.message || 'Erro ao salvar orçamento. Tente novamente.';
+            showToast(errorMsg, 'error');
+
+            // Backup save in case of error (already in effect via useEffect, but good to know)
+            alert(`Houve um erro: ${errorMsg}. Seus dados estão salvos localmente.`);
         } finally {
             setLoading(false);
         }

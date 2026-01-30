@@ -28,6 +28,7 @@ export default function CatalogPage() {
         { id: 'iluminacao', label: 'Iluminação', icon: '💡', queries: ['Iluminação Comercial', 'Iluminação Decorativa'] },
         { id: 'acessorios', label: 'Acessórios', icon: '🔌', queries: ['Acessórios', 'Ferragens', 'Elétrica', 'Equipamentos'] },
         { id: 'ferramentas', label: 'Ferramentas', icon: '🔧', queries: ['Ferramentas'] },
+        { id: 'servicos', label: 'Serviços', icon: '🛠️', queries: ['SERVICE'] },
         { id: 'automacao', label: 'Automação', icon: '🤖', queries: ['Automação'] },
         { id: 'interruptores', label: 'Interruptores e Tomadas', icon: '🏠', queries: ['Acabamento'] }, // "Acabamento" backend ID renamed to "Interruptores" for UI
         { id: 'fios', label: 'Fios e Cabos', icon: '⚡', queries: ['Cabos Diversos', 'Cabos Energia'] },
@@ -44,7 +45,14 @@ export default function CatalogPage() {
             };
 
             if (query) params.q = query;
-            if (category) params.category = category;
+
+            if (category) {
+                if (category === 'SERVICE') {
+                    params.type = 'SERVICE';
+                } else {
+                    params.category = category;
+                }
+            }
 
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/products`, { params });
             const newProducts = response.data.data;
@@ -127,7 +135,7 @@ export default function CatalogPage() {
                             <ArrowLeft size={24} />
                         </Link>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold text-gray-800">Catálogo de Produtos</h1>
+                            <h1 className="text-xl font-bold text-gray-800">Catálogo PortalElétricos</h1>
                         </div>
                     </div>
                 </div>

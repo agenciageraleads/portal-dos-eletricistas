@@ -4,9 +4,9 @@ Este documento oferece a visão executiva e estratégica dos marcos do projeto.
 
 ---
 
-## 🚀 Status Atual: Fase de Expansão e Diferenciais
+## 🚀 Status Atual: Beta 2.0 e Engajamento
 
-O MVP Crítico foi entregue e estabilizado. O foco agora é em ferramentas que geram retenção (Calculadoras, AI, Chat) e melhorias de UX.
+O MVP Crítico foi consolidado. O foco agora é transformar o app em uma ferramenta viciante através de gamificação, economia interna e senso de comunidade, visando aumentar a retenção e o tempo de uso diário.
 
 ---
 
@@ -14,65 +14,64 @@ O MVP Crítico foi entregue e estabilizado. O foco agora é em ferramentas que g
 
 ### Infraestrutura & Core
 
-- [x] **Staging Environment:** Ambiente beta estável com Docker/Alpine.
-- [x] **Image Persistence:** Integração com MinIO/S3.
-- [x] **Simplified Auth:** Login/Registro robusto (CPF/CNPJ).
-- [x] **Backend Optimization:** Fix de erros 500 e timeouts.
+- [x] **Ambiente de Staging:** Estável com Docker/Alpine.
+- [x] **Persistência de Imagens:** Integração com MinIO/S3.
+- [x] **Autenticação Simplificada:** Fluxo robusto via CPF/CNPJ.
+- [x] **Otimização de Backend:** Estabilização de rotas e performance.
 
 ### Funcionalidades (Features)
 
-- [x] **Busca Inteligente (+ Sinônimos):** Engine otimizado com curadoria de sinônimos via BD.
-- [x] **Catálogo "Stories":** Nova UI de filtros por categoria com scroll horizontal.
-- [x] **Orçamentos:** Fluxo completo com edição de quantidade, toggle de privacidade e observações.
-- [x] **Hub de Ferramentas (Básico):** Calculadora de Bitola e Disjuntores.
-- [x] **CRM & Dashboard:** Visão geral de orçamentos e perfil profissional.
-- [x] **Chat Sessions:** Histórico de conversas com IA (multi-sessão).
+- [x] **Busca Inteligente:** Engine com curadoria de sinônimos via BD.
+- [x] **Catálogo "Stories":** UI moderna com filtros por categoria.
+- [x] **Orçamentos:** Fluxo completo (edição, privacidade, observações).
+- [x] **Calculadora de Fonte LED:** Dimensionamento de fitas 12V e 24V.
+- [x] **Calculadora de Bitola (Trifásica):** Adicionado suporte a 380V.
+- [x] **Histórico de Chat:** Conversas multi-sessão com IA.
 
 ### Admin & Gestão
 
-- [x] **Admin Dashboard:** Painel administrativo (Visão Geral, Usuários, Orçamentos).
-- [x] **Failed Search Logging:** Monitoramento de buscas falhas.
-- [x] **AI Curator:** Ferramenta de IA para sugerir sinônimos para buscas falhas.
-- [x] **AI Budget Lab:** Ambiente de testes para o parser de orçamentos.
+- [x] **Admin Dashboard:** Visão geral de usuários, orçamentos e produtos.
+- [x] **Gestão de Produtos (Admin):** Edição e ativação de itens.
+- [x] **Monitoramento de Buscas:** Registro de termos não encontrados.
+- [x] **AI Curator & Budget Lab:** Ferramentas de treinamento e teste para IA.
 
 ---
 
-## 🚧 Em Progresso / Próximo Foco (In Progress / Next)
+## 🚧 Em Progresso (Q1 2026)
 
-### Ferramentas & Calculadoras
+### Melhorias de Utilidade
 
-- [ ] **Calculadora de Fonte para Fita LED:** Dimensionamento de fontes com base na metragem e potência.
-- [ ] **Refinamento Ferramentas:** Adicionar opção Trifásico (380v) nas calculadoras existentes.
+- [ ] **Calculadora de Disjuntores:** Adicionar suporte a circuitos trifásicos.
+- [ ] **PDF Personalizado:** Layout profissional com logo da empresa do usuário.
+- [ ] **Reset de Senha (Admin):** Interface para gestão de acesso dos usuários.
+- [ ] **Onboarding Gamificado:** Tutorial interativo "mão na massa".
 
-### Gestão & Admin
+### 🎮 Beta 2.0 - Fase 1: Dopamina & Retenção
 
-- [ ] **Gestão de Produtos (Admin):** Interface para Editar/Desativar produtos diretamente pelo painel.
-- [ ] **Reset de Senha (Admin):** Funcionalidade para administradores resetarem senhas de usuários.
-
-### Melhorias de UX/UI
-
-- [ ] **PDF Personalizado:** Melhorar layout e incluir logo da empresa do eletricista.
-- [ ] **Onboarding Gamificado:** Finalizar implementação do Tutorial interativo (Componente existe, falta fluxo completo).
+- [ ] **Sistema de XP e Níveis:** Progressão visual (Aprendiz → Mestre).
+- [ ] **Missões Diárias:** Pequenas tarefas que geram recompensas.
+- [ ] **Streaks (Sequências):** Contador de dias consecutivos de uso.
+- [ ] **Dashboard "Meus Números":** Estatísticas de desempenho e valor orçado.
 
 ---
 
-## 🔮 Backlog & Futuro (Q1-Q2 2026)
+## 🔮 Futuro & Expansão (Q2 2026+)
 
-### Diferenciais Competitivos
+### Beta 2.0 - Fase 2: Economia & Social
 
-- [ ] **Especialista AI (Alpha):** Assistente GPT integrado ao contexto do catálogo.
-- [ ] **Produtos Cruzados (Cross-Sell):** "Quem comprou X também comprou Y".
-- [ ] **App Mobile Nativo:** Versão iOS/Android.
-- [ ] **Geolocalização:** Encontrar eletricistas próximos (marketplace).
+- [ ] **⚡ Raios (Moeda Virtual):** Economia interna para troca por benefícios ou descontos.
+- [ ] **Rankings Regionais:** Competição saudável entre eletricistas da mesma cidade.
+- [ ] **Notificações Inteligentes:** Pushs estratégicos baseados em comportamento e conquistas.
+- [ ] **Badges Colecionáveis:** Conquistas visuais no perfil.
 
-### Expansão Comercial
+### Beta 2.0 - Fase 3: Comunidade
 
-- [ ] **Desconto por Quantidade:** Tabelas de preço para atacado.
-- [ ] **Referral System:** Sistema de indicação com recompensas.
+- [ ] **Feed da Comunidade:** Compartilhamento de fotos ("Antes e Depois") e dicas.
+- [ ] **Chat Direto:** Interação em tempo real entre profissionais.
+- [ ] **Programa de Indicação:** Recompensas por trazer novos usuários.
 
-### Integrações (Postponed)
+### Expansão Estratégica
 
-- [ ] **Integração de Orçamento Sankhya (TOP 900):**
-  - **Objetivo:** Automatizar criação de orçamentos (Nota) no Sankhya.
-  - **Tech Spec:** `CommercialTransactionSP.saveRecord` com Header (TGFCAB, TOP 900) e Itens (TGFITE).
-  - **Obs:** Requer campo `sankhya_budget_id` e lógica de Parceiro Padrão.
+- [ ] **App Mobile Nativo (iOS/Android):** Expansão das capacidades mobile.
+- [ ] **Geolocalização:** Marketplace para conectar clientes a eletricistas.
+- [ ] **Integração Sankhya (TOP 900):** Automação total do ciclo de vendas.

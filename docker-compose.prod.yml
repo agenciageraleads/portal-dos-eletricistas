@@ -1,92 +1,119 @@
 version: "3.8"
 services:
   # ==========================================
-  # 1. FRONTEND WEB (Exposto via Traefik)
+  # 1. FRONTEND WEB PRODUCTION
   # ==========================================
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    image: lucasborgessb/portal_dos_eletricistas:web-${IMAGE_TAG:-staging}
+  web-prod:
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-prod
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2 # Alta disponibilidade para produção
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.portal_web.rule=Host(`app.portaleletricos.com.br`)"
-        - "traefik.http.routers.portal_web.entrypoints=websecure"
-        - "traefik.http.routers.portal_web.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.portal_web.loadbalancer.server.port=3000"
+        - "traefik.http.routers.portal_web_prod.rule=Host(`app.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_web_prod.entrypoints=websecure"
+        - "traefik.http.routers.portal_web_prod.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_web_prod.loadbalancer.server.port=3000"
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
-      # Aponta para o proxy interno do Traefik
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_API_URL: https://api.portaleletricos.com.br
     networks:
-      - portal_overlay
+      - portal_prod_overlay
       - Portainer
+
   # ==========================================
-  # 2. BACKEND API (Interno + Rota /api)
+  # 2. BACKEND API PRODUCTION
   # ==========================================
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    image: lucasborgessb/portal_dos_eletricistas:api-${IMAGE_TAG:-staging}
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
+  api-prod:
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-prod
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2 # Alta disponibilidade para produção
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
       labels:
         - "traefik.enable=true"
-        # Regra: Host Exclusivo para API
-        - "traefik.http.routers.portal_api.rule=Host(`api.portaleletricos.com.br`)"
-        - "traefik.http.routers.portal_api.entrypoints=websecure"
-        - "traefik.http.routers.portal_api.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.portal_api.loadbalancer.server.port=3000"
+        - "traefik.http.routers.portal_api_prod.rule=Host(`api.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_api_prod.entrypoints=websecure"
+        - "traefik.http.routers.portal_api_prod.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_api_prod.loadbalancer.server.port=3000"
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
-      PORT: ${PORT}
-      JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: ${DATABASE_URL}
-      # S3 / MinIO Configuration (Corrigido com nome do Bucket REAL)
+      PORT: 3000
+      JWT_SECRET: ${PROD_JWT_SECRET}
+      DATABASE_URL: postgresql://${PROD_DB_USER}:${PROD_DB_PASSWORD}@db-prod:5432/${PROD_DB_NAME}?schema=public
+
+      # S3/MinIO
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_BUCKET: ${S3_BUCKET}
+      S3_BUCKET: portal-prod
       S3_REGION: ${S3_REGION}
+
+      # Sankhya Integration
+      SANKHYA_CLIENT_ID: ${SANKHYA_CLIENT_ID}
+      SANKHYA_CLIENT_SECRET: ${SANKHYA_CLIENT_SECRET}
+      SANKHYA_X_TOKEN: ${SANKHYA_X_TOKEN}
+
+      # Evolution API (WhatsApp)
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL}
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
+      EVOLUTION_INSTANCE_NAME: ${EVOLUTION_INSTANCE_NAME}
+
+      # Email
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+
+      # Frontend
+      FRONTEND_URL: https://app.portaleletricos.com.br
+
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - portal_uploads_prod:/app/uploads
     networks:
-      - portal_overlay
+      - portal_prod_overlay
       - Portainer
     depends_on:
-      - db
+      - db-prod
+
   # ==========================================
-  # 3. POSTGRES 14 (BANCO DEDICADO)
+  # 3. POSTGRES PRODUCTION
   # ==========================================
-  db:
+  db-prod:
     image: postgres:14
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_prod_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${PROD_DB_USER}
+      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD}
+      POSTGRES_DB: ${PROD_DB_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${PROD_DB_USER} -d ${PROD_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     deploy:
       mode: replicated
       replicas: 1
     networks:
-      - portal_overlay
-# ==========================================
-# REDES E VOLUMES
-# ==========================================
+      - portal_prod_overlay
+
 networks:
-  portal_overlay:
+  portal_prod_overlay:
     driver: overlay
   Portainer:
     external: true
+
 volumes:
-  db_data:
+  db_prod_data:
+  portal_uploads_prod:
