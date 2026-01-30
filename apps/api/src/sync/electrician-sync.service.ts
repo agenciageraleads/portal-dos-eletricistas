@@ -38,8 +38,10 @@ export class ElectricianSyncService {
     /**
      * Sincroniza top eletricistas do Sankhya com fotos do WhatsApp
      * REGRA: Roda apenas UMA VEZ - não sobrescreve usuários que já finalizaram cadastro
+     * @param limit Número de eletricistas a sincronizar (padrão: 297 - todos os ativos)
+     * @param downloadPhotos Se deve baixar fotos do WhatsApp (padrão: true)
      */
-    async syncTopElectricians(limit: number = 50, downloadPhotos: boolean = true) {
+    async syncTopElectricians(limit: number = 297, downloadPhotos: boolean = true) {
         const startTime = Date.now();
         this.logger.log(`🚀 Iniciando sincronização de top ${limit} eletricistas...`);
 

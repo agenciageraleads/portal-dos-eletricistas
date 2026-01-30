@@ -32,7 +32,7 @@ export class SyncController {
     /**
      * Sincroniza top eletricistas do Sankhya
      * Query params: 
-     *   - limit (padrão: 50)
+     *   - limit (padrão: 297 - todos os eletricistas ativos)
      *   - photos (padrão: true) - baixar fotos do WhatsApp
      */
     @Post('electricians')
@@ -40,7 +40,7 @@ export class SyncController {
         @Query('limit') limit?: string,
         @Query('photos') photos?: string
     ) {
-        const limitNumber = limit ? parseInt(limit, 10) : 50;
+        const limitNumber = limit ? parseInt(limit, 10) : 297;
         const downloadPhotos = photos !== 'false'; // true por padrão
         return this.electricianSyncService.syncTopElectricians(limitNumber, downloadPhotos);
     }
