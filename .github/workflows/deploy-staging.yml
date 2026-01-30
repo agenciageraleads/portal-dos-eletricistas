@@ -65,6 +65,9 @@ jobs:
           echo "Web: ${{ env.IMAGE_PREFIX }}:web-staging"
           echo "API: ${{ env.IMAGE_PREFIX }}:api-staging"
 
+      - name: Wait for registry propagation
+        run: sleep 30
+
       - name: Trigger Portainer Webhook (API)
         run: curl -X POST https://portainer.gera-leads.com/api/webhooks/b864ee28-0b01-4e52-a846-4444775b97b8
 
