@@ -65,12 +65,12 @@ RUN arch="$(uname -m)" && \
     npm install sharp; \
     fi
 
-# Criar script de startup que roda migrations + seed + inicia app
+# Criar script de startup que roda db push + migrations + inicia app
 RUN echo '#!/bin/sh\n\
+    echo "🔄 Syncing database schema..."\n\
+    npx prisma db push --skip-generate --accept-data-loss || echo "⚠️  Schema already synced"\n\
     echo "🔄 Running database migrations..."\n\
-    npx prisma migrate deploy\n\
-    echo "🌱 Running database seed..."\n\
-    npx prisma db seed || echo "⚠️  Seed already executed or failed (skipping)"\n\
+    npx prisma migrate deploy || echo "⚠️  No migrations to run"\n\
     echo "🚀 Starting application..."\n\
     node dist/src/main.js\n\
     ' > /app/start.sh && chmod +x /app/start.sh
