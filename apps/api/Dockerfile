@@ -72,7 +72,7 @@ RUN echo '#!/bin/sh\n\
     echo "🔄 Running database migrations..."\n\
     npx prisma migrate deploy || echo "⚠️  No migrations to run"\n\
     echo "🚀 Starting application..."\n\
-    node dist/src/main.js\n\
+    node dist/main.js\n\
     ' > /app/start.sh && chmod +x /app/start.sh
 
 # Fix: Ensure nestjs user owns the cache created by the previous root command
