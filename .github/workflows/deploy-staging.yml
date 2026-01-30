@@ -7,12 +7,15 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 env:
-  REGISTRY: docker.io
-  IMAGE_PREFIX: lucasborgessb/portal_dos_eletricistas
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/agenciageraleads/portal-dos-eletricistas
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest  # AMD64 native runner
+    permissions:
+      contents: read
+      packages: write
     
     steps:
       - name: Checkout code
@@ -21,11 +24,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build and push Web image
         uses: docker/build-push-action@v5

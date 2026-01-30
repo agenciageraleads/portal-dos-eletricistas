@@ -9,7 +9,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://beta-api.portaleletricos.com.br
-    image: lucasborgessb/portal_dos_eletricistas:web-staging
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-staging
     deploy:
       mode: replicated
       replicas: 1
@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: lucasborgessb/portal_dos_eletricistas:api-staging
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-staging
     # REMOVIDO: comando duplicado - o Dockerfile já tem o start.sh que roda db push + migrations
     deploy:
       mode: replicated
