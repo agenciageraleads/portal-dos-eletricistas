@@ -46,4 +46,40 @@ export class SankhyaService {
             };
         }
     }
+
+    /**
+     * Busca top eletricistas da VIEW VW_RANKING_TECNICOS
+     * Ordenado por INDICE_COMERCIAL (maior contribuição)
+     */
+    async fetchTopElectricians(limit: number = 50) {
+        this.logger.log(`Buscando top ${limit} eletricistas do Sankhya...`);
+
+        const sql = `
+            SELECT * FROM (
+                SELECT 
+                    CODPARC,
+                    NOME_PARCEIRO,
+                    CPF,
+                    TELEFONE_WHATSAPP,
+                    CODVENDTEC,
+                    NOME_TECNICO_PRINCIPAL,
+                    CIDADE,
+                    ESTADO,
+                    QTD_PEDIDOS_1100,
+                    VLR_TOTAL_1100,
+                    TICKET_MEDIO,
+                    INDICE_COMERCIAL,
+                    ROWNUM AS RN
+                FROM VW_RANKING_TECNICOS
+                WHERE ROWNUM <= ${limit}
+                ORDER BY INDICE_COMERCIAL DESC
+            )
+            WHERE RN > 0
+        `;
+
+        const electricians = await this.sankhyaClient.executeQuery(sql);
+        this.logger.log(`${electricians.length} eletricistas encontrados`);
+
+        return electricians;
+    }
 }

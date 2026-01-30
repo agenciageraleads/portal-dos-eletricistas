@@ -25,6 +25,12 @@ export class AuthController {
     }
 
     @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 attempts per hour
+    @Get('check-registration/:identifier')
+    async checkRegistration(@Param('identifier') identifier: string) {
+        return await this.authService.checkRegistration(identifier);
+    }
+
+    @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 attempts per hour
     @Post('register')
     async register(@Body() createUserDto: any) {
         return await this.authService.register(createUserDto);

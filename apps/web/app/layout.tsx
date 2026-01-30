@@ -63,7 +63,7 @@ export default function RootLayout({
               <CartProvider>
                 <InstallProvider>
                   {children}
-                  <InstallPrompt />
+                  {/* <InstallPrompt /> */}
                 </InstallProvider>
               </CartProvider>
             </AuthProvider>

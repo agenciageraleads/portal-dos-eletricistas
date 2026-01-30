@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { SyncService } from './sync.service';
+import { ElectricianSyncService } from './electrician-sync.service';
 import { SankhyaImageService } from '../integrations/sankhya/sankhya-image.service';
 import { SankhyaService } from '../integrations/sankhya/sankhya.service';
 
@@ -7,6 +8,7 @@ import { SankhyaService } from '../integrations/sankhya/sankhya.service';
 export class SyncController {
     constructor(
         private readonly syncService: SyncService,
+        private readonly electricianSyncService: ElectricianSyncService,
         private readonly sankhyaService: SankhyaService,
         private readonly sankhyaImageService: SankhyaImageService,
     ) { }
@@ -25,6 +27,22 @@ export class SyncController {
     @Post('products')
     async syncProducts() {
         return this.syncService.syncProducts();
+    }
+
+    /**
+     * Sincroniza top eletricistas do Sankhya
+     * Query params: 
+     *   - limit (padrão: 50)
+     *   - photos (padrão: true) - baixar fotos do WhatsApp
+     */
+    @Post('electricians')
+    async syncElectricians(
+        @Query('limit') limit?: string,
+        @Query('photos') photos?: string
+    ) {
+        const limitNumber = limit ? parseInt(limit, 10) : 50;
+        const downloadPhotos = photos !== 'false'; // true por padrão
+        return this.electricianSyncService.syncTopElectricians(limitNumber, downloadPhotos);
     }
 
     /**

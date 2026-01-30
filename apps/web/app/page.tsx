@@ -159,7 +159,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Gamification / PWA INSTALL CARD */}
+                {/* Gamification / PWA INSTALL CARD - Hidden as requested
                 {!isInstalled && (
                     <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden border border-white/10">
                         <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
@@ -183,7 +183,7 @@ export default function Home() {
                             </button>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 <div className="mb-6">
                     <div className="flex items-center gap-3 mb-4 px-1">

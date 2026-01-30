@@ -76,10 +76,18 @@ export class UsersService {
     }
     // Services: Find available electricians (v2.0)
     async findAvailable(city?: string) {
+        const isFeatureEnabled = process.env.FEATURE_PRE_REG_DISABLED !== 'true';
+
         const where: any = {
             role: 'ELETRICISTA',
-            isAvailableForWork: true
+            OR: [
+                { isAvailableForWork: true }
+            ]
         };
+
+        if (isFeatureEnabled) {
+            where.OR.push({ pre_cadastrado: true });
+        }
 
         if (city) {
             where.city = { contains: city, mode: 'insensitive' };
@@ -94,9 +102,14 @@ export class UsersService {
                 state: true,
                 logo_url: true,
                 phone: true, // Needed for Whatsapp link
-                isAvailableForWork: true
+                isAvailableForWork: true,
+                pre_cadastrado: true,
+                cadastro_finalizado: true
             },
-            orderBy: { name: 'asc' }
+            orderBy: [
+                { cadastro_finalizado: 'desc' },
+                { name: 'asc' }
+            ]
         });
     }
 }

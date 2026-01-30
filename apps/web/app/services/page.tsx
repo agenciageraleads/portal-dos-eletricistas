@@ -34,15 +34,17 @@ interface Professional {
     logo_url: string | null;
     phone: string | null;
     isAvailableForWork: boolean;
+    pre_cadastrado: boolean;
+    cadastro_finalizado: boolean;
 }
 
 export default function ServicesPage() {
     const { user, refreshUser } = useAuth();
-    
+
     // Data States
     const [services, setServices] = useState<ServiceListing[]>([]);
     const [professionals, setProfessionals] = useState<Professional[]>([]);
-    
+
     // UI States
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -60,7 +62,7 @@ export default function ServicesPage() {
         } else {
             fetchProfessionals();
         }
-    }, [activeTab, cityFilter, minPrice, maxPrice]); 
+    }, [activeTab, cityFilter, minPrice, maxPrice]);
 
     const fetchServices = async () => {
         setIsLoading(true);
@@ -85,7 +87,7 @@ export default function ServicesPage() {
         try {
             const params = new URLSearchParams();
             if (cityFilter) params.append('city', cityFilter);
-            
+
             const { data } = await api.get(`/users/available?${params.toString()}`);
             setProfessionals(data);
         } catch (error) {
@@ -113,11 +115,11 @@ export default function ServicesPage() {
 
     const toggleAvailability = async () => {
         if (!user) return;
-        
+
         // Se usuário não tiver cidade cadastrada, avisar
         if (!user.city && !user.isAvailableForWork) {
-            if(!confirm('Você ainda não definiu sua cidade no perfil. Deseja ficar online mesmo assim? (Recomendamos editar seu perfil para aparecer nas buscas locais)')) {
-               return;
+            if (!confirm('Você ainda não definiu sua cidade no perfil. Deseja ficar online mesmo assim? (Recomendamos editar seu perfil para aparecer nas buscas locais)')) {
+                return;
             }
         }
 
@@ -142,16 +144,15 @@ export default function ServicesPage() {
                     <Link href="/" className="p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-full">
                         <ArrowLeft size={24} />
                     </Link>
-                    
+
                     {/* Toggle de Disponibilidade (Apenas Eletricistas) */}
                     {user?.role === 'ELETRICISTA' ? (
                         <button
                             onClick={toggleAvailability}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs transition-all shadow-sm border ${
-                                user.isAvailableForWork 
-                                ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' 
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs transition-all shadow-sm border ${user.isAvailableForWork
+                                ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
                                 : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                            }`}
+                                }`}
                         >
                             <div className={`w-2 h-2 rounded-full ${user.isAvailableForWork ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
                             {user.isAvailableForWork ? 'Estou Disponível' : 'Ficar Disponível'}
@@ -165,21 +166,19 @@ export default function ServicesPage() {
                 <div className="flex border-b border-gray-200 px-4">
                     <button
                         onClick={() => setActiveTab('BOARD')}
-                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
-                            activeTab === 'BOARD' 
-                            ? 'border-blue-600 text-blue-600' 
+                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'BOARD'
+                            ? 'border-blue-600 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
+                            }`}
                     >
                         Mural de Pedidos
                     </button>
                     <button
                         onClick={() => setActiveTab('PROFESSIONALS')}
-                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
-                            activeTab === 'PROFESSIONALS' 
-                            ? 'border-blue-600 text-blue-600' 
+                        className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'PROFESSIONALS'
+                            ? 'border-blue-600 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
+                            }`}
                     >
                         Encontrar Profissionais
                     </button>
@@ -190,7 +189,7 @@ export default function ServicesPage() {
                     <div className="flex gap-2">
                         <div className="relative flex-1">
                             <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input 
+                            <input
                                 type="text"
                                 placeholder={`Filtrar ${activeTab === 'BOARD' ? 'vagas' : 'profissionais'} por cidade...`}
                                 value={cityFilter}
@@ -199,7 +198,7 @@ export default function ServicesPage() {
                             />
                         </div>
                         {activeTab === 'BOARD' && (
-                            <button 
+                            <button
                                 onClick={() => setShowFilters(!showFilters)}
                                 className={`p-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-300 text-gray-600'}`}
                             >
@@ -215,7 +214,7 @@ export default function ServicesPage() {
                             <div className="flex items-center gap-2">
                                 <div className="relative flex-1">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                    <input 
+                                    <input
                                         type="number"
                                         placeholder="Min"
                                         value={minPrice}
@@ -226,7 +225,7 @@ export default function ServicesPage() {
                                 <span className="text-gray-400">-</span>
                                 <div className="relative flex-1">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                    <input 
+                                    <input
                                         type="number"
                                         placeholder="Max"
                                         value={maxPrice}
@@ -238,6 +237,12 @@ export default function ServicesPage() {
                         </div>
                     )}
                 </div>
+
+                {activeTab === 'PROFESSIONALS' && professionals.length > 0 && (
+                    <div className="px-4 py-2 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider border-b border-blue-100">
+                        + de {professionals.length + 50} eletricistas já cadastrados no portal
+                    </div>
+                )}
             </header>
 
             {/* Content */}
@@ -290,7 +295,7 @@ export default function ServicesPage() {
                                             {service.title}
                                         </h3>
                                         <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                            {service.user.name.split(' ')[0]} 
+                                            {service.user.name.split(' ')[0]}
                                             <span className="w-1 h-1 rounded-full bg-gray-300 mx-1"></span>
                                             {new Date(service.createdAt).toLocaleDateString()}
                                         </p>
@@ -319,7 +324,7 @@ export default function ServicesPage() {
 
                                     {service.whatsapp ? (
                                         <a
-                                            href={getWhatsAppLink(service.whatsapp, `Olá, vi seu pedido "${service.title}" no Portal.` )!}
+                                            href={getWhatsAppLink(service.whatsapp, `Olá, vi seu pedido "${service.title}" no Portal.`)!}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5"
@@ -363,12 +368,16 @@ export default function ServicesPage() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full" title="Online"></div>
+                                            <div className={`absolute bottom-0 right-0 w-4 h-4 border-2 border-white rounded-full ${prof.cadastro_finalizado ? 'bg-green-500' : 'bg-gray-300'}`} title={prof.cadastro_finalizado ? 'Online' : 'Inativo'}></div>
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-gray-900">{prof.name}</h3>
                                             <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                                                 <CheckCircle size={10} className="text-blue-500" /> Eletricista Verificado
+                                                {prof.cadastro_finalizado ? (
+                                                    <><CheckCircle size={10} className="text-blue-500" /> Eletricista Verificado</>
+                                                ) : (
+                                                    <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">Aguardando Ativação</span>
+                                                )}
                                             </div>
                                             {prof.city && (
                                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -378,7 +387,7 @@ export default function ServicesPage() {
                                         </div>
                                     </div>
 
-                                    {prof.phone ? (
+                                    {prof.cadastro_finalizado && prof.phone ? (
                                         <a
                                             href={getWhatsAppLink(prof.phone, `Olá ${prof.name.split(' ')[0]}, encontrei seu perfil no Portal e gostaria de um orçamento.`)!}
                                             target="_blank"
@@ -390,7 +399,7 @@ export default function ServicesPage() {
                                         </a>
                                     ) : (
                                         <button disabled className="mt-auto bg-gray-100 text-gray-400 w-full py-2.5 rounded-lg font-bold text-sm cursor-not-allowed">
-                                            Sem contato
+                                            {prof.cadastro_finalizado ? 'Sem contato' : 'Aguardando ativação'}
                                         </button>
                                     )}
                                 </div>
@@ -414,7 +423,7 @@ export default function ServicesPage() {
             {isCreateModalOpen && (
                 <CreateServiceModal
                     onClose={() => setIsCreateModalOpen(false)}
-                    initialType="REQUEST" 
+                    initialType="REQUEST"
                     onSuccess={() => {
                         setIsCreateModalOpen(false);
                         fetchServices();

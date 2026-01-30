@@ -36,6 +36,19 @@ model User {
   feedbacks            Feedback[]
   notifications        Notification[]
   push_subscriptions   PushSubscription[]
+  pre_cadastrado       Boolean    @default(false)
+  cadastro_finalizado  Boolean    @default(false)
+  registration_origin  String?    @default("MANUAL") // 'IMPORTED', 'MANUAL', 'INDICATION'
+  activatedAt          DateTime?
+  
+  // Campos Sankhya (Backend - Não editáveis)
+  sankhya_partner_id   Int?       // CODPARC
+  sankhya_vendor_id    Int?       // CODVENDTEC
+  commercial_index     Decimal?   @db.Decimal(10, 2) // INDICE_COMERCIAL
+  total_orders         Int?       // QTD_PEDIDOS_1100
+  total_revenue        Decimal?   @db.Decimal(12, 2) // VLR_TOTAL_1100
+  average_ticket       Decimal?   @db.Decimal(10, 2) // TICKET_MEDIO
+  sankhya_synced_at    DateTime?  // Última sincronização
 
   chatMessages       ChatMessage[]
   chatSessions       ChatSession[]
