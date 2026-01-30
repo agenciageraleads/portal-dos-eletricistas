@@ -28,3 +28,12 @@ apps/api/node_modules
 apps/web/node_modules
 .turbo
 .cache
+
+# Test files and reports
+tests
+test-results
+playwright-report
+**/*.har
+node_modules_trash
+coverage
+**/.coverage
