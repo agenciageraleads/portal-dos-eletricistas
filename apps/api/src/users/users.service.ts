@@ -44,7 +44,21 @@ export class UsersService implements OnModuleInit {
     async findById(userId: string) {
         return this.prisma.user.findUnique({
             where: { id: userId },
-            include: {
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                bio: true,
+                pix_key: true,
+                city: true,
+                state: true,
+                isAvailableForWork: true,
+                logo_url: true,
+                business_name: true,
+                cadastro_finalizado: true,
+                pre_cadastrado: true,
                 _count: {
                     select: { budgets: true }
                 }
@@ -228,9 +242,34 @@ export class UsersService implements OnModuleInit {
             return null;
         }
 
+        const rankResult = await this.prisma.$queryRaw<
+            { rank: number }[]
+        >`
+            SELECT rank
+            FROM (
+                SELECT
+                    id,
+                    ROW_NUMBER() OVER (
+                        ORDER BY
+                            CASE WHEN "is_ambassador" THEN 0 ELSE 1 END ASC,
+                            CASE WHEN "is_ambassador" THEN COALESCE("ambassador_rank", 9999) ELSE 9999 END ASC,
+                            "commercial_index" DESC NULLS LAST,
+                            "cadastro_finalizado" DESC,
+                            "name" ASC
+                    ) AS rank
+                FROM users
+                WHERE role = 'ELETRICISTA'
+                  AND ("isAvailableForWork" = true OR "pre_cadastrado" = true)
+            ) ranked
+            WHERE id = ${id}
+            LIMIT 1
+        `;
+        const rank = rankResult[0]?.rank ?? null;
+
         // Normalize name
         return {
             ...user,
+            rank,
             name: this.normalizeName(user.name)
         };
     }

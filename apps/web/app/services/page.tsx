@@ -463,7 +463,7 @@ export default function ServicesPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {professionals.map(prof => (
+                            {professionals.map((prof, index) => (
                                 <div
                                     key={prof.id}
                                     className={`bg-white rounded-xl shadow-sm border p-4 flex flex-col gap-3 transition-all ${
@@ -500,11 +500,9 @@ export default function ServicesPage() {
                                                 ) : (
                                                     <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">Aguardando Ativação</span>
                                                 )}
-                                                {prof.commercial_index && Number(prof.commercial_index) > 0 && (
-                                                    <span className="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
-                                                        Rank #{Math.round(Number(prof.commercial_index))}
-                                                    </span>
-                                                )}
+                                                <span className="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
+                                                    Rank #{index + 1}
+                                                </span>
                                             </div>
                                             {prof.city && (
                                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">

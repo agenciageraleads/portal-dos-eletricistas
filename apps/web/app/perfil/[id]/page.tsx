@@ -19,6 +19,7 @@ interface PublicProfile {
     commercial_index: number | null;
     is_ambassador?: boolean;
     ambassador_rank?: number | null;
+    rank?: number | null;
     total_orders: number | null;
     view_count: number | null;
     cadastro_finalizado: boolean;
@@ -191,7 +192,7 @@ export default function PublicProfilePage() {
                             <div className="flex items-center justify-center gap-0.5">
                                 <Star size={12} className="text-yellow-500 fill-yellow-500" />
                                 <p className="text-lg font-black text-gray-800">
-                                    #{profile.commercial_index ? Math.round(Number(profile.commercial_index)) : '--'}
+                                    #{profile.rank || '--'}
                                 </p>
                             </div>
                         </div>
