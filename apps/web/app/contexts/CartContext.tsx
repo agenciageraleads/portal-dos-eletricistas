@@ -15,13 +15,15 @@ export interface CartItem {
     unit?: string;
     isExternal?: boolean;
     suggestedSource?: string;
+    type?: 'MATERIAL' | 'SERVICE';
 }
 
-interface CartContextType {
+export interface CartContextType {
     items: CartItem[];
-    addToCart: (product: Product) => void;
+    addToCart: (product: Product, quantity?: number) => void;
     addManualItem: (item: Partial<CartItem>) => void;
     updateQuantity: (id: string, quantity: number) => void;
+    updatePrice: (id: string, price: string) => void;
     removeFromCart: (id: string) => void;
     clearCart: () => void;
     loadBudgetIntoCart: (budgetItems: any[]) => void;
@@ -51,12 +53,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('portal_cart', JSON.stringify(items));
     }, [items]);
 
-    const addToCart = (product: Product) => {
+    const addToCart = (product: Product, quantity: number = 1) => {
         setItems((prev) => {
             const existing = prev.find((item) => item.productId === product.id);
             if (existing) {
                 return prev.map((item) =>
-                    item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item
                 );
             }
             return [...prev, {
@@ -68,7 +70,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 brand: product.brand,
                 sankhya_code: product.sankhya_code,
                 unit: product.unit,
-                quantity: 1
+                type: (product as any).type || 'MATERIAL',
+                quantity: quantity
             }];
         });
     };
@@ -120,6 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 quantity: item.quantity,
                 sankhya_code: item.product?.sankhya_code,
                 unit: item.product?.unit || 'UN',
+                type: item.product?.type || 'MATERIAL',
             };
         });
         setItems(newItems);
@@ -139,8 +143,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const count = items.reduce((acc, item) => acc + item.quantity, 0);
 
+    const updatePrice = (id: string, newPrice: string) => {
+        setItems((prev) =>
+            prev.map((item) => (item.id === id ? { ...item, price: newPrice } : item))
+        );
+    };
+
     return (
-        <CartContext.Provider value={{ items, addToCart, addManualItem, updateQuantity, removeFromCart, clearCart, loadBudgetIntoCart, total, count }}>
+        <CartContext.Provider value={{ items, addToCart, addManualItem, updateQuantity, updatePrice, removeFromCart, clearCart, loadBudgetIntoCart, total, count }}>
             {children}
         </CartContext.Provider>
     );

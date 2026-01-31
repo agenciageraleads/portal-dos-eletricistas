@@ -9,7 +9,7 @@ import Link from 'next/link';
 import ImageCropModal from '../components/ImageCropModal';
 
 export default function PerfilPage() {
-    const { user } = useAuth();
+    const { user, refreshUser, loading: authLoading } = useAuth(); // Destructure refreshUser
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -19,6 +19,8 @@ export default function PerfilPage() {
     const [bio, setBio] = useState('');
     const [logoUrl, setLogoUrl] = useState('');
     const [pixKey, setPixKey] = useState('');
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Crop modal states
@@ -26,6 +28,8 @@ export default function PerfilPage() {
     const [tempImageSrc, setTempImageSrc] = useState('');
 
     useEffect(() => {
+        if (authLoading) return;
+
         if (!user) {
             router.push('/login');
             return;
@@ -42,6 +46,8 @@ export default function PerfilPage() {
                 setBio(profile.bio || '');
                 setLogoUrl(profile.logo_url || '');
                 setPixKey(profile.pix_key || '');
+                setCity(profile.city || '');
+                setState(profile.state || '');
             } catch (error) {
                 console.error('Erro ao carregar perfil:', error);
                 // Non-blocking error
@@ -51,7 +57,7 @@ export default function PerfilPage() {
         if (user) {
             fetchProfile();
         }
-    }, [user, router]);
+    }, [user, router]); // Keep user in dep array, but verify if loop occurs. Should be fine.
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -64,6 +70,9 @@ export default function PerfilPage() {
             setShowCropModal(true);
         };
         reader.readAsDataURL(file);
+
+        // Reset input so same file can be selected again if needed
+        e.target.value = '';
     };
 
     const handleCropSave = async (croppedBlob: Blob) => {
@@ -71,12 +80,16 @@ export default function PerfilPage() {
         setShowCropModal(false);
 
         const formData = new FormData();
-        // Modal always outputs WEBP (most efficient format)
-        formData.append('logo', croppedBlob, 'logo.webp');
+        // Use JPG for safer compatibility, though backend handles both
+        formData.append('logo', croppedBlob, 'logo.jpg');
 
         try {
             const response = await api.post('/users/upload-logo', formData);
             setLogoUrl(response.data.logo_url);
+
+            // CRITICAL: Refresh Auth Context to update Header immediately
+            await refreshUser();
+
             alert('Logo atualizada com sucesso!');
         } catch (error) {
             console.error('Erro ao fazer upload:', error);
@@ -95,13 +108,19 @@ export default function PerfilPage() {
                 business_name: businessName || undefined,
                 phone: phone || undefined,
                 bio: bio || undefined,
-                pix_key: pixKey || undefined
+                pix_key: pixKey || undefined,
+                city: city || undefined,
+                state: state || undefined
             };
 
             await api.patch(
                 '/users/profile',
                 payload
             );
+
+            // Update context details too
+            await refreshUser();
+
             alert('Perfil atualizado com sucesso!');
         } catch (error) {
             console.error('Erro ao atualizar perfil:', error);
@@ -110,6 +129,14 @@ export default function PerfilPage() {
             setLoading(false);
         }
     };
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+        );
+    }
 
     if (!user) return null;
 
@@ -148,6 +175,7 @@ export default function PerfilPage() {
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
+                            /* Relaxed accept to let OS handle conversion (HEIC etc) */
                             onChange={handleFileSelect}
                             className="hidden"
                         />
@@ -245,6 +273,44 @@ export default function PerfilPage() {
                             placeholder="CPF, CNPJ, Email ou Telefone"
                         />
                         <p className="text-xs text-gray-500 mt-1">Será exibida nos orçamentos para facilitar pagamentos</p>
+                    </div>
+
+                    {/* Location */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                <span className="font-bold">📍</span>
+                                Cidade
+                            </label>
+                            <input
+                                type="text"
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                                placeholder="Sua cidade"
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                Estado
+                            </label>
+                            <select
+                                value={state}
+                                onChange={(e) => setState(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            >
+                                <option value="">UF</option>
+                                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                                <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                                <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                                <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                                <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                                <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                                <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                                <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                                <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </main>

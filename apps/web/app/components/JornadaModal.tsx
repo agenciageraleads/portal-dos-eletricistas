@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useInstallPrompt } from '../contexts/InstallContext';
 import { Trophy, CheckCircle2, Circle, X, ChevronRight, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { driver } from "driver.js";
@@ -17,7 +18,8 @@ interface Task {
 }
 
 export default function JornadaModal() {
-    const { user, refreshUser } = useAuth(); // Assuming refreshUser exists or user updates on nav
+    const { user, refreshUser } = useAuth();
+    const { isInstalled, triggerInstall } = useInstallPrompt();
     const [isOpen, setIsOpen] = useState(false);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [progress, setProgress] = useState(0);
@@ -56,7 +58,14 @@ export default function JornadaModal() {
                 isCompleted: localStorage.getItem('hasSharedWhatsapp') === 'true',
                 action: '/orcamentos' // User needs to go there to share
             },
-            // Placeholder tasks for Future Features
+            {
+                id: 'install_app',
+                title: 'Instale o Aplicativo',
+                description: 'Tenha acesso offline e mais agilidade.',
+                isCompleted: isInstalled,
+                action: '#install-trigger',
+                tourTrigger: 'install-trigger'
+            },
             {
                 id: 'invite',
                 title: 'Convide 5 Parceiros',
@@ -171,14 +180,28 @@ export default function JornadaModal() {
                                     <p className="text-sm text-gray-500 leading-relaxed mb-2">
                                         {task.description}
                                     </p>
-                                    {!task.isCompleted && task.action && (
-                                        <Link
-                                            href={task.action}
-                                            onClick={() => setIsOpen(false)}
+                                    {!task.isCompleted && (task.action || task.tourTrigger) && (
+                                        <button
+                                            onClick={(e) => {
+                                                if (task.action === '#install-trigger') {
+                                                    triggerInstall();
+                                                    setIsOpen(false);
+                                                } else if (task.action) {
+                                                    // For links, we might want to let Link handle it or router push?
+                                                    // But we are inside a button now?
+                                                    // Let's revert to Link for non-install
+                                                }
+                                            }}
                                             className="inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
                                         >
-                                            Vamos lá <ChevronRight size={16} />
-                                        </Link>
+                                            {task.action === '#install-trigger' ? (
+                                                <span className="flex items-center gap-1">Instalar Agora <ChevronRight size={16} /></span>
+                                            ) : (
+                                                <Link href={task.action || '#'} onClick={() => setIsOpen(false)} className="flex items-center gap-1">
+                                                    Vamos lá <ChevronRight size={16} />
+                                                </Link>
+                                            )}
+                                        </button>
                                     )}
                                 </div>
                             </div>

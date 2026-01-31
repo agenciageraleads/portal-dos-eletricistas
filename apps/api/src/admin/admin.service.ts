@@ -147,6 +147,13 @@ export class AdminService {
                 skip,
                 take: pageSize,
                 include: {
+                    user: {
+                        select: {
+                            name: true,
+                            email: true,
+                            phone: true
+                        }
+                    },
                     product: {
                         select: {
                             name: true,
@@ -168,5 +175,15 @@ export class AdminService {
                 totalPages: Math.ceil(total / pageSize)
             }
         };
+    }
+
+    async replyFeedback(id: string, reply: string) {
+        return this.prisma.feedback.update({
+            where: { id },
+            data: {
+                reply,
+                repliedAt: new Date()
+            }
+        });
     }
 }

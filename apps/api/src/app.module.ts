@@ -14,9 +14,18 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { HealthModule } from './health/health.module';
 import { AdminModule } from './admin/admin.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { ServicesModule } from './services/services.module';
+import { AssistantModule } from './assistant/assistant.module';
+import { NotificationsModule } from './notifications/notifications.module';
+
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Loads .env globally
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',
@@ -34,6 +43,10 @@ import { AdminModule } from './admin/admin.module';
     UsersModule,
     HealthModule,
     AdminModule,
+    UploadsModule,
+    ServicesModule,
+    AssistantModule,
+    NotificationsModule,
   ], controllers: [AppController],
   providers: [
     AppService,

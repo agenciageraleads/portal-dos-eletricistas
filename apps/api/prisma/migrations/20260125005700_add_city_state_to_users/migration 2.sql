@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "city" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "state" TEXT;

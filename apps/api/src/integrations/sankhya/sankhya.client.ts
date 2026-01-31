@@ -11,7 +11,7 @@ export class SankhyaClient {
     constructor() {
         this.httpClient = axios.create({
             baseURL: 'https://api.sankhya.com.br',
-            timeout: 30000,
+            timeout: 120000,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -273,4 +273,5 @@ export class SankhyaClient {
             throw error;
         }
     }
+
 }

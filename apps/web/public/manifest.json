@@ -1,6 +1,6 @@
 {
-    "name": "Portal dos Eletricistas",
-    "short_name": "Portal dos Eletricistas",
+    "name": "PortalElétricos",
+    "short_name": "PortalElétricos",
     "description": "Crie orçamentos profissionais de materiais elétricos de forma rápida e fácil",
     "start_url": "/",
     "scope": "/",

@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from './contexts/AuthContext';
+import { useInstallPrompt } from './contexts/InstallContext';
 import Link from 'next/link';
 import {
     FileText,
@@ -14,189 +15,211 @@ import {
     Trophy,
     LogOut,
     User,
-    ShieldCheck
+    ShieldCheck,
+    Bell,
+    Search
 } from 'lucide-react';
 import { OnboardingModal } from './components/OnboardingModal';
 import JornadaModal from './components/JornadaModal';
+import BottomNav from './components/BottomNav';
+import UserMenu from './components/UserMenu';
 
 export default function Home() {
     const { user, logout } = useAuth();
+    const { triggerInstall, isIOS, isInstalled } = useInstallPrompt();
 
-    const menuItems = [
+    // Gov.br style often uses lists or simpler cards for "Frequent Services"
+    const quickAccess = [
         {
-            title: 'Orçamento Rápido',
-            description: 'Mão de obra e itens manuais',
-            icon: <FileText size={28} className="text-white" />,
-            bg: 'bg-blue-600',
-            href: '/orcamento',
-            color: 'text-blue-600'
-        },
-        {
-            title: 'Catálogo',
-            description: 'Orçamento com produtos',
-            icon: <PackageSearch size={28} className="text-white" />,
-            bg: 'bg-cyan-600',
-            href: '/catalogo',
-            color: 'text-cyan-600'
+            title: 'Novo Orçamento',
+            description: 'Criar proposta',
+            icon: <FileText size={20} className="text-blue-600" />,
+            href: '/orcamento/novo'
         },
         {
             title: 'Meus Orçamentos',
-            description: 'Gerenciar propostas',
-            icon: <ShoppingCart size={28} className="text-white" />,
-            bg: 'bg-emerald-600',
-            href: '/orcamentos',
-            color: 'text-emerald-600'
+            description: 'Ver histórico',
+            icon: <ShoppingCart size={20} className="text-emerald-600" />,
+            href: '/orcamentos'
         },
         {
-            title: 'Ferramentas',
-            description: 'Calculadoras',
-            icon: <Calculator size={28} className="text-white" />,
-            bg: 'bg-orange-600',
-            href: '/ferramentas',
-            color: 'text-orange-600'
+            title: 'Catálogo',
+            description: 'Consultar preços',
+            icon: <PackageSearch size={20} className="text-cyan-600" />,
+            href: '/catalogo'
         },
         {
-            title: 'Comunidade',
-            description: 'Em Breve',
-            icon: <Users size={28} className="text-white" />,
-            bg: 'bg-purple-400',
-            href: '#',
-            color: 'text-purple-400',
-            badge: 'Em Breve'
-        },
-        {
-            title: 'IA Eletricista',
-            description: 'Em Breve',
-            icon: <MessageCircle size={28} className="text-white" />,
-            bg: 'bg-pink-400',
-            href: '#',
-            color: 'text-pink-400',
-            badge: 'Em Breve'
+            title: 'Calculadoras',
+            description: 'Ferramentas',
+            icon: <Calculator size={20} className="text-orange-600" />,
+            href: '/ferramentas'
         }
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* Header */}
-            <header className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
+            {/* 1. TOP HEADER (Gov.br style: Logo Left, Actions Right) */}
+            <header className="bg-white py-3 px-4 shadow-sm sticky top-0 z-20">
+                <div className="max-w-md mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
-                            <Zap size={20} fill="currentColor" />
+                        <div className="w-8 h-8 flex items-center justify-center text-blue-600">
+                            {/* Keep it simple or use the App Icon */}
+                            <Zap size={28} fill="currentColor" />
                         </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-gray-800 leading-tight">Portal do Eletricista</h1>
-                        </div>
+                        <span className="font-bold text-lg text-blue-900 tracking-tight">
+                            Portal<span className="text-blue-600">Elétricos</span>
+                        </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        {user ? (
-                            <>
-                                {user.role === 'ADMIN' && (
-                                    <Link href="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group" title="Painel Admin">
-                                        <ShieldCheck size={22} className="text-blue-600" />
-                                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-                                    </Link>
-                                )}
-                                <Link href="/perfil" className="flex items-center gap-2 hover:bg-gray-100 pl-1 pr-2 py-1 rounded-full transition-all border border-transparent hover:border-gray-200">
-                                    {user.logo_url ? (
-                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 shadow-sm">
-                                            <img
-                                                src={user.logo_url.startsWith('http') ? user.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${user.logo_url}`}
-                                                alt={user.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                                            <User size={18} className="text-gray-500" />
-                                        </div>
-                                    )}
-                                </Link>
-                                <button onClick={logout} className="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Sair">
-                                    <LogOut size={20} />
-                                </button>
-                            </>
-                        ) : (
-                            <Link href="/login" className="px-5 py-1.5 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all shadow-md text-xs">
-                                Entrar
+                    <div className="flex items-center gap-3">
+                        {/* Notifications */}
+                        <Link href="/inbox" className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+                            <Bell size={22} />
+                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                        </Link>
+
+                        {/* Admin Panel Access */}
+                        {user?.role === 'ADMIN' && (
+                            <Link href="/admin" className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="Painel Administrativo">
+                                <ShieldCheck size={22} />
                             </Link>
                         )}
+
+                        {/* User UserMenu (Dropdown) */}
+                        <UserMenu user={user} logout={logout} />
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-md mx-auto px-4 py-6 w-full">
-                {/* Welcome Section */}
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold text-gray-800">
-                        Olá, {user?.name.split(' ')[0] || 'Eletricista'}! 👋
-                    </h2>
-                    <p className="text-sm text-gray-600">Seu escritório digital.</p>
-                </div>
-
-                {/* App Grid */}
-                <div className="grid grid-cols-3 gap-4 mb-10">
-                    {menuItems.map((item, index) => (
-                        <Link
-                            key={index}
-                            href={item.href}
-                            className={`
-                                flex flex-col items-center gap-2 p-2 rounded-xl transition-transform active:scale-95
-                                ${item.badge ? 'opacity-80' : 'hover:bg-gray-100'}
-                            `}
-                        >
-                            <div className={`
-                                w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-1
-                                ${item.bg} text-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1
-                            `}>
-                                {item.icon}
-                            </div>
-                            <div className="text-center">
-                                <span className="block text-xs font-bold text-gray-800 leading-tight">
-                                    {item.title}
+            {/* 2. BLUE BANNER (Greeting & Account Level) */}
+            <div className="bg-blue-600 text-white pt-6 pb-12 px-4 rounded-b-[2rem] shadow-md mb-[-2rem] relative z-0">
+                <div className="max-w-md mx-auto">
+                    {user ? (
+                        <>
+                            <h2 className="text-2xl font-bold mb-1">
+                                Olá, {user.name.split(' ')[0]}
+                            </h2>
+                            <div className="flex items-center gap-2 opacity-90">
+                                <span className="text-sm font-medium bg-blue-700/50 px-2 py-0.5 rounded text-blue-100 border border-blue-500/30">
+                                    Conta Profissional
                                 </span>
-                                {item.badge && (
-                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">
-                                        {item.badge}
-                                    </span>
-                                )}
                             </div>
-                        </Link>
-                    ))}
+                        </>
+                    ) : (
+                        <div className="text-center py-2">
+                            <h2 className="text-2xl font-bold mb-2">
+                                Bem-vindo ao Portal!
+                            </h2>
+                            <p className="text-blue-100 text-sm mb-4">
+                                A ferramenta completa para eletricistas profissionais.
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <Link href="/login" className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors shadow-sm border border-blue-500/30">
+                                    Entrar
+                                </Link>
+                                <Link href="/register" className="bg-white text-blue-600 px-6 py-2 rounded-full font-semibold text-sm hover:bg-gray-100 transition-colors shadow-sm">
+                                    Cadastrar Grátis
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <main className="flex-1 max-w-md mx-auto px-4 w-full relative z-10">
+
+
+
+                {/* 4. CONTENT SECTIONS */}
+
+                {/* Quick Access List */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
+                        <h3 className="font-semibold text-gray-700 text-sm">Acesso Rápido</h3>
+                    </div>
+                    <div>
+                        {quickAccess.map((item, index) => (
+                            <Link
+                                key={index}
+                                href={item.href}
+                                className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-gray-50 rounded-lg">
+                                        {item.icon}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-800 text-sm">{item.title}</p>
+                                        <p className="text-xs text-gray-500">{item.description}</p>
+                                    </div>
+                                </div>
+                                <ChevronRight size={16} className="text-gray-300" />
+                            </Link>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Gamification Banner (Placeholder for Modal Trigger if closed) */}
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-xl flex items-center justify-between relative overflow-hidden group cursor-pointer" id="jornada-trigger">
-                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative z-10 flex items-center gap-4">
-                        <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
-                            <Trophy size={32} className="text-yellow-400" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-lg">Sua Jornada Profissional</h3>
-                            <p className="text-gray-300 text-sm">Complete seu perfil e desbloqueie conquistas.</p>
+                {/* Gamification / PWA INSTALL CARD - Hidden as requested
+                {!isInstalled && (
+                    <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden border border-white/10">
+                        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
+
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="bg-yellow-400 text-yellow-900 text-xs font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-wider">Missão Diária</span>
+                            </div>
+
+                            <h3 className="text-2xl font-bold mb-2 leading-tight">Instale o App e ganhe acesso offline!</h3>
+                            <p className="text-blue-100 text-sm mb-6 leading-relaxed">
+                                Adicione o Portal à sua tela inicial para acessar orçamentos e ferramentas mesmo sem internet.
+                            </p>
+
+                            <button
+                                onClick={triggerInstall}
+                                className="w-full bg-white text-blue-900 font-bold py-3.5 rounded-xl shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Zap size={20} className="text-blue-600" />
+                                {isIOS ? 'Como Instalar no iPhone' : 'Instalar Aplicativo Agora'}
+                            </button>
                         </div>
                     </div>
-                    <div className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm shadow-lg transform group-hover:scale-105 transition-transform">
-                        Ver Progresso
+                )} */}
+
+                <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-4 px-1">
+                        <h3 className="font-bold text-gray-800 text-lg">Outros Serviços</h3>
+                        <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full uppercase tracking-wide border border-gray-200">Em Breve 🚧</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 flex flex-col items-center gap-3 text-center grayscale opacity-70">
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                <Users size={24} className="text-gray-400" />
+                            </div>
+                            <div>
+                                <span className="text-sm font-bold text-gray-500 block">Comunidade</span>
+                                <span className="text-[10px] text-gray-400">Networking</span>
+                            </div>
+                        </div>
+                        <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 flex flex-col items-center gap-3 text-center grayscale opacity-70">
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                <MessageCircle size={24} className="text-gray-400" />
+                            </div>
+                            <div>
+                                <span className="text-sm font-bold text-gray-500 block">Suporte VIP</span>
+                                <span className="text-[10px] text-gray-400">Consultoria</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
             </main>
 
-            {/* Footer / Copyright */}
-            <footer className="bg-white border-t border-gray-100 py-8 mt-auto">
-                <div className="max-w-5xl mx-auto px-4 text-center">
-                    <p className="text-gray-400 text-sm">
-                        &copy; 2026 Portal do Eletricista. Feito por eletricistas, para eletricistas.
-                    </p>
-                </div>
-            </footer>
-
             {/* Modals */}
             <OnboardingModal />
             <JornadaModal />
+
+            {/* 5. BOTTOM NAVIGATION */}
+            <BottomNav />
         </div>
     );
 }

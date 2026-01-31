@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { ChevronRight, RefreshCw, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function DisjuntorCalculator() {
+    const router = useRouter();
     const [voltage, setVoltage] = useState('220');
     const [power, setPower] = useState('');
     const [result, setResult] = useState<{ amps: string; curve: string } | null>(null);
@@ -106,7 +108,10 @@ export function DisjuntorCalculator() {
                         </div>
                     </div>
 
-                    <button className="mt-4 w-full bg-white border border-gray-200 text-gray-800 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50">
+                    <button
+                        onClick={() => router.push(`/catalogo?q=DISJUNTOR ${result.amps}A`)}
+                        className="mt-4 w-full bg-white border border-gray-200 text-gray-800 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50"
+                    >
                         Ver Disjuntores {result.amps}A <ChevronRight size={16} />
                     </button>
                 </div>

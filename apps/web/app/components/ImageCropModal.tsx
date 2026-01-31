@@ -197,14 +197,14 @@ async function getCroppedImg(
         pixelCrop.height * scale
     );
 
-    // Always use WEBP (best compression + quality balance)
+    // Use JPEG for maximum compatibility on iOS
     return new Promise((resolve) => {
         canvas.toBlob(
             (blob) => {
                 resolve(blob);
             },
-            'image/webp',
-            0.92 // 92% quality - perfect balance
+            'image/jpeg',
+            0.9
         );
     });
 }
@@ -214,7 +214,7 @@ function createImage(url: string): Promise<HTMLImageElement> {
         const image = new Image();
         image.addEventListener('load', () => resolve(image));
         image.addEventListener('error', (error) => reject(error));
-        image.setAttribute('crossOrigin', 'anonymous');
+        // image.setAttribute('crossOrigin', 'anonymous'); // Removed to prevent Issues with Data URIs on iOS
         image.src = url;
     });
 }

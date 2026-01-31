@@ -3,6 +3,7 @@ export interface Product {
     name: string;
     price: string; // Decimal vem como string da API por padrão
     unit?: string;
+    type?: 'MATERIAL' | 'SERVICE';
     image_url?: string;
     sankhya_code: number;
     is_available: boolean;

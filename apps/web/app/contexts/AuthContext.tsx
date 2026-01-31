@@ -2,6 +2,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
+import Cookies from 'js-cookie';
 
 interface User {
     id: string;
@@ -12,6 +14,9 @@ interface User {
     role?: string;
     bio?: string;
     pix_key?: string;
+    city?: string;
+    state?: string;
+    isAvailableForWork?: boolean;
     _count?: {
         budgets: number;
     };
@@ -39,39 +44,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        // Verificar token e buscar dados do usuário do backend
+        // IMPORTANTE: Não mostra dados em cache antes de validar com backend
+        const cookieToken = Cookies.get('token');
+        const localToken = localStorage.getItem('token');
+        const token = cookieToken || localToken;
+
+        console.log('[AuthContext] 🔑 Verificando autenticação, token presente:', !!token);
 
         if (token) {
-            // Set header immediately
+            // Sincronizar token entre cookies e localStorage
+            // Middleware só lê Cookies, então garantimos que ele esteja lá
+            if (!cookieToken) Cookies.set('token', token, { expires: 7, path: '/' });
+            if (!localToken) localStorage.setItem('token', token);
+
+            // Configurar header para requisições
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-            // If we have stored user, set it first for instant UI
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-
-            // Fetch fresh user data from backend
+            // Buscar dados FRESCOS do backend - NÃO usar cache primeiro
+            console.log('[AuthContext] 🔄 Validando token com backend...');
             axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/me`)
                 .then(response => {
-                    // Update user with fresh data (including new role)
                     const freshUser = response.data;
-                    console.log('[AuthContext] Fetched fresh user:', freshUser); // DEBUG
+                    console.log('[AuthContext] ✅ Token válido, usuário:', freshUser.name);
                     setUser(freshUser);
                     localStorage.setItem('user', JSON.stringify(freshUser));
                 })
-                .catch(() => {
-                    // If token is invalid, clear everything
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    delete axios.defaults.headers.common['Authorization'];
-                    setUser(null);
+                .catch((error) => {
+                    // Token inválido - limpar TUDO
+                    console.log('[AuthContext] ❌ Token inválido, limpando sessão...', error?.response?.status);
+
+                    // Só limpa se for erro de autenticação (401/403) ou se o backend confirmou invalidade
+                    if (error?.response?.status === 401 || error?.response?.status === 403) {
+                        Cookies.remove('token', { path: '/' });
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        delete axios.defaults.headers.common['Authorization'];
+                        setUser(null);
+                    }
                 })
                 .finally(() => {
-                    console.log('[AuthContext] Loading finished. User:', user); // DEBUG
                     setLoading(false);
                 });
         } else {
+            console.log('[AuthContext] 🚫 Nenhum token encontrado');
             setLoading(false);
         }
     }, []);
@@ -88,17 +104,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const login = (token: string, userData: User) => {
+        Cookies.set('token', token, { expires: 7, path: '/' }); // 7 days
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser(userData);
+
+        // Identify user in PostHog
+        if (typeof window !== 'undefined') {
+            posthog.identify(userData.id, {
+                email: userData.email,
+                name: userData.name,
+                role: userData.role
+            });
+        }
     };
 
     const logout = () => {
+        Cookies.remove('token', { path: '/' });
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
         setUser(null);
+        if (typeof window !== 'undefined') posthog.reset();
         router.push('/login');
     };
 

@@ -26,11 +26,9 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response && error.response.status === 401) {
             // Token expirado ou inválido
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            // Redireciona para login se estiver no browser
             if (typeof window !== 'undefined') {
-                window.location.href = '/login';
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
             }
         }
         return Promise.reject(error);

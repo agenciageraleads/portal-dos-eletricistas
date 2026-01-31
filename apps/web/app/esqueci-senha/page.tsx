@@ -10,6 +10,7 @@ export default function ForgotPasswordPage() {
     const [identifier, setIdentifier] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,10 +28,7 @@ export default function ForgotPasswordPage() {
 
             if (response.ok) {
                 setMessage(data.message);
-                // Redirect to reset password page after 2 seconds
-                setTimeout(() => {
-                    router.push('/redefinir-senha');
-                }, 2000);
+                setIsSuccess(true);
             } else {
                 setMessage(data.message || 'Erro ao enviar código. Tente novamente.');
             }
@@ -65,46 +63,70 @@ export default function ForgotPasswordPage() {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                            <label htmlFor="identifier" className="block text-sm font-semibold text-gray-700 mb-2">
-                                CPF/CNPJ ou Email
-                            </label>
-                            <input
-                                id="identifier"
-                                type="text"
-                                value={identifier}
-                                onChange={(e) => setIdentifier(e.target.value)}
-                                placeholder="Digite seu CPF, CNPJ ou email"
-                                required
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-                            />
-                        </div>
+                    {!isSuccess ? (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label htmlFor="identifier" className="block text-sm font-semibold text-gray-700 mb-2">
+                                    CPF/CNPJ ou Email
+                                </label>
+                                <input
+                                    id="identifier"
+                                    type="text"
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
+                                    placeholder="Digite seu CPF, CNPJ ou email"
+                                    required
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                                />
+                            </div>
 
-                        {message && (
-                            <div className={`p-4 rounded-lg text-sm ${message.includes('enviado')
+                            {message && (
+                                <div className={`p-4 rounded-lg text-sm ${message.includes('enviado')
                                     ? 'bg-green-50 text-green-700 border border-green-200'
                                     : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
-                                {message}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={loading || !identifier}
-                            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="animate-spin" size={20} />
-                                    Enviando...
-                                </>
-                            ) : (
-                                'Enviar Código'
+                                    }`}>
+                                    {message}
+                                </div>
                             )}
-                        </button>
-                    </form>
+
+                            <button
+                                type="submit"
+                                disabled={loading || !identifier}
+                                className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={20} />
+                                        Enviando...
+                                    </>
+                                ) : (
+                                    'Enviar Código'
+                                )}
+                            </button>
+                        </form>
+                    ) : (
+                        <div className="space-y-6 text-center">
+                            <div className="bg-green-50 p-4 rounded-xl text-green-700 border border-green-200 text-sm">
+                                {message || 'Código enviado com sucesso para seu e-mail cadastrado.'}
+                            </div>
+                            <p className="text-gray-600 text-sm">
+                                Não esqueça de verificar sua caixa de <b>spam</b> ou <b>lixo eletrônico</b>.
+                            </p>
+                            <Link
+                                href="/redefinir-senha"
+                                className="block w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors text-center shadow-lg shadow-blue-200 font-bold"
+                            >
+                                Já tenho o código
+                            </Link>
+
+                            <button
+                                onClick={() => setIsSuccess(false)}
+                                className="text-blue-600 text-sm font-medium hover:underline"
+                            >
+                                Tentar outro e-mail/CPF
+                            </button>
+                        </div>
+                    )}
 
                     <div className="mt-6 text-center text-sm text-gray-600">
                         Lembrou sua senha?{' '}

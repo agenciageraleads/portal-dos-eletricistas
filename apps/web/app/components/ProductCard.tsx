@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="h-40 bg-gray-50 rounded-lg mb-4 flex items-center justify-center text-gray-400 relative overflow-hidden">
                 {product.image_url ? (
                     <img
-                        src={product.image_url}
+                        src={product.image_url.startsWith('http') ? product.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${product.image_url}`}
                         alt={product.name}
                         className="h-full object-contain"
                         onError={(e) => {
@@ -113,7 +113,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <div className="mt-2 text-right">
                 <div className="flex items-baseline justify-end gap-1">
-                    <p className="text-xl font-bold text-gray-900 tracking-tight">{formatPrice(product.price)}</p>
+                    <p className="text-xl font-bold text-gray-900 tracking-tight">
+                        {parseFloat(product.price) > 0 ? formatPrice(product.price) : <span className="text-sm text-blue-600 font-semibold">Sob Consulta</span>}
+                    </p>
                     <span className="text-xs text-gray-500 font-medium">/{product.unit?.toLowerCase() || 'un'}</span>
                 </div>
             </div>

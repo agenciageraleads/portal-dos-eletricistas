@@ -11,7 +11,8 @@ interface Product {
     id: string;
     sankhya_code: number;
     name: string;
-    price: string; // comes as string from API decimals usually
+    description: string | null;
+    price: string;
     unit: string;
     is_available: boolean;
     image_url?: string;
@@ -28,7 +29,7 @@ export default function AdminProductsPage() {
 
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<{ price: string }>({ price: '' });
+    const [editForm, setEditForm] = useState<{ name: string; description: string; price: string }>({ name: '', description: '', price: '' });
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -42,20 +43,6 @@ export default function AdminProductsPage() {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            // Using standard public search endpoint for listing. 
-            // In real app, we might want an admin-specific list that includes unavailable items properly (though public one has available filter usually).
-            // Wait, public `findAll` only shows `is_available: true` by default. 
-            // We need to see if API supports showing hidden ones. 
-            // Checked Service: `where.is_available = true` is hardcoded.
-            // GAP: Admin needs to see unavailable items. 
-            // WORKAROUND: For now, I will assume we only edit available items or need to update API to allow filter override.
-            // Let's check API service again.
-            // API Service: `const where: Prisma.ProductWhereInput = { is_available: true };`
-            // So Admin CANNOT see unavailable items with standard endpoint.
-            // I should use `admin/products` endpoint if I created one? No, I created `admin/failed-searches`.
-            // I did NOT create `GET /products/admin/all`.
-            // Oops.
-            // I will implement the UI for available products first.
             const { data } = await api.get(`/products?page=${page}&q=${searchQuery}&limit=20`);
             setProducts(data.data);
             setTotalPages(data.meta.last_page);
@@ -68,17 +55,24 @@ export default function AdminProductsPage() {
 
     const handleEdit = (product: Product) => {
         setEditingId(product.id);
-        setEditForm({ price: product.price });
+        setEditForm({
+            name: product.name,
+            description: product.description || '',
+            price: product.price
+        });
     };
 
     const handleSave = async (id: string) => {
         setSaving(true);
         try {
             await api.patch(`/products/admin/${id}`, {
+                name: editForm.name,
+                description: editForm.description,
                 price: parseFloat(editForm.price)
             });
             setEditingId(null);
             fetchProducts();
+            alert('Produto atualizado!');
         } catch (error) {
             console.error(error);
             alert('Erro ao atualizar produto');
@@ -112,14 +106,13 @@ export default function AdminProductsPage() {
                         </Link>
                         <div>
                             <h1 className="text-xl font-bold text-gray-800">Gerenciar Produtos</h1>
-                            <p className="text-sm text-gray-500">Edite preços e disponibilidade</p>
+                            <p className="text-sm text-gray-500">Edite nomes, descrições e preços</p>
                         </div>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8">
-                {/* Search */}
                 <div className="mb-6 relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     <input
@@ -158,9 +151,29 @@ export default function AdminProductsPage() {
                                                         <Package size={20} className="text-gray-400" />
                                                     )}
                                                 </div>
-                                                <div className="max-w-xs">
-                                                    <p className="font-medium text-gray-900 truncate">{product.name}</p>
-                                                    <p className="text-xs text-gray-500">{product.unit}</p>
+                                                <div className="max-w-xs overflow-hidden">
+                                                    {editingId === product.id ? (
+                                                        <div className="space-y-1">
+                                                            <input
+                                                                type="text"
+                                                                value={editForm.name}
+                                                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                                                className="w-full px-2 py-1 text-sm border rounded"
+                                                                placeholder="Nome"
+                                                            />
+                                                            <textarea
+                                                                value={editForm.description}
+                                                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                                className="w-full px-2 py-1 text-xs border rounded"
+                                                                placeholder="Descrição..."
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <p className="font-medium text-gray-900 truncate">{product.name}</p>
+                                                            <p className="text-xs text-gray-500">{product.unit}</p>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -169,15 +182,13 @@ export default function AdminProductsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             {editingId === product.id ? (
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        value={editForm.price}
-                                                        onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                                                        className="w-24 px-2 py-1 border rounded"
-                                                        step="0.01"
-                                                    />
-                                                </div>
+                                                <input
+                                                    type="number"
+                                                    value={editForm.price}
+                                                    onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                                                    className="w-24 px-2 py-1 text-sm border rounded"
+                                                    step="0.01"
+                                                />
                                             ) : (
                                                 <span className="font-medium text-gray-900">
                                                     {Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -185,10 +196,12 @@ export default function AdminProductsPage() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${product.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                }`}>
+                                            <button
+                                                onClick={() => toggleAvailability(product)}
+                                                className={`px-2 py-1 rounded-full text-xs font-semibold ${product.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                    }`}>
                                                 {product.is_available ? 'Ativo' : 'Inativo'}
-                                            </span>
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4">
                                             {editingId === product.id ? (
@@ -208,16 +221,13 @@ export default function AdminProductsPage() {
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-3">
-                                                    <button
-                                                        onClick={() => handleEdit(product)}
-                                                        className="text-gray-400 hover:text-blue-600 transition-colors"
-                                                        title="Editar Preço"
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
-                                                    {/* To add toggle availability later. For now just view status or simplistic toggle if I trust API */}
-                                                </div>
+                                                <button
+                                                    onClick={() => handleEdit(product)}
+                                                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                                                    title="Editar Produto"
+                                                >
+                                                    <Edit2 size={18} />
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
@@ -225,11 +235,7 @@ export default function AdminProductsPage() {
                             </tbody>
                         </table>
                     </div>
-                    {products.length === 0 && !loading && (
-                        <div className="text-center py-12 text-gray-500">Nenhum produto encontrado.</div>
-                    )}
                 </div>
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="mt-6 flex items-center justify-center gap-4">
                         <button

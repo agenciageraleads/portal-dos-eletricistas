@@ -22,6 +22,13 @@ export class BudgetsService {
                 userId: userId,
                 client_name: clientName,
                 client_phone: clientPhone,
+
+                // Novos Campos
+                execution_time: createBudgetDto.executionTime,
+                payment_terms: createBudgetDto.paymentTerms,
+                validity: createBudgetDto.validity,
+                warranty: createBudgetDto.warranty,
+
                 total_materials: totalMaterials,
                 total_labor: laborValue,
                 labor_description: createBudgetDto.laborDescription,
@@ -109,6 +116,12 @@ export class BudgetsService {
                     notes: updateBudgetDto.notes,
                     show_unit_prices: updateBudgetDto.showUnitPrices ?? budget.show_unit_prices,
                     show_labor_total: updateBudgetDto.showLaborTotal ?? budget.show_labor_total,
+
+                    // New Fields Update
+                    execution_time: updateBudgetDto.executionTime,
+                    payment_terms: updateBudgetDto.paymentTerms,
+                    validity: updateBudgetDto.validity,
+                    warranty: updateBudgetDto.warranty,
                 }
             });
 

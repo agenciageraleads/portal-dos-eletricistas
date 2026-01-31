@@ -1,0 +1,9 @@
+npm verbose cli /Users/Lucas-Lenovo/.nvm/versions/node/v22.16.0/bin/node /Users/Lucas-Lenovo/.nvm/versions/node/v22.16.0/bin/npm
+npm info using npm@10.9.2
+npm info using node@v22.16.0
+npm info config found workspace root at /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas
+npm verbose title npm install
+npm verbose argv "install" "--loglevel" "verbose"
+npm verbose logfile logs-max:10 dir:/Users/Lucas-Lenovo/.npm/_logs/2026-01-17T18_08_54_831Z-
+npm verbose logfile /Users/Lucas-Lenovo/.npm/_logs/2026-01-17T18_08_54_831Z-debug-0.log
+npm verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules

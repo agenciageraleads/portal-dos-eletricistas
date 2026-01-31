@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import api from '@/lib/api';
-import { ChevronLeft, Eye, Calendar, User, DollarSign, FileText } from 'lucide-react';
+import { ChevronLeft, Eye, Calendar, User, DollarSign, FileText, Trash2 } from 'lucide-react';
 
 interface Budget {
     id: string;
@@ -18,8 +18,10 @@ interface Budget {
     }
 }
 
+import UserMenu from '../components/UserMenu';
+
 export default function MyBudgetsPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, logout } = useAuth();
     const router = useRouter();
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [loading, setLoading] = useState(true);
@@ -96,33 +98,46 @@ export default function MyBudgetsPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             <header className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <Link href="/" className="text-gray-500 hover:text-gray-700">
-                        <ChevronLeft size={24} />
-                    </Link>
-                    <h1 className="text-xl font-bold text-gray-800">Meus Orçamentos</h1>
+                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="text-gray-500 hover:text-gray-700">
+                            <ChevronLeft size={24} />
+                        </Link>
+                        <h1 className="text-xl font-bold text-gray-800">Meus Orçamentos</h1>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/orcamento/novo"
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
+                        >
+                            + Novo
+                        </Link>
+                        <UserMenu user={user} logout={logout} />
+                    </div>
                 </div>
             </header>
 
             <main className="max-w-5xl mx-auto px-4 py-6">
 
                 {/* Mini Dashboard v1.1.0 */}
+                {/* Mini Dashboard v1.1.0 - Simplified */}
                 {budgets.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <h3 className="text-gray-500 text-sm font-medium mb-1">Total de Orçamentos</h3>
-                            <p className="text-2xl font-bold text-gray-900">{budgets.length}</p>
+                    <div className="flex overflow-x-auto gap-4 mb-6 pb-2 scrollbar-hide">
+                        <div className="bg-white p-3 pr-8 rounded-xl shadow-sm border border-gray-100 min-w-max">
+                            <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total</h3>
+                            <p className="text-xl font-bold text-gray-900">{budgets.length} <span className="text-sm font-normal text-gray-400">orçamentos</span></p>
                         </div>
-                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <h3 className="text-gray-500 text-sm font-medium mb-1">Valor Total (Vendido/Aberto)</h3>
-                            <p className="text-2xl font-bold text-blue-600">
-                                {formatCurrency(budgets.reduce((acc, curr) => acc + Number(curr.total_price), 0))}
+                        <div className="bg-white p-3 pr-8 rounded-xl shadow-sm border border-gray-100 min-w-max">
+                            <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Em Negociação</h3>
+                            <p className="text-xl font-bold text-blue-600">
+                                {formatCurrency(budgets.filter(b => b.status !== 'CONVERTED' && b.status !== 'EXPIRED').reduce((acc, curr) => acc + Number(curr.total_price), 0))}
                             </p>
                         </div>
-                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <h3 className="text-gray-500 text-sm font-medium mb-1">Ticket Médio</h3>
-                            <p className="text-2xl font-bold text-green-600">
-                                {formatCurrency(budgets.reduce((acc, curr) => acc + Number(curr.total_price), 0) / budgets.length)}
+                        <div className="bg-white p-3 pr-8 rounded-xl shadow-sm border border-gray-100 min-w-max">
+                            <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Fechados</h3>
+                            <p className="text-xl font-bold text-green-600">
+                                {formatCurrency(budgets.filter(b => b.status === 'CONVERTED').reduce((acc, curr) => acc + Number(curr.total_price), 0))}
                             </p>
                         </div>
                     </div>
@@ -134,7 +149,7 @@ export default function MyBudgetsPage() {
                         <h3 className="text-lg font-medium text-gray-900">Nenhum orçamento encontrado</h3>
                         <p className="text-gray-500 mt-2">Você ainda não criou nenhum orçamento.</p>
                         <Link
-                            href="/"
+                            href="/orcamento/novo"
                             className="mt-6 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
                         >
                             Criar Novo Orçamento
@@ -163,13 +178,42 @@ export default function MyBudgetsPage() {
                                     </div>
                                 </div>
 
-                                <Link
-                                    href={`/o/${budget.id}`} // Assumindo que a rota de visualização pública/shared é /o/:id
-                                    className="flex items-center justify-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition whitespace-nowrap"
-                                >
-                                    <Eye size={18} />
-                                    Ver Detalhes
-                                </Link>
+                                <div className="flex gap-2 mt-2 sm:mt-0">
+                                    <Link
+                                        href={`/o/${budget.id}`}
+                                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg font-medium text-sm hover:bg-blue-100 transition"
+                                    >
+                                        <Eye size={16} /> Ver
+                                    </Link>
+
+                                    {/* Actions Menu or Simple Buttons */}
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('Marcar como Ganho/Vendido?')) {
+                                                await api.patch(`/budgets/${budget.id}`, { status: 'CONVERTED' });
+                                                fetchBudgets();
+                                            }
+                                        }}
+                                        className="flex items-center justify-center p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100"
+                                        title="Marcar como Ganho"
+                                    >
+                                        <DollarSign size={16} />
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('Excluir orçamento permanentemente?')) {
+                                                // In real app maybe archive (EXPIRED) or Delete
+                                                await api.delete(`/budgets/${budget.id}`);
+                                                fetchBudgets();
+                                            }
+                                        }}
+                                        className="flex items-center justify-center p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100"
+                                        title="Excluir"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

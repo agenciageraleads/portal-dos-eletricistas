@@ -65,7 +65,24 @@ export class CreateBudgetDto {
     @IsOptional()
     showLaborTotal?: boolean;
 
-    @IsString()
+    @IsString({ message: 'Status deve ser "DRAFT" ou "SHARED"' })
     @IsOptional()
     status?: 'DRAFT' | 'SHARED';
+
+    // Campos de Condições
+    @IsString({ message: 'Prazo de execução deve ser um texto' })
+    @IsOptional()
+    executionTime?: string;
+
+    @IsString({ message: 'Condições de pagamento deve ser um texto' })
+    @IsOptional()
+    paymentTerms?: string;
+
+    @IsString({ message: 'Validade da proposta deve ser um texto' })
+    @IsOptional()
+    validity?: string;
+
+    @IsString({ message: 'Garantia deve ser um texto' })
+    @IsOptional()
+    warranty?: string;
 }

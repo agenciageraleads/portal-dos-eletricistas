@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -23,6 +23,11 @@ export class AuthService {
                 ]
             }
         });
+
+        if (user?.pre_cadastrado && !user.cadastro_finalizado) {
+            console.warn('[AUTH] Usuário pré-cadastrado tentando logar sem finalizar cadastro:', username);
+            return null;
+        }
 
         if (user && (await bcrypt.compare(pass, user.password))) {
             const { password, ...result } = user;
@@ -78,6 +83,36 @@ export class AuthService {
             if (data.cpf_cnpj) {
                 const existingCpf = await this.prisma.user.findFirst({ where: { cpf_cnpj: data.cpf_cnpj } });
                 if (existingCpf) {
+                    if (existingCpf.pre_cadastrado && !existingCpf.cadastro_finalizado) {
+                        console.log('[REGISTER] Encontrado pré-cadastro para CPF:', data.cpf_cnpj);
+
+                        // Atualiza o pré-cadastro para um cadastro completo
+                        const hashedPassword = await bcrypt.hash(data.password, 10);
+                        let termsDate = null;
+                        if (data.termsAccepted) {
+                            termsDate = new Date();
+                        }
+
+                        const user = await this.prisma.user.update({
+                            where: { id: existingCpf.id },
+                            data: {
+                                name: data.name || existingCpf.name,
+                                email: data.email || existingCpf.email,
+                                phone: data.phone || existingCpf.phone,
+                                password: hashedPassword,
+                                pre_cadastrado: false,
+                                cadastro_finalizado: true,
+                                activatedAt: new Date(),
+                                terms_accepted_at: termsDate,
+                                role: 'ELETRICISTA' // Garante que é eletricista
+                            }
+                        });
+
+                        console.log('[REGISTER] Pré-cadastro ativado com sucesso:', user.id);
+                        const { password: _, ...result } = user;
+                        return result;
+                    }
+
                     console.warn('[REGISTER] CPF/CNPJ já existe:', data.cpf_cnpj);
                     throw new ConflictException('CPF/CNPJ já cadastrado');
                 }
@@ -112,6 +147,50 @@ export class AuthService {
             console.error('[REGISTER] Erro ao registrar:', error);
             throw error;
         }
+    }
+
+    // (Removed BundleError class)
+
+    async checkRegistration(identifier: string) {
+        if (process.env.FEATURE_PRE_REG_DISABLED === 'true') {
+            return { exists: false };
+        }
+        const cleanIdentifier = identifier.replace(/\D/g, '');
+
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { cpf_cnpj: cleanIdentifier },
+                    { phone: identifier },
+                    { email: identifier }
+                ]
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                cpf_cnpj: true,
+                phone: true,
+                pre_cadastrado: true,
+                cadastro_finalizado: true
+            }
+        });
+
+        if (!user) {
+            return { exists: false };
+        }
+
+        return {
+            exists: true,
+            pre_cadastrado: user.pre_cadastrado,
+            cadastro_finalizado: user.cadastro_finalizado,
+            user: {
+                name: user.name,
+                email: user.email,
+                cpf_cnpj: user.cpf_cnpj,
+                phone: user.phone
+            }
+        };
     }
 
     async requestPasswordReset(identifier: string) {

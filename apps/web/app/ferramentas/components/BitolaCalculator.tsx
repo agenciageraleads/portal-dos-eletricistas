@@ -2,41 +2,44 @@
 
 import { useState } from 'react';
 import { ChevronRight, RefreshCw, Cable } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function BitolaCalculator() {
+    const router = useRouter();
     const [voltage, setVoltage] = useState('220');
     const [power, setPower] = useState('');
     const [distance, setDistance] = useState('');
     const [result, setResult] = useState<{ gauge: string; drop: number } | null>(null);
 
-    const calculate = () => {
+    const calculate = (e?: React.MouseEvent) => {
+        if (e) e.preventDefault();
+
         const V = parseFloat(voltage);
         const P = parseFloat(power);
         const L = parseFloat(distance);
 
-        if (!V || !P || !L) return;
+        console.log('Calculando com:', { V, P, L });
 
-        // Corrente (I) = P / V
-        const I = P / V;
+        if (!V || !P || !L) {
+            console.warn('Valores inválidos ou faltando');
+            return;
+        }
+
+        // Corrente (I)
+        const isThreePhase = V === 380;
+        const sqrt3 = 1.732;
+        const I = isThreePhase ? P / (V * sqrt3) : P / V;
 
         // Queda de Tensão Admitida (4%)
-        // DeltaV = (2 * L * I * rho) / S
-        // S = (2 * L * I * 0.0172) / (V * 0.04)   (Cobre)
-
         // rho cobre = 0.0172 ohm.mm²/m
         const rho = 0.0172;
-        const maxDropV = V * 0.04; // 4%
+        const maxDropV = V * 0.04;
 
-        // S_drop = (2 * L * I * rho) / maxDropV (Monofasico/Bifasico simplificado 2 condutores carregados)
-        const S_drop = (2 * L * I * rho) / maxDropV;
+        // S_drop calculation
+        const k = isThreePhase ? sqrt3 : 2;
+        const S_drop = (k * L * I * rho) / maxDropV;
 
-        // Capacidade de conducão (Tabela simplificada B1 - 2 condutores carregados PVC)
-        // 1.5mm -> 17.5A
-        // 2.5mm -> 24A
-        // 4.0mm -> 32A
-        // 6.0mm -> 41A
-        // 10.mm -> 57A
-        // 16.mm -> 76A
+        // Tabela de Ampacidade (Simplificada)
         const ampacityTable = [
             { gauge: 1.5, amp: 17.5 },
             { gauge: 2.5, amp: 24.0 },
@@ -45,29 +48,31 @@ export function BitolaCalculator() {
             { gauge: 10.0, amp: 57.0 },
             { gauge: 16.0, amp: 76.0 },
             { gauge: 25.0, amp: 101.0 },
+            { gauge: 35.0, amp: 125.0 },
+            { gauge: 50.0, amp: 150.0 },
         ];
 
         // Encontrar bitola por Corrente
-        let gaugeByAmp = 1.5;
+        let gaugeByAmp = 50.0; // Default para max safety
         for (const row of ampacityTable) {
             if (I <= row.amp) {
                 gaugeByAmp = row.gauge;
                 break;
-            } else {
-                gaugeByAmp = 25.0; // Fallback max
             }
         }
 
-        // Bitola final é o MAIOR entre (Queda de tensão e Capacidade)
+        // Bitola final (Maior entre Queda e Corrente)
         const finalGaugeRaw = Math.max(S_drop, gaugeByAmp);
 
         // Normalizar para comercial
         const commercialGauges = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
         let finalGauge = commercialGauges.find(g => g >= finalGaugeRaw) || 50;
 
+        console.log('Resultado:', { I, S_drop, finalGaugeRaw, finalGauge });
+
         setResult({
             gauge: finalGauge.toString(),
-            drop: (2 * L * I * rho / finalGauge) // Recalcula drop real
+            drop: (k * L * I * rho / finalGauge)
         });
     };
 
@@ -85,6 +90,7 @@ export function BitolaCalculator() {
                     >
                         <option value="127">127V (Monofásico)</option>
                         <option value="220">220V (Bifásico/Mono)</option>
+                        <option value="380">380V (Trifásico)</option>
                     </select>
                 </div>
 
@@ -133,12 +139,15 @@ export function BitolaCalculator() {
                         </div>
 
                         <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm border border-white/20 text-sm">
-                            <p>Corrente Calculada: <strong>{Math.round(parseFloat(power) / parseFloat(voltage))} A</strong></p>
+                            <p>Corrente Calculada: <strong>{Math.round((parseFloat(power) / parseFloat(voltage)) / (voltage === '380' ? 1.732 : 1))} A</strong></p>
                             <p>Queda de Tensão Estimada: <strong>{result.drop.toFixed(2)} V</strong></p>
                         </div>
                     </div>
 
-                    <button className="mt-4 w-full bg-white border border-gray-200 text-blue-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50">
+                    <button
+                        onClick={() => router.push(`/catalogo?q=CABO ${result.gauge}MM`)}
+                        className="mt-4 w-full bg-white border border-gray-200 text-blue-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50"
+                    >
                         Buscar Cabos {result.gauge}mm <ChevronRight size={16} />
                     </button>
                 </div>

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Patch, Body, Param } from '@nestjs/common';
+import { Controller, Get, Query, Patch, Body, Param, Post } from '@nestjs/common';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -11,20 +11,22 @@ export class ProductsController {
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 20,
         @Query('category') category?: string,
+        @Query('orderBy') orderBy?: string,
+        @Query('type') type?: string,
     ) {
-        return this.productsService.findAll(query, Number(page), Number(limit), category);
+        return this.productsService.findAll(query, Number(page), Number(limit), category, orderBy, type);
     }
 
     @Get('failed-search')
     logFailed(@Query('q') query: string) {
-        // Simple GET endpoint for easier triggering from frontend or keeping it simple
-        // Or POST. Let's stick to GET for "fire and forget" image pixel style or just simple fetch
-        // Actually, user requested "Click a button", so POST is fine.
-        // Let's make it a POST to /products/failed-search or just /products/log-search?
-        // Let's use the SERVICE method.
         if (query) {
             this.productsService.logFailedSearch(query);
         }
+    }
+
+    @Post('suggestions')
+    async createSuggestion(@Body() body: { name: string, category?: string, description?: string, suggestedBy?: string }) {
+        return this.productsService.createSuggestion(body);
     }
 
     // Admin Endpoints (Should be protected by RoleGuard in real app)
@@ -36,6 +38,16 @@ export class ProductsController {
     @Patch('admin/:id')
     updateProduct(@Param('id') id: string, @Body() data: any) {
         return this.productsService.updateProduct(id, data);
+    }
+
+    @Post('admin/synonyms')
+    async addSynonym(@Body() body: { term: string, synonyms: string[] }) {
+        return this.productsService.addSynonym(body.term, body.synonyms);
+    }
+
+    @Get('admin/search-suggestions')
+    async generateSearchSuggestions(@Query('term') term: string) {
+        return this.productsService.generateSearchSuggestions(term);
     }
 }
 

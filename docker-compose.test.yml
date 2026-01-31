@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal123
+      POSTGRES_DB: portal_eletricista
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    image: lucasborgessb/portal_dos_eletricistas:api-staging
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://portal:portal123@db:5432/portal_eletricista
+      JWT_SECRET: your-secret-key-here
+      PORT: 3000
+      NODE_ENV: production
+    depends_on:
+      - db
+
+  web:
+    image: lucasborgessb/portal_dos_eletricistas:web-staging
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: production
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

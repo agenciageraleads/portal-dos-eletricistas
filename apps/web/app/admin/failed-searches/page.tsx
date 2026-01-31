@@ -22,31 +22,63 @@ export default function FailedSearchesPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
 
+    // Analysis State
+    const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+    const [analysisResult, setAnalysisResult] = useState<any>(null);
+    const [approving, setApproving] = useState(false);
+
     useEffect(() => {
         if (user && user.role !== 'ADMIN') {
             router.push('/');
             return;
         }
 
-        const fetchSearches = async () => {
-            try {
-                const { data } = await api.get(`/products/admin/failed-searches?page=${page}`);
-                setSearches(data.data);
-                setTotalPages(data.pagination.totalPages);
-                setTotalItems(data.pagination.total);
-            } catch (error) {
-                console.error('Error fetching failed searches:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (user) {
-            fetchSearches();
-        }
+        fetchSearches();
     }, [user, router, page]);
 
-    if (loading || !user || user.role !== 'ADMIN') {
+    const fetchSearches = async () => {
+        try {
+            setLoading(true);
+            const { data } = await api.get(`/products/admin/failed-searches?page=${page}`);
+            setSearches(data.data);
+            setTotalPages(data.pagination.totalPages);
+            setTotalItems(data.pagination.total);
+        } catch (error) {
+            console.error('Error fetching failed searches:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAnalyze = async (term: string) => {
+        setAnalyzingId(term);
+        setAnalysisResult(null);
+        try {
+            const { data } = await api.get(`/products/admin/search-suggestions?term=${encodeURIComponent(term)}`);
+            setAnalysisResult(data);
+        } catch (error) {
+            alert('Erro ao analisar com IA');
+        }
+    };
+
+    const handleApproveSynonyms = async (term: string, synonyms: string[]) => {
+        if (!confirm(`Adicionar sinônimos para "${term}"?`)) return;
+        setApproving(true);
+        try {
+            await api.post('/products/admin/synonyms', { term: term.toUpperCase(), synonyms });
+            alert('Sinônimos adicionados com sucesso!');
+            setAnalysisResult(null);
+            setAnalyzingId(null);
+            // Optionally remove from list or mark as resolved?
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao salvar sinônimos.');
+        } finally {
+            setApproving(false);
+        }
+    };
+
+    if (loading && !searches.length) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -63,7 +95,7 @@ export default function FailedSearchesPage() {
                     </Link>
                     <div>
                         <h1 className="text-xl font-bold text-gray-800">Buscas Sem Resultado</h1>
-                        <p className="text-sm text-gray-500">O que os usuários não encontraram ({totalItems})</p>
+                        <p className="text-sm text-gray-500">Curadoria Assistida por IA</p>
                     </div>
                 </div>
             </header>
@@ -74,66 +106,76 @@ export default function FailedSearchesPage() {
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                        Termo Buscado
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                        Data
-                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Termo</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {searches.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-red-50 rounded-lg text-red-600">
-                                                    <Search size={18} />
-                                                </div>
-                                                <span className="font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded">
-                                                    "{item.query}"
-                                                </span>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-900 text-lg">"{item.query}"</span>
+                                                <span className="text-xs text-gray-400">{new Date(item.createdAt).toLocaleString('pt-BR')}</span>
                                             </div>
+
+                                            {/* Analysis Result Area */}
+                                            {analyzingId === item.query && (
+                                                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                                                    <h4 className="text-sm font-bold text-blue-800 mb-2">Sugestão da IA:</h4>
+                                                    {analysisResult ? (
+                                                        <div>
+                                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                                {analysisResult.synonyms?.map((syn: string, i: number) => (
+                                                                    <span key={i} className="px-2 py-1 bg-white text-blue-700 text-sm font-medium border border-blue-200 rounded">
+                                                                        {syn}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleApproveSynonyms(item.query, analysisResult.synonyms)}
+                                                                    disabled={approving}
+                                                                    className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50"
+                                                                >
+                                                                    {approving ? 'Salvando...' : 'Aprovar & Criar Sinônimo'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setAnalyzingId(null)}
+                                                                    className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-300"
+                                                                >
+                                                                    Cancelar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 text-blue-600 text-sm">
+                                                            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                                                            Analisando contexto...
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
-                                            {new Date(item.createdAt).toLocaleString('pt-BR')}
+                                        <td className="px-6 py-4 w-48">
+                                            {analyzingId !== item.query && (
+                                                <button
+                                                    onClick={() => handleAnalyze(item.query)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium rounded hover:bg-blue-100 border border-blue-200"
+                                                >
+                                                    ✨ Analisar com IA
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
-
-                    {searches.length === 0 && (
-                        <div className="text-center py-12">
-                            <Search size={48} className="mx-auto text-gray-300 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900">Nenhuma busca falha registrada</h3>
-                        </div>
+                    {searches.length === 0 && !loading && (
+                        <div className="text-center py-12 text-gray-500">Nenhuma busca falha registrada.</div>
                     )}
                 </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="mt-6 flex items-center justify-center gap-4">
-                        <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Anterior
-                        </button>
-                        <span className="text-sm text-gray-700">
-                            Página {page} de {totalPages}
-                        </span>
-                        <button
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            disabled={page === totalPages}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Próxima
-                        </button>
-                    </div>
-                )}
             </main>
         </div>
     );

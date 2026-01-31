@@ -4,6 +4,8 @@ import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PostHogProvider } from "./providers/PostHogProvider";
 import InstallPrompt from "./components/InstallPrompt";
+import { InstallProvider } from "./contexts/InstallContext";
+import { ToastProvider } from "./components/Toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,31 +18,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  themeColor: "#667eea",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+};
+
 export const metadata: Metadata = {
-  title: "Portal dos Eletricistas",
+  title: "PortalElétricos",
   description: "Crie orçamentos profissionais de materiais elétricos de forma rápida e fácil",
   manifest: "/manifest.json",
-  themeColor: "#667eea",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Portal dos Eletricistas",
+    title: "PortalElétricos",
   },
-  icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PortalElétricos",
   },
+  // Icons are handled automatically by app/icon.png
 };
 
 export default function RootLayout({
@@ -51,15 +52,20 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
+        suppressHydrationWarning={true}
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <PostHogProvider>
-          <AuthProvider>
-            <CartProvider>
-              {children}
-              <InstallPrompt />
-            </CartProvider>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <CartProvider>
+                <InstallProvider>
+                  {children}
+                  {/* <InstallPrompt /> */}
+                </InstallProvider>
+              </CartProvider>
+            </AuthProvider>
+          </ToastProvider>
         </PostHogProvider>
       </body>
     </html>

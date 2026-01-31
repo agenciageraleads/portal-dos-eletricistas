@@ -1,15 +1,10 @@
 version: "3.8"
 services:
   # ==========================================
-  # 1. FRONTEND WEB (Exposto via Traefik)
+  # 1. FRONTEND WEB (v1.5.3)
   # ==========================================
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    image: lucasborgessb/portal_dos_eletricistas:web-1.2.0
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-staging
     deploy:
       mode: replicated
       replicas: 1
@@ -22,27 +17,21 @@ services:
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
-      # Aponta para o proxy interno do Traefik
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_API_URL: https://api.portaleletricos.com.br
     networks:
       - portal_overlay
       - Portainer
+
   # ==========================================
-  # 2. BACKEND API (Interno + Rota /api)
+  # 2. BACKEND API (v1.5.3)
   # ==========================================
   api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    image: lucasborgessb/portal_dos_eletricistas:api-1.2.0
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-staging
     deploy:
       mode: replicated
       replicas: 1
       labels:
         - "traefik.enable=true"
-        # Regra: Host Exclusivo para API
         - "traefik.http.routers.portal_api.rule=Host(`api.portaleletricos.com.br`)"
         - "traefik.http.routers.portal_api.entrypoints=websecure"
         - "traefik.http.routers.portal_api.tls.certresolver=letsencryptresolver"
@@ -50,36 +39,57 @@ services:
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
-      PORT: ${PORT}
-      JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: ${DATABASE_URL}
-      # S3 / MinIO Configuration (Corrigido com nome do Bucket REAL)
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_REGION: ${S3_REGION}
+      PORT: 3000
+      JWT_SECRET: super_chave_secreta_mude_depois
+      DATABASE_URL: postgres://portal:portal_senha_forte@db:5432/portal_eletricistas?schema=public
+
+      # S3 / MinIO Configuration
+      S3_ENDPOINT: https://s3.gera-leads.com
+      S3_ACCESS_KEY: admin
+      S3_SECRET_KEY: Lucas132395
+      S3_BUCKET: portal-produtos
+      S3_REGION: us-east-1
+
+      # Sankhya Integration
+      SANKHYA_CLIENT_ID: "e0e93f83-aa7c-4d38-a911-944b25365430"
+      SANKHYA_CLIENT_SECRET: "LHTBJC5TFVXB8IQ4TRxbrUwopxjk1zak"
+      SANKHYA_X_TOKEN: "c12fd66b-e030-4d80-9b92-7daf82d0d11f"
+
+      # Email Configuration
+      EMAIL_USER: "contato@portaldistribuidora.com.br"
+      EMAIL_PASSWORD: "fugs zisa vlmm phir"
+
+      # Evolution API (WhatsApp)
+      EVOLUTION_API_URL: https://evolutionapi.gera-leads.com
+      EVOLUTION_API_KEY: cb988b940da16208625675ba7be69465
+      EVOLUTION_INSTANCE_NAME: WhatsAppPortal
+
+      # OpenAI
+      OPENAI_API_KEY: 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
+
     networks:
       - portal_overlay
       - Portainer
     depends_on:
       - db
+
   # ==========================================
-  # 3. POSTGRES 14 (BANCO DEDICADO)
+  # 3. POSTGRES 14 (PRODUÇÃO)
   # ==========================================
   db:
     image: postgres:14
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal_senha_forte
+      POSTGRES_DB: portal_eletricistas
     deploy:
       mode: replicated
       replicas: 1
     networks:
       - portal_overlay
+
 # ==========================================
 # REDES E VOLUMES
 # ==========================================
@@ -88,5 +98,6 @@ networks:
     driver: overlay
   Portainer:
     external: true
+
 volumes:
   db_data:

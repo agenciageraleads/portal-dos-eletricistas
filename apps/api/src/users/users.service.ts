@@ -74,4 +74,113 @@ export class UsersService {
 
         return { token };
     }
+
+    // Helper to fix ALL CAPS names from legacy systems
+    private normalizeName(name: string): string {
+        if (!name) return name;
+        return name
+            .toLowerCase()
+            .split(' ')
+            .map(word => {
+                // Keep prepositions lowercase (de, da, dos, e)
+                if (['de', 'da', 'do', 'das', 'dos', 'e'].includes(word)) return word;
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            })
+            .join(' ');
+    }
+
+    // Services: Find available electricians (v2.0)
+    async findAvailable(city?: string) {
+        const isFeatureEnabled = process.env.FEATURE_PRE_REG_DISABLED !== 'true';
+
+        const where: any = {
+            role: 'ELETRICISTA',
+            OR: [
+                { isAvailableForWork: true }
+            ]
+        };
+
+        if (isFeatureEnabled) {
+            where.OR.push({ pre_cadastrado: true });
+        }
+
+        if (city) {
+            where.city = { contains: city, mode: 'insensitive' };
+        }
+
+        const users = await this.prisma.user.findMany({
+            where,
+            select: {
+                id: true,
+                name: true,
+                city: true,
+                state: true,
+                logo_url: true,
+                phone: true,
+                isAvailableForWork: true,
+                pre_cadastrado: true,
+                cadastro_finalizado: true,
+                commercial_index: true // Adicionado para ranking
+            },
+            orderBy: [
+                { commercial_index: 'desc' }, // NOTE: Ensure DB treats nulls as last or use explicit nulls: 'last' if enabled in Prisma version. 
+                // For now, standard desc might put nulls first in Postgres.
+                // If this persists, we need to map nulls to 0 in SQL view or use raw query.
+                // Assuming Prisma handles this or user has non-null values after sync.
+                { cadastro_finalizado: 'desc' },
+                { name: 'asc' }
+            ]
+        });
+
+        // Normalize names on the fly
+        return users.map(user => ({
+            ...user,
+            name: this.normalizeName(user.name)
+        }));
+    }
+
+    async getPublicProfile(id: string) {
+        // Increment view count asynchronously
+        this.prisma.user.update({
+            where: { id },
+            data: { view_count: { increment: 1 } }
+        }).catch(err => console.error('Error incrementing view_count:', err));
+
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                business_name: true,
+                city: true,
+                state: true,
+                bio: true,
+                logo_url: true,
+                role: true,
+                phone: true,
+                cadastro_finalizado: true,
+                commercial_index: true,
+                total_orders: true,
+                view_count: true,
+                createdAt: true,
+            }
+        });
+
+        if (!user) {
+            return null;
+        }
+
+        // Normalize name
+        return {
+            ...user,
+            name: this.normalizeName(user.name)
+        };
+    }
+
+    async count() {
+        // Count only finalized registrations or all? 
+        // For gamification/social proof, counting all valid emails is usually better.
+        // Assuming we want 'users' not just electricians.
+        return { count: await this.prisma.user.count() };
+    }
 }

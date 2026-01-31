@@ -53,4 +53,9 @@ export class AdminController {
             pageSize ? parseInt(pageSize) : 20
         );
     }
+
+    @Patch('feedbacks/:id/reply')
+    replyFeedback(@Param('id') id: string, @Body('reply') reply: string) {
+        return this.adminService.replyFeedback(id, reply);
+    }
 }
