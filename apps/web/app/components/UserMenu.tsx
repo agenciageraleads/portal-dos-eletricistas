@@ -103,6 +103,12 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
                             <LogOut size={18} />
                             Sair
                         </button>
+
+                        <div className="pt-2 pb-1 text-center">
+                            <span className="text-[10px] text-gray-400 font-mono">
+                                v1.5.3
+                            </span>
+                        </div>
                     </div>
                 </div>
             )}
