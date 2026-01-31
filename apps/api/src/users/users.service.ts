@@ -74,6 +74,21 @@ export class UsersService {
 
         return { token };
     }
+
+    // Helper to fix ALL CAPS names from legacy systems
+    private normalizeName(name: string): string {
+        if (!name) return name;
+        return name
+            .toLowerCase()
+            .split(' ')
+            .map(word => {
+                // Keep prepositions lowercase (de, da, dos, e)
+                if (['de', 'da', 'do', 'das', 'dos', 'e'].includes(word)) return word;
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            })
+            .join(' ');
+    }
+
     // Services: Find available electricians (v2.0)
     async findAvailable(city?: string) {
         const isFeatureEnabled = process.env.FEATURE_PRE_REG_DISABLED !== 'true';
@@ -93,7 +108,7 @@ export class UsersService {
             where.city = { contains: city, mode: 'insensitive' };
         }
 
-        return this.prisma.user.findMany({
+        const users = await this.prisma.user.findMany({
             where,
             select: {
                 id: true,
@@ -116,6 +131,12 @@ export class UsersService {
                 { name: 'asc' }
             ]
         });
+
+        // Normalize names on the fly
+        return users.map(user => ({
+            ...user,
+            name: this.normalizeName(user.name)
+        }));
     }
 
     async getPublicProfile(id: string) {
@@ -149,7 +170,11 @@ export class UsersService {
             return null;
         }
 
-        return user;
+        // Normalize name
+        return {
+            ...user,
+            name: this.normalizeName(user.name)
+        };
     }
 
     async count() {
