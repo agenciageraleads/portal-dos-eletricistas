@@ -1,10 +1,15 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { SyncService } from './sync.service';
 import { ElectricianSyncService } from './electrician-sync.service';
 import { SankhyaImageService } from '../integrations/sankhya/sankhya-image.service';
 import { SankhyaService } from '../integrations/sankhya/sankhya.service';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('admin/sync')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles('ADMIN')
 export class SyncController {
     constructor(
         private readonly syncService: SyncService,
@@ -61,5 +66,4 @@ export class SyncController {
         return this.syncService.seedServices();
     }
 }
-
 

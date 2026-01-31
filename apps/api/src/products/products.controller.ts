@@ -1,5 +1,8 @@
-import { Controller, Get, Query, Patch, Body, Param, Post } from '@nestjs/common';
+import { Controller, Get, Query, Patch, Body, Param, Post, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -30,24 +33,31 @@ export class ProductsController {
     }
 
     // Admin Endpoints (Should be protected by RoleGuard in real app)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     @Get('admin/failed-searches')
     getFailedSearches(@Query('page') page: number = 1, @Query('limit') limit: number = 20) {
         return this.productsService.getFailedSearches(Number(page), Number(limit));
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     @Patch('admin/:id')
     updateProduct(@Param('id') id: string, @Body() data: any) {
         return this.productsService.updateProduct(id, data);
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     @Post('admin/synonyms')
     async addSynonym(@Body() body: { term: string, synonyms: string[] }) {
         return this.productsService.addSynonym(body.term, body.synonyms);
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     @Get('admin/search-suggestions')
     async generateSearchSuggestions(@Query('term') term: string) {
         return this.productsService.generateSearchSuggestions(term);
     }
 }
-

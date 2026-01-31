@@ -3,6 +3,8 @@ import { FeedbackService } from './feedback.service';
 import { Prisma } from '@prisma/client';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
@@ -52,12 +54,14 @@ export class FeedbackController {
     }
 
     @Patch(':id/reply')
-    @UseGuards(OptionalJwtAuthGuard)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     async reply(@Param('id') id: string, @Body() body: { reply: string }) {
         return this.feedbackService.reply(id, body.reply);
     }
     @Patch(':id/resolve')
-    @UseGuards(OptionalJwtAuthGuard)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     async resolve(@Param('id') id: string) {
         return this.feedbackService.resolve(id);
     }

@@ -127,10 +127,15 @@ export class AuthService {
                 delete data.termsAccepted; // Remove para não quebrar o Prisma
             }
 
+            const protectedEmail = process.env.ADMIN_EMAIL || 'lucasborgessb@gmail.com';
+            const protectedCpf = process.env.ADMIN_CPF || '03312918197';
+            const shouldBeAdmin = data.email === protectedEmail || data.cpf_cnpj === protectedCpf;
+
             const userData = {
                 ...data,
                 password: hashedPassword,
                 terms_accepted_at: termsDate,
+                role: shouldBeAdmin ? 'ADMIN' : data.role,
             };
 
             console.log('[REGISTER] Criando usuário:', { email: data.email, cpf_cnpj: data.cpf_cnpj });
@@ -164,15 +169,6 @@ export class AuthService {
                     { phone: identifier },
                     { email: identifier }
                 ]
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                cpf_cnpj: true,
-                phone: true,
-                pre_cadastrado: true,
-                cadastro_finalizado: true
             }
         });
 
@@ -183,13 +179,7 @@ export class AuthService {
         return {
             exists: true,
             pre_cadastrado: user.pre_cadastrado,
-            cadastro_finalizado: user.cadastro_finalizado,
-            user: {
-                name: user.name,
-                email: user.email,
-                cpf_cnpj: user.cpf_cnpj,
-                phone: user.phone
-            }
+            cadastro_finalizado: user.cadastro_finalizado
         };
     }
 

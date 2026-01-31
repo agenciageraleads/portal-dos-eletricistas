@@ -1,8 +1,13 @@
-import { Controller, Post, Body, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Body, UploadedFile, UseInterceptors, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BudgetImportService } from './budget-import.service';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('admin/ai-lab')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles('ADMIN')
 export class AiLabController {
     constructor(private readonly budgetImportService: BudgetImportService) { }
 

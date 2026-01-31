@@ -52,9 +52,9 @@ export default function RegisterPage() {
 
                 if (data.pre_cadastrado) {
                     setIsPreRegistered(true);
-                    setName(data.user.name || '');
-                    setEmail(data.user.email || '');
-                    setPhone(data.user.phone || '');
+                    setName(data.user?.name || '');
+                    setEmail(data.user?.email || '');
+                    setPhone(data.user?.phone || '');
                     showToast('Encontramos seu pré-cadastro! 😊 Finalize as informações abaixo.', 'success');
                 }
             }

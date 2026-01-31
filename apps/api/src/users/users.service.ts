@@ -1,10 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
     constructor(private prisma: PrismaService) { }
+
+    async onModuleInit() {
+        const protectedEmail = process.env.ADMIN_EMAIL || 'lucasborgessb@gmail.com';
+        const protectedCpf = process.env.ADMIN_CPF || '03312918197';
+
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: protectedEmail },
+                    { cpf_cnpj: protectedCpf }
+                ]
+            },
+            select: { id: true, role: true }
+        });
+
+        if (user && user.role !== 'ADMIN') {
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { role: 'ADMIN' }
+            });
+        }
+    }
 
     async updateProfile(userId: string, data: UpdateProfileDto) {
         try {
@@ -51,6 +73,23 @@ export class UsersService {
 
     // Admin: Update user role (v1.2.0)
     async updateRole(userId: string, role: 'ELETRICISTA' | 'ADMIN') {
+        const protectedEmail = process.env.ADMIN_EMAIL || 'lucasborgessb@gmail.com';
+        const protectedCpf = process.env.ADMIN_CPF || '03312918197';
+
+        const protectedUser = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: protectedEmail },
+                    { cpf_cnpj: protectedCpf }
+                ]
+            },
+            select: { id: true }
+        });
+
+        if (protectedUser && protectedUser.id === userId) {
+            role = 'ADMIN';
+        }
+
         return this.prisma.user.update({
             where: { id: userId },
             data: { role }

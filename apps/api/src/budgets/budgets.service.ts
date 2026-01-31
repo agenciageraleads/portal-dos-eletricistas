@@ -79,7 +79,19 @@ export class BudgetsService {
                 items: {
                     include: { product: true },
                 },
-                user: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        logo_url: true,
+                        city: true,
+                        state: true,
+                        role: true,
+                        business_name: true
+                    }
+                },
             },
         });
     }

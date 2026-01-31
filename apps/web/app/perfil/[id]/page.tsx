@@ -61,12 +61,44 @@ export default function PublicProfilePage() {
         );
     }
 
+    // Soft Profile View (Not Found or Inactive)
     if (!profile) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
-                <UserIcon size={64} className="text-gray-300 mb-4" />
-                <h2 className="text-xl font-bold text-gray-800">Profissional não encontrado</h2>
-                <button onClick={() => router.back()} className="mt-4 text-blue-600 font-bold">Voltar</button>
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+                <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+
+                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300 relative">
+                        <UserIcon size={48} />
+                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 rounded-full border-4 border-white"></div>
+                    </div>
+
+                    <h2 className="text-xl font-black text-gray-800 mb-2">Perfil em Construção</h2>
+                    <p className="text-gray-500 text-sm leading-relaxed mb-8">
+                        Este profissional ainda está preparando o perfil, mas já faz parte da nossa comunidade.
+                    </p>
+
+                    <div className="space-y-3">
+                        <Link
+                            href="/services"
+                            className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-200"
+                        >
+                            Criar Pedido de Orçamento
+                        </Link>
+                        <button
+                            onClick={() => router.back()}
+                            className="block w-full bg-white border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+                        >
+                            Voltar
+                        </button>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-gray-100">
+                        <p className="text-xs text-center text-gray-400 font-medium">
+                            Portal do Eletricista © {new Date().getFullYear()}
+                        </p>
+                    </div>
+                </div>
             </div>
         );
     }
