@@ -41,6 +41,8 @@ interface Professional {
     pre_cadastrado: boolean;
     cadastro_finalizado: boolean;
     commercial_index: number | null;
+    is_ambassador?: boolean;
+    ambassador_rank?: number | null;
 }
 
 export default function ServicesPage() {
@@ -462,7 +464,14 @@ export default function ServicesPage() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {professionals.map(prof => (
-                                <div key={prof.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col gap-3 hover:border-blue-300 transition-all">
+                                <div
+                                    key={prof.id}
+                                    className={`bg-white rounded-xl shadow-sm border p-4 flex flex-col gap-3 transition-all ${
+                                        prof.is_ambassador
+                                            ? 'border-yellow-400/70 hover:border-yellow-500 shadow-yellow-100'
+                                            : 'border-gray-200 hover:border-blue-300'
+                                    }`}
+                                >
                                     <Link href={`/perfil/${prof.id}`} className="flex items-center gap-3">
                                         <div className="relative">
                                             <div className="w-14 h-14 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden">
@@ -477,8 +486,15 @@ export default function ServicesPage() {
                                             <div className={`absolute bottom-0 right-0 w-4 h-4 border-2 border-white rounded-full ${prof.isAvailableForWork ? 'bg-green-500' : 'bg-gray-300'}`} title={prof.isAvailableForWork ? 'Online' : 'Inativo'}></div>
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">{prof.name}</h3>
-                                            <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="font-bold text-gray-900">{prof.name}</h3>
+                                                {prof.is_ambassador && (
+                                                    <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                                                        Embaixador
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5 flex-wrap">
                                                 {prof.cadastro_finalizado ? (
                                                     <><CheckCircle size={10} className="text-blue-500" /> Eletricista Verificado</>
                                                 ) : (

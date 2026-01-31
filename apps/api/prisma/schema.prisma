@@ -40,6 +40,8 @@ model User {
   cadastro_finalizado  Boolean    @default(false)
   registration_origin  String?    @default("MANUAL") // 'IMPORTED', 'MANUAL', 'INDICATION'
   activatedAt          DateTime?
+  is_ambassador        Boolean    @default(false)
+  ambassador_rank      Int?
   
   // Campos Sankhya (Backend - Não editáveis)
   sankhya_partner_id   Int?       // CODPARC

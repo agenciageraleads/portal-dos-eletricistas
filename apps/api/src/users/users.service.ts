@@ -159,7 +159,9 @@ export class UsersService implements OnModuleInit {
                 isAvailableForWork: true,
                 pre_cadastrado: true,
                 cadastro_finalizado: true,
-                commercial_index: true // Adicionado para ranking
+                commercial_index: true,
+                is_ambassador: true,
+                ambassador_rank: true
             },
             orderBy: [
                 { cadastro_finalizado: 'desc' },
@@ -167,20 +169,11 @@ export class UsersService implements OnModuleInit {
             ]
         });
 
-        const ambassadorIds = (process.env.AMBASSADOR_IDS || '')
-            .split(',')
-            .map(id => id.trim())
-            .filter(Boolean);
-        const ambassadorOrder = new Map(ambassadorIds.map((id, index) => [id, index]));
-
         // Sort: ambassadors first (fixed order), then commercial_index desc (nulls last), then finalized, then name
         users.sort((a, b) => {
-            const aAmb = ambassadorOrder.has(a.id);
-            const bAmb = ambassadorOrder.has(b.id);
-            if (aAmb || bAmb) {
-                return (aAmb ? ambassadorOrder.get(a.id)! : Number.POSITIVE_INFINITY)
-                    - (bAmb ? ambassadorOrder.get(b.id)! : Number.POSITIVE_INFINITY);
-            }
+            const aRank = a.is_ambassador ? (a.ambassador_rank ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
+            const bRank = b.is_ambassador ? (b.ambassador_rank ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
+            if (aRank !== bRank) return aRank - bRank;
 
             const aIndex = a.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(a.commercial_index);
             const bIndex = b.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(b.commercial_index);
@@ -223,6 +216,8 @@ export class UsersService implements OnModuleInit {
                 phone: true,
                 cadastro_finalizado: true,
                 commercial_index: true,
+                is_ambassador: true,
+                ambassador_rank: true,
                 total_orders: true,
                 view_count: true,
                 createdAt: true,

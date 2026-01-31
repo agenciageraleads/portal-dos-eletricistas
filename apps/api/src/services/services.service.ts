@@ -139,6 +139,14 @@ export class ServicesService {
     }
 
     async getContact(id: string, userId: string) {
+        const ambassador = userId
+            ? await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { is_ambassador: true }
+            })
+            : null;
+        const isAmbassador = !!ambassador?.is_ambassador;
+
         const service = await this.prisma.serviceListing.findUnique({
             where: { id },
             include: { leads: { where: { userId } } }
@@ -158,10 +166,14 @@ export class ServicesService {
 
         // Check status and limits
         if (service.status !== ServiceStatus.OPEN) {
+            if (isAmbassador && service.status === ServiceStatus.LIMIT_REACHED) {
+                // Ambassadors can still access even when lead limit is reached
+            } else {
             throw new ForbiddenException('Esta oportunidade já foi encerrada ou expirou.');
+            }
         }
 
-        if (service.leadsCount >= service.maxLeads) {
+        if (!isAmbassador && service.leadsCount >= service.maxLeads) {
             // Should have been closed, but double check
             await this.prisma.serviceListing.update({
                 where: { id },
@@ -183,13 +195,14 @@ export class ServicesService {
                 }
             });
 
-            const updatedService = await prisma.serviceListing.update({
-                where: { id },
-                data: { leadsCount: { increment: 1 } }
-            });
+            const updatedService = isAmbassador
+                ? await prisma.serviceListing.findUnique({ where: { id } })
+                : await prisma.serviceListing.update({
+                    where: { id },
+                    data: { leadsCount: { increment: 1 } }
+                });
 
-            // Close if limit reached
-            if (updatedService.leadsCount >= updatedService.maxLeads) {
+            if (!isAmbassador && updatedService && updatedService.leadsCount >= updatedService.maxLeads) {
                 await prisma.serviceListing.update({
                     where: { id },
                     data: { status: ServiceStatus.LIMIT_REACHED }
@@ -199,7 +212,10 @@ export class ServicesService {
             return updatedService;
         });
 
-        return { whatsapp: service.whatsapp, remaining: result.maxLeads - result.leadsCount };
+        return {
+            whatsapp: service.whatsapp,
+            remaining: result ? result.maxLeads - result.leadsCount : service.maxLeads - service.leadsCount
+        };
     }
 
     async close(id: string, userId: string, reason: string) {
