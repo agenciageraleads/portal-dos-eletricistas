@@ -180,13 +180,29 @@ export class ElectricianSyncService {
     private async downloadAndUploadWhatsAppPhoto(phone: string, cpf: string): Promise<string | null> {
         try {
             // 1. Buscar URL da foto via Evolution API
-            let photoUrl = await this.evolutionService.getProfilePicture(phone);
+            const digits = (phone || '').replace(/\D/g, '');
+            const candidates = new Set<string>();
+            if (digits) candidates.add(digits);
 
-            // Caso falhe, tenta sem o nono dígito (para números antigos)
-            if (!photoUrl && phone.length === 13 && phone.startsWith('55')) {
-                const legacyNumber = phone.slice(0, 4) + phone.slice(5);
-                this.logger.log(`   🔄 Tentando número legado (sem nono dígito): ${legacyNumber}`);
-                photoUrl = await this.evolutionService.getProfilePicture(legacyNumber);
+            // Brasil: tentar com e sem 9º dígito após o DDD
+            if (digits.startsWith('55')) {
+                const rest = digits.slice(2);
+                if (rest.length === 10) {
+                    const ddd = rest.slice(0, 2);
+                    const number = rest.slice(2);
+                    candidates.add(`55${ddd}9${number}`);
+                } else if (rest.length === 11) {
+                    const ddd = rest.slice(0, 2);
+                    const number = rest.slice(3);
+                    candidates.add(`55${ddd}${number}`);
+                }
+            }
+
+            let photoUrl: string | null = null;
+            for (const candidate of candidates) {
+                photoUrl = await this.evolutionService.getProfilePicture(candidate);
+                if (photoUrl) break;
+                this.logger.log(`   🔄 Sem foto para ${candidate}, tentando fallback...`);
             }
 
             if (!photoUrl) {
