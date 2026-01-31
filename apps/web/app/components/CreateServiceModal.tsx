@@ -13,7 +13,7 @@ interface CreateServiceModalProps {
 
 export default function CreateServiceModal({ onClose, onSuccess, initialType = 'REQUEST' }: CreateServiceModalProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [type, setType] = useState<'REQUEST' | 'OFFER'>('REQUEST');
+    const [type, setType] = useState<string>('CLIENT_SERVICE');
     const [errors, setErrors] = useState('');
 
     const [formData, setFormData] = useState({
@@ -27,7 +27,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
     });
 
     const { user } = useAuth(); // Import useAuth to check login status
-    
+
     // ... input masks ...
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,13 +44,13 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                 whatsapp: formData.whatsapp,
                 type: type // Fixed to REQUEST
             };
-            
+
             if (user) {
                 await api.post('/services', payload);
             } else {
                 await api.post('/services/public', payload);
             }
-            
+
             onSuccess();
         } catch (error) {
             console.error(error);
@@ -72,6 +72,60 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
 
                 <div className="p-4 overflow-y-auto">
                     <form onSubmit={handleSubmit} className="space-y-4">
+
+                        {/* Type Selection for Electricians */}
+                        {user?.role === 'ELETRICISTA' && (
+                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Tipo de Anúncio</label>
+                                <div className="grid grid-cols-1 gap-2">
+                                    <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${type === 'CLIENT_SERVICE' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                                        <input
+                                            type="radio"
+                                            name="serviceType"
+                                            value="CLIENT_SERVICE"
+                                            checked={type === 'CLIENT_SERVICE' || type === 'REQUEST'}
+                                            onChange={() => setType('CLIENT_SERVICE')}
+                                            className="w-4 h-4 text-blue-600"
+                                        />
+                                        <div>
+                                            <span className="block text-sm font-bold text-gray-800">Preciso de um Serviço</span>
+                                            <span className="block text-xs text-gray-500">Ex: Instalação na minha casa/loja</span>
+                                        </div>
+                                    </label>
+
+                                    <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${type === 'PRO_SUBCONTRACT' ? 'bg-purple-50 border-purple-500 ring-1 ring-purple-500' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                                        <input
+                                            type="radio"
+                                            name="serviceType"
+                                            value="PRO_SUBCONTRACT"
+                                            checked={type === 'PRO_SUBCONTRACT'}
+                                            onChange={() => setType('PRO_SUBCONTRACT')}
+                                            className="w-4 h-4 text-purple-600"
+                                        />
+                                        <div>
+                                            <span className="block text-sm font-bold text-gray-800">Repassar Obra / Parceria</span>
+                                            <span className="block text-xs text-gray-500">Tenho um serviço e preciso de parceiro</span>
+                                        </div>
+                                    </label>
+
+                                    <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${type === 'PRO_HELPER_JOB' ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                                        <input
+                                            type="radio"
+                                            name="serviceType"
+                                            value="PRO_HELPER_JOB"
+                                            checked={type === 'PRO_HELPER_JOB'}
+                                            onChange={() => setType('PRO_HELPER_JOB')}
+                                            className="w-4 h-4 text-indigo-600"
+                                        />
+                                        <div>
+                                            <span className="block text-sm font-bold text-gray-800">Contratar Ajudante</span>
+                                            <span className="block text-xs text-gray-500">Vaga para auxiliar ou eletricista júnior</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Título do Pedido</label>
                             <input

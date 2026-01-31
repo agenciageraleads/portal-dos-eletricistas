@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '@/lib/api';
 import BottomNav from '../components/BottomNav';
-import { Plus, MapPin, Calendar, User, Trash2, ArrowLeft, Filter, Search, CheckCircle } from 'lucide-react';
+import { Plus, MapPin, Calendar, User, Trash2, ArrowLeft, Filter, Search, CheckCircle, Eye, Lock, Unlock } from 'lucide-react';
 import Link from 'next/link';
 import CreateServiceModal from '../components/CreateServiceModal';
 
@@ -17,8 +17,12 @@ interface ServiceListing {
     state: string | null;
     date: string;
     whatsapp: string | null;
-    type: 'REQUEST' | 'OFFER';
+    type: string; // 'CLIENT_SERVICE', 'PRO_SUBCONTRACT', 'PRO_HELPER_JOB', etc.
     userId: string;
+    status: 'OPEN' | 'FILLED' | 'CANCELLED' | 'LIMIT_REACHED' | 'CLOSED_HIRED' | 'EXPIRED';
+    maxLeads: number;
+    leadsCount: number;
+    alreadyUnlocked?: boolean;
     user: {
         name: string;
         logo_url: string | null;
@@ -50,6 +54,7 @@ export default function ServicesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'BOARD' | 'PROFESSIONALS'>('BOARD');
+    const [unlockingId, setUnlockingId] = useState<string | null>(null);
 
     // Filters
     const [cityFilter, setCityFilter] = useState('');
@@ -69,7 +74,7 @@ export default function ServicesPage() {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
-            params.append('type', 'REQUEST'); // Filter Only Requests
+            // params.append('type', 'REQUEST'); // Filter Only Requests
             if (cityFilter) params.append('city', cityFilter);
             if (minPrice) params.append('minPrice', minPrice);
             if (maxPrice) params.append('maxPrice', maxPrice);
@@ -106,6 +111,74 @@ export default function ServicesPage() {
         } catch (error) {
             alert('Erro ao excluir');
         }
+    };
+
+    const handleUnlockContact = async (service: ServiceListing) => {
+        if (!user) {
+            alert('Faça login para ver o contato.');
+            return;
+        }
+        if (service.userId === user.id) return; // Own Service
+
+        if (service.alreadyUnlocked && service.whatsapp) {
+            window.open(`https://wa.me/55${service.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, vi seu pedido "${service.title}" no Portal.`)}`, '_blank');
+            return;
+        }
+
+        if (confirm(`Deseja liberar o contato deste cliente? \n(Restam ${service.maxLeads - service.leadsCount} visualizações)`)) {
+            setUnlockingId(service.id);
+            try {
+                const { data } = await api.post(`/services/${service.id}/contact`);
+
+                // Update local state
+                setServices(prev => prev.map(s => {
+                    if (s.id === service.id) {
+                        return {
+                            ...s,
+                            whatsapp: data.whatsapp,
+                            alreadyUnlocked: true,
+                            leadsCount: s.leadsCount + 1
+                        };
+                    }
+                    return s;
+                }));
+
+                // Open WhatsApp immediately
+                window.open(`https://wa.me/55${data.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, vi seu pedido "${service.title}" no Portal.`)}`, '_blank');
+
+            } catch (error: any) {
+                alert(error.response?.data?.message || 'Erro ao liberar contato.');
+            } finally {
+                setUnlockingId(null);
+            }
+        }
+    }
+
+    const getTypeBadge = (type: string) => {
+        switch (type) {
+            case 'PRO_SUBCONTRACT':
+                return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200 uppercase">🤝 Repasse de Obra</span>;
+            case 'PRO_HELPER_JOB':
+                return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase">👷 Vaga Ajudante</span>;
+            case 'CLIENT_SERVICE':
+            default:
+                return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200 uppercase">🏠 Cliente Residencial</span>;
+        }
+    };
+
+    const getStatusBadge = (status: string, leadsCount: number, maxLeads: number) => {
+        if (status === 'LIMIT_REACHED') {
+            return <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-bl-lg">Esgotado</div>;
+        }
+        if (status === 'CLOSED_HIRED') {
+            return <div className="absolute top-0 right-0 bg-gray-600 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-bl-lg">Finalizado</div>;
+        }
+        // Active Status with Counter
+        return (
+            <div className="absolute top-0 right-0 bg-blue-50 text-blue-600 border-l border-b border-blue-100 text-[10px] uppercase font-bold px-2 py-1 rounded-bl-lg flex items-center gap-1">
+                <Eye size={10} /> {leadsCount}/{maxLeads} Visto(s)
+            </div>
+        );
     };
 
     const getWhatsAppLink = (number: string | null, message: string) => {
@@ -283,18 +356,25 @@ export default function ServicesPage() {
                         </div>
                     ) : (
                         services.map(service => (
-                            <div key={service.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 relative hover:shadow-md transition-shadow">
-                                <div className="absolute top-4 right-4 flex gap-2">
-                                    {/* Removed Type Badge since all are REQUESTs */}
+                            <div key={service.id} className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 relative hover:shadow-md transition-shadow ${service.status === 'LIMIT_REACHED' ? 'opacity-70' : ''}`}>
+                                {getStatusBadge(service.status, service.leadsCount, service.maxLeads)}
+
+                                <div className="absolute overflow-hidden top-0 left-0 w-1 bg-blue-500 h-full rounded-l-xl"></div>
+
+                                <div className="flex justify-between items-start mb-2 pr-20 pt-1">
+                                    <div className="flex gap-2 mb-1">
+                                        {getTypeBadge(service.type)}
+                                    </div>
                                     {user && user.id === service.userId && (
-                                        <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500">
+                                        <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500 p-1">
                                             <Trash2 size={16} />
                                         </button>
                                     )}
                                 </div>
 
-                                <div className="flex items-start gap-3 mb-3 pr-16">
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-orange-100 text-orange-600 border-orange-200">
+
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-blue-100 text-blue-600 border-blue-200">
                                         {service.user.logo_url ? (
                                             <img src={service.user.logo_url} alt={service.user.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -333,21 +413,36 @@ export default function ServicesPage() {
                                         )}
                                     </div>
 
-                                    {service.whatsapp ? (
-                                        <a
-                                            href={getWhatsAppLink(service.whatsapp, `Olá, vi seu pedido "${service.title}" no Portal.`)!}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5"
-                                        >
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-4 h-4 brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
-                                            Falar com Cliente
-                                        </a>
+                                    {/* Action Button */}
+                                    {service.userId === user?.id ? (
+                                        <span className="text-xs text-gray-400 font-medium px-2 py-1 bg-gray-100 rounded">Seu Anúncio</span>
                                     ) : (
-                                        <button disabled className="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-bold text-sm cursor-not-allowed">
-                                            Indisponível
-                                        </button>
+                                        service.alreadyUnlocked || service.whatsapp ? (
+                                            <button
+                                                onClick={() => handleUnlockContact(service)}
+                                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5"
+                                            >
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-4 h-4 brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
+                                                Chamar no WhatsApp
+                                            </button>
+                                        ) : service.status === 'OPEN' ? (
+                                            <button
+                                                onClick={() => handleUnlockContact(service)}
+                                                disabled={unlockingId === service.id}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                                            >
+                                                {unlockingId === service.id ? (
+                                                    <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                                                ) : <Unlock size={16} />}
+                                                Liberar Contato ({service.maxLeads - service.leadsCount} restam)
+                                            </button>
+                                        ) : (
+                                            <button disabled className="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-bold text-sm cursor-not-allowed flex items-center gap-1">
+                                                <Lock size={14} /> Indisponível
+                                            </button>
+                                        )
                                     )}
+
                                 </div>
                             </div>
                         ))
