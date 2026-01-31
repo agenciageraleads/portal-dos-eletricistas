@@ -162,13 +162,37 @@ export class UsersService implements OnModuleInit {
                 commercial_index: true // Adicionado para ranking
             },
             orderBy: [
-                { commercial_index: 'desc' }, // NOTE: Ensure DB treats nulls as last or use explicit nulls: 'last' if enabled in Prisma version. 
-                // For now, standard desc might put nulls first in Postgres.
-                // If this persists, we need to map nulls to 0 in SQL view or use raw query.
-                // Assuming Prisma handles this or user has non-null values after sync.
                 { cadastro_finalizado: 'desc' },
                 { name: 'asc' }
             ]
+        });
+
+        const ambassadorIds = (process.env.AMBASSADOR_IDS || '')
+            .split(',')
+            .map(id => id.trim())
+            .filter(Boolean);
+        const ambassadorOrder = new Map(ambassadorIds.map((id, index) => [id, index]));
+
+        // Sort: ambassadors first (fixed order), then commercial_index desc (nulls last), then finalized, then name
+        users.sort((a, b) => {
+            const aAmb = ambassadorOrder.has(a.id);
+            const bAmb = ambassadorOrder.has(b.id);
+            if (aAmb || bAmb) {
+                return (aAmb ? ambassadorOrder.get(a.id)! : Number.POSITIVE_INFINITY)
+                    - (bAmb ? ambassadorOrder.get(b.id)! : Number.POSITIVE_INFINITY);
+            }
+
+            const aIndex = a.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(a.commercial_index);
+            const bIndex = b.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(b.commercial_index);
+            if (aIndex !== bIndex) return bIndex - aIndex;
+
+            if (a.cadastro_finalizado !== b.cadastro_finalizado) {
+                return a.cadastro_finalizado ? -1 : 1;
+            }
+
+            const aName = this.normalizeName(a.name);
+            const bName = this.normalizeName(b.name);
+            return aName.localeCompare(bName, 'pt-BR');
         });
 
         // Normalize names on the fly
