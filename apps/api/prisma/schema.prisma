@@ -260,6 +260,7 @@ model ServiceListing {
   
   maxLeads        Int           @default(3)
   leadsCount      Int           @default(0)
+  closeReason     String?
   leads           ServiceLead[]
   
   userId      String?

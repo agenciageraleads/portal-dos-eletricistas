@@ -12,14 +12,33 @@ export class EmailService {
         const emailPass = process.env.EMAIL_PASSWORD;
 
         if (emailUser && emailPass) {
-            this.transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: emailUser,
-                    pass: emailPass, // App Password, not regular password
-                },
-            });
-            console.log('[EmailService] Gmail SMTP configurado');
+            const host = process.env.EMAIL_HOST;
+            const port = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : 587;
+            const secure = process.env.EMAIL_SECURE === 'true';
+
+            if (host) {
+                // Generic SMTP
+                this.transporter = nodemailer.createTransport({
+                    host,
+                    port,
+                    secure,
+                    auth: {
+                        user: emailUser,
+                        pass: emailPass,
+                    },
+                });
+                console.log(`[EmailService] SMTP Genérico configurado: ${host}:${port}`);
+            } else {
+                // Gmail Fallback
+                this.transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: emailUser,
+                        pass: emailPass,
+                    },
+                });
+                console.log('[EmailService] Gmail SMTP configurado');
+            }
         } else {
             console.warn('[EmailService] EMAIL_USER ou EMAIL_PASSWORD não configurados. Emails serão logados no console.');
         }
