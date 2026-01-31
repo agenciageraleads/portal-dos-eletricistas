@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useInstallPrompt } from './contexts/InstallContext';
 import Link from 'next/link';
@@ -27,6 +28,20 @@ import UserMenu from './components/UserMenu';
 export default function Home() {
     const { user, logout } = useAuth();
     const { triggerInstall, isIOS, isInstalled } = useInstallPrompt();
+    const [hasSharedWhatsapp, setHasSharedWhatsapp] = useState(false);
+
+    useEffect(() => {
+        const syncShareFlag = () => {
+            setHasSharedWhatsapp(localStorage.getItem('hasSharedWhatsapp') === 'true');
+        };
+        syncShareFlag();
+        window.addEventListener('storage', syncShareFlag);
+        window.addEventListener('jornada-progress-update', syncShareFlag as EventListener);
+        return () => {
+            window.removeEventListener('storage', syncShareFlag);
+            window.removeEventListener('jornada-progress-update', syncShareFlag as EventListener);
+        };
+    }, []);
 
     // Gov.br style often uses lists or simpler cards for "Frequent Services"
     const quickAccess = [
@@ -55,6 +70,63 @@ export default function Home() {
             href: '/ferramentas'
         }
     ];
+
+    const jornadaTasks = useMemo(() => {
+        if (!user) return [];
+        return [
+            {
+                id: 'profile',
+                title: 'Finalize seu Perfil',
+                description: 'Adicione sua Bio e Telefone para passar confiança.',
+                isCompleted: !!(user.bio && user.phone),
+                action: '/perfil'
+            },
+            {
+                id: 'pix',
+                title: 'Cadastre sua Chave Pix',
+                description: 'Necessário para receber pagamentos futuros.',
+                isCompleted: !!user.pix_key,
+                action: '/perfil'
+            },
+            {
+                id: 'budget',
+                title: 'Faça seu Primeiro Orçamento',
+                description: 'Crie uma proposta profissional agora.',
+                isCompleted: (user._count?.budgets || 0) > 0,
+                action: '/orcamento'
+            },
+            {
+                id: 'share',
+                title: 'Envie via WhatsApp',
+                description: 'Compartilhe um orçamento com um cliente.',
+                isCompleted: hasSharedWhatsapp,
+                action: '/orcamentos'
+            },
+            {
+                id: 'install_app',
+                title: 'Instale o Aplicativo',
+                description: 'Tenha acesso offline e mais agilidade.',
+                isCompleted: isInstalled,
+                action: '#install-trigger'
+            },
+            {
+                id: 'invite',
+                title: 'Convide 5 Parceiros',
+                description: 'Construa sua rede (Em Breve).',
+                isCompleted: false
+            }
+        ];
+    }, [user, isInstalled, hasSharedWhatsapp]);
+
+    const jornadaProgress = useMemo(() => {
+        if (!jornadaTasks.length) return 0;
+        const completedCount = jornadaTasks.filter(t => t.isCompleted).length;
+        return Math.round((completedCount / jornadaTasks.length) * 100);
+    }, [jornadaTasks]);
+
+    const nextTask = useMemo(() => {
+        return jornadaTasks.find(t => !t.isCompleted);
+    }, [jornadaTasks]);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
@@ -131,6 +203,71 @@ export default function Home() {
 
 
                 {/* 4. CONTENT SECTIONS */}
+
+                {user && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                        <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Trophy size={16} className="text-yellow-500" />
+                                <h3 className="font-semibold text-gray-700 text-sm">Sua Jornada</h3>
+                            </div>
+                            <button
+                                id="jornada-trigger"
+                                className="text-xs font-bold text-blue-600 hover:underline"
+                            >
+                                Ver detalhes
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div>
+                                <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2 text-gray-500">
+                                    <span>Progresso</span>
+                                    <span>{jornadaProgress}%</span>
+                                </div>
+                                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-yellow-400 transition-all duration-500 ease-out"
+                                        style={{ width: `${jornadaProgress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                                <div className="p-2 bg-white rounded-lg border border-blue-100">
+                                    <Trophy size={18} className="text-blue-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Próxima Missão</p>
+                                    {nextTask ? (
+                                        <>
+                                            <p className="font-semibold text-gray-800 text-sm">{nextTask.title}</p>
+                                            <p className="text-xs text-gray-600 mt-1">{nextTask.description}</p>
+                                            {nextTask.action && (
+                                                nextTask.action === '#install-trigger' ? (
+                                                    <button
+                                                        onClick={triggerInstall}
+                                                        className="mt-3 inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
+                                                    >
+                                                        Instalar agora <ChevronRight size={16} />
+                                                    </button>
+                                                ) : (
+                                                    <Link
+                                                        href={nextTask.action}
+                                                        className="mt-3 inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
+                                                    >
+                                                        Vamos lá <ChevronRight size={16} />
+                                                    </Link>
+                                                )
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-sm font-semibold text-gray-800">Parabéns! Você concluiu todas as missões.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Quick Access List */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">

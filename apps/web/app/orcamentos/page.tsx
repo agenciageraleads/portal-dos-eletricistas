@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import api from '@/lib/api';
-import { ChevronLeft, Eye, Calendar, User, DollarSign, FileText, Trash2 } from 'lucide-react';
+import { ChevronLeft, Eye, Calendar, User, DollarSign, FileText, Trash2, XCircle } from 'lucide-react';
 
 interface Budget {
     id: string;
@@ -190,14 +190,37 @@ export default function MyBudgetsPage() {
                                     <button
                                         onClick={async () => {
                                             if (confirm('Marcar como Ganho/Vendido?')) {
-                                                await api.patch(`/budgets/${budget.id}`, { status: 'CONVERTED' });
-                                                fetchBudgets();
+                                                try {
+                                                    await api.patch(`/budgets/${budget.id}`, { status: 'CONVERTED' });
+                                                    fetchBudgets();
+                                                } catch (error) {
+                                                    console.error('Erro ao marcar como ganho:', error);
+                                                    alert('Não foi possível marcar como ganho. Tente novamente.');
+                                                }
                                             }
                                         }}
                                         className="flex items-center justify-center p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100"
                                         title="Marcar como Ganho"
                                     >
                                         <DollarSign size={16} />
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('Marcar como Perdido?')) {
+                                                try {
+                                                    await api.patch(`/budgets/${budget.id}`, { status: 'EXPIRED' });
+                                                    fetchBudgets();
+                                                } catch (error) {
+                                                    console.error('Erro ao marcar como perdido:', error);
+                                                    alert('Não foi possível marcar como perdido. Tente novamente.');
+                                                }
+                                            }
+                                        }}
+                                        className="flex items-center justify-center p-2 text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100"
+                                        title="Marcar como Perdido"
+                                    >
+                                        <XCircle size={16} />
                                     </button>
 
                                     <button

@@ -24,9 +24,13 @@ O MVP Crítico foi consolidado. O foco agora é transformar o app em uma ferrame
 - [x] **Busca Inteligente:** Engine com curadoria de sinônimos via BD.
 - [x] **Catálogo "Stories":** UI moderna com filtros por categoria.
 - [x] **Orçamentos:** Fluxo completo (edição, privacidade, observações).
+- [x] **Status de Orçamento (Ganho/Perdido):** Marcar orçamento como vendido ou perdido.
 - [x] **Calculadora de Fonte LED:** Dimensionamento de fitas 12V e 24V.
 - [x] **Calculadora de Bitola (Trifásica):** Adicionado suporte a 380V.
 - [x] **Histórico de Chat:** Conversas multi-sessão com IA.
+- [x] **Jornada do Eletricista:** Progresso real com missões e CTA da próxima tarefa na Home.
+- [x] **Progresso na Home:** Barra de progresso + card de próxima missão.
+- [x] **Compartilhamento WhatsApp (Gamificação):** Missão marcada ao enviar orçamento.
 
 ### Admin & Gestão
 
@@ -44,7 +48,7 @@ O MVP Crítico foi consolidado. O foco agora é transformar o app em uma ferrame
 - [ ] **Calculadora de Disjuntores:** Adicionar suporte a circuitos trifásicos.
 - [ ] **PDF Personalizado:** Layout profissional com logo da empresa do usuário.
 - [ ] **Reset de Senha (Admin):** Interface para gestão de acesso dos usuários.
-- [ ] **Onboarding Gamificado:** Tutorial interativo "mão na massa".
+- [x] **Onboarding Gamificado:** Tutorial interativo e jornada com missão inicial.
 
 ### 🎮 Beta 2.0 - Fase 1: Dopamina & Retenção
 

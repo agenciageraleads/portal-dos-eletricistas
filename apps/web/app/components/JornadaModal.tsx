@@ -18,11 +18,25 @@ interface Task {
 }
 
 export default function JornadaModal() {
-    const { user, refreshUser } = useAuth();
+    const { user } = useAuth();
     const { isInstalled, triggerInstall } = useInstallPrompt();
     const [isOpen, setIsOpen] = useState(false);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [progress, setProgress] = useState(0);
+    const [hasSharedWhatsapp, setHasSharedWhatsapp] = useState(false);
+
+    useEffect(() => {
+        const syncShareFlag = () => {
+            setHasSharedWhatsapp(localStorage.getItem('hasSharedWhatsapp') === 'true');
+        };
+        syncShareFlag();
+        window.addEventListener('storage', syncShareFlag);
+        window.addEventListener('jornada-progress-update', syncShareFlag as EventListener);
+        return () => {
+            window.removeEventListener('storage', syncShareFlag);
+            window.removeEventListener('jornada-progress-update', syncShareFlag as EventListener);
+        };
+    }, []);
 
     // Gamification Logic
     useEffect(() => {
@@ -55,7 +69,7 @@ export default function JornadaModal() {
                 id: 'share',
                 title: 'Envie via WhatsApp',
                 description: 'Compartilhe um orçamento com um cliente.',
-                isCompleted: localStorage.getItem('hasSharedWhatsapp') === 'true',
+                isCompleted: hasSharedWhatsapp,
                 action: '/orcamentos' // User needs to go there to share
             },
             {
@@ -91,7 +105,7 @@ export default function JornadaModal() {
             localStorage.setItem('jornada_seen_v1', 'true');
         }
 
-    }, [user]);
+    }, [user, isInstalled, hasSharedWhatsapp]);
 
     // Listen for trigger click from Home
     useEffect(() => {

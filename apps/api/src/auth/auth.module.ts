@@ -7,10 +7,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtStrategy } from './jwt.strategy';
 import { EmailService } from '../common/email.service';
+import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [
         PrismaModule,
+        UsersModule,
         PassportModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],

@@ -1,5 +1,5 @@
 import { Type, Transform } from 'class-transformer';
-import { IsArray, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateNested, Matches, IsOptional, IsBoolean } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsNumber, IsString, Min, ValidateNested, Matches, IsOptional, IsBoolean, IsIn } from 'class-validator';
 
 export class CreateBudgetItemDto {
     @IsString()
@@ -36,7 +36,7 @@ export class CreateBudgetDto {
     @IsNotEmpty()
     clientName: string;
 
-    @Transform(({ value }) => value.replace(/\D/g, '')) // Remove non-digits
+    @Transform(({ value }) => typeof value === 'string' ? value.replace(/\D/g, '') : value) // Remove non-digits
     @IsString()
     @Matches(/^(\d{10,11})$/, { message: 'clientPhone must contain only 10 or 11 digits (DDD + Number)' })
     @IsNotEmpty()
@@ -65,9 +65,9 @@ export class CreateBudgetDto {
     @IsOptional()
     showLaborTotal?: boolean;
 
-    @IsString({ message: 'Status deve ser "DRAFT" ou "SHARED"' })
+    @IsIn(['DRAFT', 'SHARED', 'APPROVED', 'CONVERTED', 'EXPIRED'], { message: 'Status inválido' })
     @IsOptional()
-    status?: 'DRAFT' | 'SHARED';
+    status?: 'DRAFT' | 'SHARED' | 'APPROVED' | 'CONVERTED' | 'EXPIRED';
 
     // Campos de Condições
     @IsString({ message: 'Prazo de execução deve ser um texto' })
