@@ -1,10 +1,12 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { S3Service } from '../common/s3.service';
+import { AuthGuard } from '@nestjs/passport';
 // import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 
 @Controller('uploads')
+@UseGuards(AuthGuard('jwt'))
 export class UploadsController {
     constructor(private readonly s3Service: S3Service) { }
 

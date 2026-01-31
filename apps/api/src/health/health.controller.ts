@@ -1,5 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { HealthService } from './health.service';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('health')
 export class HealthController {
@@ -7,20 +10,18 @@ export class HealthController {
 
     @Get()
     async getHealth() {
-        const [db, env, system] = await Promise.all([
+        const [db, system] = await Promise.all([
             this.healthService.checkDatabase(),
-            this.healthService.checkEnvironment(),
             Promise.resolve(this.healthService.getSystemInfo()),
         ]);
 
-        const isHealthy = db.status === 'healthy' && env.status === 'healthy';
+        const isHealthy = db.status === 'healthy';
 
         return {
             status: isHealthy ? 'healthy' : 'unhealthy',
             timestamp: new Date().toISOString(),
             checks: {
                 database: db,
-                environment: env,
                 system,
             },
         };
@@ -32,6 +33,8 @@ export class HealthController {
     }
 
     @Get('env')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('ADMIN')
     async getEnvironmentHealth() {
         return this.healthService.checkEnvironment();
     }
