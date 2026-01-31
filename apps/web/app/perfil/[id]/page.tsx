@@ -17,6 +17,8 @@ interface PublicProfile {
     logo_url: string | null;
     phone: string | null;
     commercial_index: number | null;
+    is_ambassador?: boolean;
+    ambassador_rank?: number | null;
     total_orders: number | null;
     view_count: number | null;
     cadastro_finalizado: boolean;
@@ -146,11 +148,18 @@ export default function PublicProfilePage() {
                                     <p className="text-sm text-gray-500 font-medium">{profile.name}</p>
                                 )}
                             </div>
-                            {profile.cadastro_finalizado && (
-                                <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1">
-                                    <ShieldCheck size={12} /> Verificado
-                                </div>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {profile.is_ambassador && (
+                                    <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                                        Embaixador
+                                    </div>
+                                )}
+                                {profile.cadastro_finalizado && (
+                                    <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1">
+                                        <ShieldCheck size={12} /> Verificado
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
