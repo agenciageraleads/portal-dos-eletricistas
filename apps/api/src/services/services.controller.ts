@@ -15,7 +15,13 @@ export class ServicesController {
         @Query('minPrice') minPrice?: string,
         @Query('maxPrice') maxPrice?: string,
     ) {
-        return this.servicesService.findAll({ search, city, type, minPrice, maxPrice });
+        return this.servicesService.findAll({
+            search,
+            city,
+            type: type as any,
+            minPrice,
+            maxPrice
+        });
     }
 
     @Post('public')

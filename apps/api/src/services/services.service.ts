@@ -60,7 +60,7 @@ export class ServicesService {
     async findAll(filters: {
         search?: string;
         city?: string;
-        type?: 'REQUEST' | 'OFFER';
+        type?: ServiceType | string;
         minPrice?: string;
         maxPrice?: string;
     }) {
@@ -213,7 +213,8 @@ export class ServicesService {
         // Map reason to status
         let newStatus = ServiceStatus.CLOSED_CANCELED;
         if (reason === 'HIRED') newStatus = ServiceStatus.CLOSED_HIRED;
-        if (reason === 'GAVE_UP') newStatus = ServiceStatus.CLOSED_GAVE_UP; // assuming added to schema or map to CANCELLED
+        // if (reason === 'GAVE_UP') newStatus = ServiceStatus.CLOSED_GAVE_UP; // Removido pois não existe no Enum
+        if (reason === 'GAVE_UP') newStatus = ServiceStatus.CLOSED_CANCELED;
 
         return this.prisma.serviceListing.update({
             where: { id },
