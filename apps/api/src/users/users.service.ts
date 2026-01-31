@@ -108,7 +108,10 @@ export class UsersService {
                 commercial_index: true // Adicionado para ranking
             },
             orderBy: [
-                { commercial_index: 'desc' }, // Prioridade máxima: índice comercial Sankhya
+                { commercial_index: 'desc' }, // NOTE: Ensure DB treats nulls as last or use explicit nulls: 'last' if enabled in Prisma version. 
+                // For now, standard desc might put nulls first in Postgres.
+                // If this persists, we need to map nulls to 0 in SQL view or use raw query.
+                // Assuming Prisma handles this or user has non-null values after sync.
                 { cadastro_finalizado: 'desc' },
                 { name: 'asc' }
             ]

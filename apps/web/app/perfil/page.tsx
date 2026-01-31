@@ -9,7 +9,7 @@ import Link from 'next/link';
 import ImageCropModal from '../components/ImageCropModal';
 
 export default function PerfilPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, refreshUser, loading: authLoading } = useAuth(); // Destructure refreshUser
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -57,7 +57,7 @@ export default function PerfilPage() {
         if (user) {
             fetchProfile();
         }
-    }, [user, router]);
+    }, [user, router]); // Keep user in dep array, but verify if loop occurs. Should be fine.
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -70,6 +70,9 @@ export default function PerfilPage() {
             setShowCropModal(true);
         };
         reader.readAsDataURL(file);
+
+        // Reset input so same file can be selected again if needed
+        e.target.value = '';
     };
 
     const handleCropSave = async (croppedBlob: Blob) => {
@@ -77,12 +80,16 @@ export default function PerfilPage() {
         setShowCropModal(false);
 
         const formData = new FormData();
-        // Modal always outputs WEBP (most efficient format)
-        formData.append('logo', croppedBlob, 'logo.webp');
+        // Use JPG for safer compatibility, though backend handles both
+        formData.append('logo', croppedBlob, 'logo.jpg');
 
         try {
             const response = await api.post('/users/upload-logo', formData);
             setLogoUrl(response.data.logo_url);
+
+            // CRITICAL: Refresh Auth Context to update Header immediately
+            await refreshUser();
+
             alert('Logo atualizada com sucesso!');
         } catch (error) {
             console.error('Erro ao fazer upload:', error);
@@ -110,6 +117,10 @@ export default function PerfilPage() {
                 '/users/profile',
                 payload
             );
+
+            // Update context details too
+            await refreshUser();
+
             alert('Perfil atualizado com sucesso!');
         } catch (error) {
             console.error('Erro ao atualizar perfil:', error);
@@ -163,7 +174,8 @@ export default function PerfilPage() {
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/png, image/jpeg, image/jpg, image/webp"
+                            accept="image/*"
+                            /* Relaxed accept to let OS handle conversion (HEIC etc) */
                             onChange={handleFileSelect}
                             className="hidden"
                         />

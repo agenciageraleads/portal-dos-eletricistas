@@ -136,6 +136,11 @@ export default function ServicesPage() {
         try {
             await api.patch('/users/profile', { isAvailableForWork: newStatus });
             await refreshUser();
+
+            // If we are looking at the professional list, refresh it effectively
+            if (activeTab === 'PROFESSIONALS') {
+                fetchProfessionals();
+            }
         } catch (e) {
             alert('Erro ao atualizar disponibilidade');
             setOptimisticAvailable(null); // Revert
