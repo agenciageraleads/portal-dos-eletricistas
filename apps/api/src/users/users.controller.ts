@@ -43,19 +43,20 @@ export class UsersController {
         limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }))
     async uploadLogo(@Request() req: any, @UploadedFile() file: Express.Multer.File) {
-        console.log('UsersController.uploadLogo called');
-        console.log('User ID:', req.user?.sub || req.user?.id);
-        console.log('File received:', file ? {
+        const userId = req.user.sub || req.user.id || req.user.userId;
+        console.log(`[UsersController] uploadLogo called for userId: ${userId}`);
+
+        if (!file) {
+            console.error('[UsersController] Upload failed: No file provided');
+            throw new BadRequestException('Arquivo não enviado');
+        }
+
+        console.log('[UsersController] File details:', {
             originalname: file.originalname,
             mimetype: file.mimetype,
             size: file.size,
             bufferLength: file.buffer?.length
-        } : 'NO FILE');
-
-        if (!file) {
-            console.error('Upload failed: No file provided');
-            throw new BadRequestException('Arquivo não enviado');
-        }
+        });
 
         let processedBuffer = file.buffer;
         let processedMimetype = file.mimetype;
@@ -64,39 +65,37 @@ export class UsersController {
         // Conversão de HEIC/HEIF para JPG (Sharp)
         if (processedExtension === '.heic' || processedExtension === '.heif' || file.mimetype.includes('heic') || file.mimetype.includes('heif')) {
             try {
-                console.log('🔄 Converting HEIC/HEIF to JPG...');
+                console.log('[UsersController] 🔄 Converting HEIC/HEIF to JPG...');
                 processedBuffer = await sharp(file.buffer)
                     .toFormat('jpeg')
                     .toBuffer();
                 processedMimetype = 'image/jpeg';
                 processedExtension = '.jpg';
-                console.log('✅ Conversion successful');
+                console.log('[UsersController] ✅ Conversion successful');
             } catch (error) {
-                console.error('❌ HEIC Conversion failed:', error);
+                console.error('[UsersController] ❌ HEIC Conversion failed:', error);
                 // Continua com o original se falhar, mas avisa
             }
         }
 
-        // Now safe to use req.user.id or req.user.sub (aliases in Strategy)
-        const userId = req.user.sub || req.user.id || req.user.userId;
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const filename = `logos/logo-${userId}-${uniqueSuffix}${processedExtension}`;
 
         let logoUrl: string;
 
-        console.log('S3 Enabled status:', this.s3Service.isEnabled());
+        console.log(`[UsersController] S3 Enabled: ${this.s3Service.isEnabled()}`);
 
         if (this.s3Service.isEnabled()) {
             try {
-                console.log('Attempting S3 upload...');
+                console.log(`[UsersController] Attempting S3 upload to key: ${filename}`);
                 logoUrl = await this.s3Service.uploadBuffer(
                     processedBuffer,
                     filename,
                     processedMimetype
                 );
-                console.log('S3 Upload success:', logoUrl);
+                console.log(`[UsersController] S3 Upload success. URL: ${logoUrl}`);
             } catch (error) {
-                console.error('S3 Upload Error:', error);
+                console.error('[UsersController] S3 Upload Error:', error);
                 throw new BadRequestException('Erro ao salvar imagem no S3');
             }
         } else {
@@ -104,6 +103,7 @@ export class UsersController {
             const uploadDir = join(process.cwd(), 'uploads', 'logos');
 
             if (!existsSync(uploadDir)) {
+                console.log('[UsersController] Creating upload directory:', uploadDir);
                 mkdirSync(uploadDir, { recursive: true });
             }
 
@@ -111,18 +111,22 @@ export class UsersController {
             const filePath = join(uploadDir, localFilename);
 
             try {
-                console.log('Attempting Local FS upload to:', filePath);
+                console.log(`[UsersController] Attempting Local FS upload to: ${filePath}`);
                 writeFileSync(filePath, processedBuffer);
                 logoUrl = `/uploads/logos/${localFilename}`;
-                console.log('Local Upload success:', logoUrl);
+                console.log(`[UsersController] Local Upload success. URL: ${logoUrl}`);
             } catch (error) {
-                console.error('Local Upload Error:', error);
+                console.error('[UsersController] Local Upload Error:', error);
                 throw new BadRequestException('Erro ao salvar imagem no disco local');
             }
         }
 
-        console.log('Updating profile with URL:', logoUrl);
-        await this.usersService.updateProfile(userId, { logo_url: logoUrl });
+        console.log(`[UsersController] Updating profile for user ${userId} with logo_url: ${logoUrl}`);
+
+        // Wait for update
+        const updateResult = await this.usersService.updateProfile(userId, { logo_url: logoUrl });
+        console.log('[UsersController] DB Update Result:', updateResult ? 'Success' : 'Failed/Null');
+
         return { logo_url: logoUrl };
     }
 
