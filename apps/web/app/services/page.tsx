@@ -23,6 +23,7 @@ interface ServiceListing {
     maxLeads: number;
     leadsCount: number;
     alreadyUnlocked?: boolean;
+    images?: string[] | null;
     user: {
         name: string;
         logo_url: string | null;
@@ -166,6 +167,15 @@ export default function ServicesPage() {
             default:
                 return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200 uppercase">🏠 Cliente Residencial</span>;
         }
+    };
+
+    const getServiceContextTags = (type: string) => {
+        const tags: string[] = [];
+        if (type === 'PRO_SUBCONTRACT' || type === 'PRO_HELPER_JOB') tags.push('Postado por Profissional');
+        if (type === 'PRO_HELPER_JOB') tags.push('Vaga');
+        if (type === 'PRO_SUBCONTRACT') tags.push('Parceria');
+        if (type === 'CLIENT_SERVICE') tags.push('Pedido de Cliente');
+        return tags;
     };
 
     const getStatusBadge = (status: string, leadsCount: number, maxLeads: number) => {
@@ -357,97 +367,128 @@ export default function ServicesPage() {
                             </button>
                         </div>
                     ) : (
-                        services.map(service => (
-                            <div key={service.id} className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 relative hover:shadow-md transition-shadow ${service.status === 'LIMIT_REACHED' ? 'opacity-70' : ''}`}>
-                                {getStatusBadge(service.status, service.leadsCount, service.maxLeads)}
+                        services.map(service => {
+                            const remaining = Math.max(service.maxLeads - service.leadsCount, 0);
+                            const urgent = remaining <= 1;
+                            const contextTags = getServiceContextTags(service.type);
+                            return (
+                                <div key={service.id} className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden hover:shadow-md transition-shadow ${service.status === 'LIMIT_REACHED' ? 'opacity-70' : ''}`}>
+                                    {getStatusBadge(service.status, service.leadsCount, service.maxLeads)}
 
-                                <div className="absolute overflow-hidden top-0 left-0 w-1 bg-blue-500 h-full rounded-l-xl"></div>
+                                    <div className={`absolute top-0 left-0 w-1 h-full ${urgent ? 'bg-red-500' : 'bg-blue-500'}`}></div>
 
-                                <div className="flex justify-between items-start mb-2 pr-20 pt-1">
-                                    <div className="flex gap-2 mb-1">
-                                        {getTypeBadge(service.type)}
-                                    </div>
-                                    {user && user.id === service.userId && (
-                                        <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500 p-1">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    )}
-                                </div>
-
-
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-blue-100 text-blue-600 border-blue-200">
-                                        {service.user.logo_url ? (
-                                            <img src={service.user.logo_url} alt={service.user.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={20} />
-                                        )}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="font-bold text-gray-900 leading-tight line-clamp-2 text-sm sm:text-base">
-                                            {service.title}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                            {service.user.name.split(' ')[0]}
-                                            <span className="w-1 h-1 rounded-full bg-gray-300 mx-1"></span>
-                                            {new Date(service.createdAt).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                                    {service.description}
-                                </p>
-
-                                <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-2">
-                                    <div className="flex flex-col gap-1">
-                                        {service.price ? (
-                                            <span className="font-bold text-gray-900 text-lg">
-                                                R$ {Number(service.price).toFixed(2)}
-                                            </span>
-                                        ) : (
-                                            <span className="text-sm font-medium text-gray-400 italic">Discutir Orçamento</span>
-                                        )}
-                                        {service.city && (
-                                            <span className="flex items-center gap-1 text-xs text-gray-500">
-                                                <MapPin size={10} /> {service.city}/{service.state}
-                                            </span>
-                                        )}
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex flex-wrap gap-2">
+                                            {getTypeBadge(service.type)}
+                                            {contextTags.map(tag => (
+                                                <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {urgent && (
+                                                <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide border border-red-100">
+                                                    Urgente
+                                                </span>
+                                            )}
+                                            {user && user.id === service.userId && (
+                                                <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500 p-1">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    {/* Action Button */}
-                                    {service.userId === user?.id ? (
-                                        <span className="text-xs text-gray-400 font-medium px-2 py-1 bg-gray-100 rounded">Seu Anúncio</span>
-                                    ) : (
-                                        service.alreadyUnlocked || service.whatsapp ? (
-                                            <button
-                                                onClick={() => handleUnlockContact(service)}
-                                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5"
-                                            >
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-4 h-4 brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
-                                                Chamar no WhatsApp
-                                            </button>
-                                        ) : service.status === 'OPEN' ? (
-                                            <button
-                                                onClick={() => handleUnlockContact(service)}
-                                                disabled={unlockingId === service.id}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                                            >
-                                                {unlockingId === service.id ? (
-                                                    <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                                                ) : <Unlock size={16} />}
-                                                Liberar Contato ({service.maxLeads - service.leadsCount} restam)
-                                            </button>
-                                        ) : (
-                                            <button disabled className="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-bold text-sm cursor-not-allowed flex items-center gap-1">
-                                                <Lock size={14} /> Indisponível
-                                            </button>
-                                        )
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-blue-100 text-blue-600 border-blue-200">
+                                            {service.user.logo_url ? (
+                                                <img src={service.user.logo_url} alt={service.user.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User size={20} />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h3 className="font-bold text-gray-900 leading-tight line-clamp-2 text-sm sm:text-base">
+                                                {service.title}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                                {service.user.name.split(' ')[0]}
+                                                <span className="w-1 h-1 rounded-full bg-gray-300 mx-1"></span>
+                                                {new Date(service.createdAt).toLocaleDateString()}
+                                                {service.city && (
+                                                    <>
+                                                        <span className="w-1 h-1 rounded-full bg-gray-300 mx-1"></span>
+                                                        {service.city}/{service.state}
+                                                    </>
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
+                                        {service.description}
+                                    </p>
+
+                                    {service.images && service.images.length > 0 && (
+                                        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+                                            {service.images.slice(0, 3).map((img, idx) => (
+                                                <div
+                                                    key={`${service.id}-img-${idx}`}
+                                                    className="w-16 h-16 rounded-lg bg-gray-200 shrink-0 bg-cover bg-center"
+                                                    style={{ backgroundImage: `url(${img})` }}
+                                                />
+                                            ))}
+                                        </div>
                                     )}
 
+                                    <div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-2">
+                                        <div className="flex flex-col gap-1">
+                                            {service.price ? (
+                                                <span className="font-bold text-gray-900 text-lg">
+                                                    R$ {Number(service.price).toFixed(2)}
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm font-medium text-gray-400 italic">Discutir Orçamento</span>
+                                            )}
+                                            <span className="text-[11px] text-gray-500">
+                                                Restam {remaining}/{service.maxLeads} visualizações
+                                            </span>
+                                        </div>
+
+                                        {/* Action Button */}
+                                        {service.userId === user?.id ? (
+                                            <span className="text-xs text-gray-400 font-medium px-2 py-1 bg-gray-100 rounded">Seu Anúncio</span>
+                                        ) : (
+                                            service.alreadyUnlocked || service.whatsapp ? (
+                                                <button
+                                                    onClick={() => handleUnlockContact(service)}
+                                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5"
+                                                >
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-4 h-4 brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
+                                                    Chamar no WhatsApp
+                                                </button>
+                                            ) : service.status === 'OPEN' ? (
+                                                <button
+                                                    onClick={() => handleUnlockContact(service)}
+                                                    disabled={unlockingId === service.id}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                                                >
+                                                    {unlockingId === service.id ? (
+                                                        <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                                                    ) : <Unlock size={16} />}
+                                                    Liberar Contato
+                                                </button>
+                                            ) : (
+                                                <button disabled className="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-bold text-sm cursor-not-allowed flex items-center gap-1">
+                                                    <Lock size={14} /> Indisponível
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )
                 ) : (
                     /* --- PROFESSIONALS VIEW --- */
