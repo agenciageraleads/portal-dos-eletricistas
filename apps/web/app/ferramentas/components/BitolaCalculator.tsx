@@ -98,7 +98,7 @@ export function BitolaCalculator() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Potência Total (Watts)</label>
                     <input
                         type="number"
-                        placeholder="Ex: 5500 (Chuveiro)"
+                        placeholder="Informe a potência total em watts"
                         value={power}
                         onChange={e => setPower(e.target.value)}
                         className="w-full p-3 rounded-xl border border-gray-200"
@@ -109,7 +109,7 @@ export function BitolaCalculator() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Distância (Metros)</label>
                     <input
                         type="number"
-                        placeholder="Ex: 15"
+                        placeholder="Informe a distância do circuito"
                         value={distance}
                         onChange={e => setDistance(e.target.value)}
                         className="w-full p-3 rounded-xl border border-gray-200"

@@ -76,7 +76,7 @@ export default function AddServiceModal({ isOpen, onClose, onAddService }: AddSe
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
-                            placeholder="Buscar serviço (ex: Tomada, Chuveiro, Ponto de Luz)..."
+                            placeholder="Buscar serviço pelo nome ou categoria"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"

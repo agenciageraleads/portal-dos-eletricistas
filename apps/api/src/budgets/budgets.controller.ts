@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, UseGuards, Request, Patch, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards, Request, Patch, Delete, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { BudgetsService } from './budgets.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
@@ -34,6 +34,12 @@ export class BudgetsController {
     @Patch(':id')
     update(@Request() req: any, @Param('id') id: string, @Body() updateBudgetDto: UpdateBudgetDto) {
         return this.budgetsService.update(id, req.user.userId, updateBudgetDto);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Delete(':id')
+    remove(@Request() req: any, @Param('id') id: string) {
+        return this.budgetsService.remove(id, req.user.userId);
     }
 
     // Admin: Get all budgets (v1.2.0)

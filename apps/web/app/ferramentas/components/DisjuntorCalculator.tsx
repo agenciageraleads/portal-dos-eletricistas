@@ -69,7 +69,7 @@ export function DisjuntorCalculator() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Potência Total do Circuito (Watts)</label>
                     <input
                         type="number"
-                        placeholder="Ex: 7500"
+                        placeholder="Informe a potência total em watts"
                         value={power}
                         onChange={e => setPower(e.target.value)}
                         className="w-full p-3 rounded-xl border border-gray-200"

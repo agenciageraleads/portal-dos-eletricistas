@@ -22,6 +22,10 @@ export class ServicesService {
                 state: data.state,
                 date: new Date(data.date),
                 whatsapp: data.whatsapp,
+                installation_type: data.installationType || null,
+                needs_infra: data.needsInfra === undefined || data.needsInfra === null ? null : !!data.needsInfra,
+                contract_type: data.contractType || null,
+                urgency: data.urgency || null,
                 type: data.type || ServiceType.CLIENT_SERVICE,
                 maxLeads: this.determineMaxLeads(data.type),
                 status: ServiceStatus.OPEN
@@ -63,9 +67,13 @@ export class ServicesService {
         type?: ServiceType | string;
         minPrice?: string;
         maxPrice?: string;
+        installationType?: string;
+        needsInfra?: string;
+        contractType?: string;
+        urgency?: string;
     }) {
         try {
-            const { search, city, type, minPrice, maxPrice } = filters;
+            const { search, city, type, minPrice, maxPrice, installationType, needsInfra, contractType, urgency } = filters;
 
             const where: any = {
                 status: 'OPEN',
@@ -94,6 +102,22 @@ export class ServicesService {
                 where.price = {};
                 if (minPrice) where.price.gte = Number(minPrice);
                 if (maxPrice) where.price.lte = Number(maxPrice);
+            }
+
+            if (installationType) {
+                where.installation_type = installationType;
+            }
+
+            if (contractType) {
+                where.contract_type = contractType;
+            }
+
+            if (urgency) {
+                where.urgency = urgency;
+            }
+
+            if (needsInfra !== undefined && needsInfra !== '') {
+                where.needs_infra = needsInfra === 'true';
             }
 
             const services = await this.prisma.serviceListing.findMany({

@@ -8,28 +8,34 @@ const styles = StyleSheet.create({
     page: {
         flexDirection: 'column',
         backgroundColor: '#FFFFFF',
-        padding: 20, // Reduced from 30
+        padding: 24,
         fontFamily: 'Helvetica',
+    },
+    brandBar: {
+        height: 6,
+        backgroundColor: '#1D4ED8',
+        borderRadius: 4,
+        marginBottom: 10,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10, // Reduced from 20
+        marginBottom: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#EEEEEE',
-        paddingBottom: 10, // Reduced from 20
+        paddingBottom: 10,
     },
     logoSection: {
         width: '50%',
     },
     logoText: {
-        fontSize: 18, // Reduced from 24
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#2563EB', // Blue-600
+        color: '#1D4ED8',
         marginBottom: 5,
     },
     companyDetails: {
-        fontSize: 9, // Reduced from 10
+        fontSize: 9,
         color: '#666666',
     },
     budgetDetails: {
@@ -37,25 +43,25 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     title: {
-        fontSize: 16, // Reduced from 20
+        fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 5, // Reduced from 10
+        marginBottom: 4,
         color: '#111827',
     },
     label: {
-        fontSize: 8, // Reduced from 10
+        fontSize: 8,
         color: '#6B7280',
         marginBottom: 1,
     },
     value: {
-        fontSize: 10, // Reduced from 12
+        fontSize: 10,
         color: '#374151',
         marginBottom: 4,
         fontWeight: 'bold',
     },
     section: {
-        margin: 5, // Reduced from 10
-        padding: 5, // Reduced from 10
+        margin: 5,
+        padding: 5,
         flexGrow: 1,
     },
     table: {
@@ -66,7 +72,7 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
         borderRightWidth: 0,
         borderBottomWidth: 0,
-        marginTop: 10, // Reduced from 20
+        marginTop: 10,
     },
     tableRow: {
         margin: 'auto',
@@ -79,7 +85,7 @@ const styles = StyleSheet.create({
         borderLeftWidth: 0,
         borderTopWidth: 0,
         borderColor: '#E5E7EB',
-        padding: 4, // Reduced from 8
+        padding: 4,
     },
     tableColDesc: {
         width: '55%',
@@ -88,19 +94,19 @@ const styles = StyleSheet.create({
         borderLeftWidth: 0,
         borderTopWidth: 0,
         borderColor: '#E5E7EB',
-        padding: 4, // Reduced from 8
+        padding: 4,
     },
     tableCellHeader: {
-        fontSize: 9, // Reduced from 10
+        fontSize: 9,
         fontWeight: 'bold',
         color: '#374151',
     },
     tableCell: {
-        fontSize: 9, // Reduced from 10
+        fontSize: 9,
         color: '#4B5563',
     },
     totals: {
-        marginTop: 10, // Reduced from 20
+        marginTop: 10,
         alignItems: 'flex-end',
         paddingTop: 5,
         borderTopWidth: 1,
@@ -110,34 +116,34 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '40%',
-        marginBottom: 2, // Reduced from 5
+        marginBottom: 2,
     },
     totalLabel: {
-        fontSize: 9, // Reduced from 10
+        fontSize: 9,
         color: '#6B7280',
     },
     totalValue: {
-        fontSize: 10, // Reduced from 12
+        fontSize: 10,
         fontWeight: 'bold',
         color: '#111827',
     },
     grandTotal: {
-        fontSize: 14, // Reduced from 16
+        fontSize: 14,
         fontWeight: 'bold',
-        color: '#2563EB',
+        color: '#1D4ED8',
         marginTop: 2,
     },
     footer: {
         position: 'absolute',
-        bottom: 20, // Reduced from 30
-        left: 20,
-        right: 20,
+        bottom: 16,
+        left: 24,
+        right: 24,
         textAlign: 'center',
         color: '#9CA3AF',
-        fontSize: 8, // Reduced from 10
+        fontSize: 8,
         borderTopWidth: 1,
         borderTopColor: '#EEEEEE',
-        paddingTop: 5, // Reduced from 10
+        paddingTop: 5,
     },
 });
 
@@ -167,27 +173,21 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
     // Helper to resolve images safely
     const resolveImage = (url?: string) => {
         if (!url) return undefined;
-        if (url.startsWith('http')) return url;
-
-        // Remove leading slash if present to avoid double slashes with baseUrl if it has one
-        const cleanPath = url.startsWith('/') ? url.slice(1) : url;
-
-        // Use NEXT_PUBLIC_API_URL or fallback
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333').replace(/\/$/, '');
-
-        return `${baseUrl}/${cleanPath}`;
+        if (url.startsWith('data:')) return url;
+        return getImageUrl(url) || undefined;
     };
 
     return (
         <Document>
             <Page size="A4" style={styles.page}>
+                <View style={styles.brandBar} />
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.logoSection}>
                         {budget.user?.logo_url ? (
                             <Image
                                 src={resolveImage(budget.user.logo_url)}
-                                style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 5 }}
+                                style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 6 }}
                             />
                         ) : null}
                         <Text style={styles.logoText}>
@@ -254,7 +254,7 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                         </View>
 
                         {budget.items.map((item: any, i: number) => {
-                            const imgUrl = item.is_external ? item.custom_photo_url : item.product?.image_url;
+                            const imgUrl = item.is_external ? item.custom_photo_url : (item.product?.image_url || item.product?.imageUrl);
                             const resolvedImg = resolveImage(imgUrl);
 
                             return (

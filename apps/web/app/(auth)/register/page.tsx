@@ -219,7 +219,7 @@ export default function RegisterPage() {
                                 onChange={(e) => setName(e.target.value)}
                                 className="w-full p-2 border border-gray-300 rounded-lg mt-1"
                                 required
-                                placeholder="Ex: João da Silva"
+                                placeholder="Informe seu nome completo"
                             />
                         </div>
                         <div>

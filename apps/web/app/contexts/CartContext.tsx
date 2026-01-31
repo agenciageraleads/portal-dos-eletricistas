@@ -86,6 +86,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             image_url: manualItem.image_url,
             isExternal: true,
             suggestedSource: manualItem.suggestedSource,
+            type: manualItem.type,
         }]);
     };
 
