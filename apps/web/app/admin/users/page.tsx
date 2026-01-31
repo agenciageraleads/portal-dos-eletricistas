@@ -12,7 +12,7 @@ interface User {
     name: string;
     email: string;
     phone?: string;
-    role: 'USER' | 'ADMIN';
+    role: 'ELETRICISTA' | 'ADMIN';
     logo_url?: string;
     createdAt: string;
     _count: {
@@ -65,8 +65,8 @@ export default function AdminUsersPage() {
         }
     };
 
-    const toggleRole = async (userId: string, currentRole: 'USER' | 'ADMIN') => {
-        const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+    const toggleRole = async (userId: string, currentRole: 'ELETRICISTA' | 'ADMIN') => {
+        const newRole = currentRole === 'ADMIN' ? 'ELETRICISTA' : 'ADMIN';
         const action = newRole === 'ADMIN' ? 'promover a Administrador' : 'rebaixar a Usuário';
 
         if (!confirm(`Deseja realmente ${action} este usuário?`)) return;
@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
                                                 }`}>
-                                                {user.role === 'ADMIN' ? '👑 Admin' : 'Usuário'}
+                                                {user.role === 'ADMIN' ? '👑 Admin' : 'Eletricista'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

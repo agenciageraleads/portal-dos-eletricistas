@@ -160,7 +160,7 @@ function CatalogContent() {
 
             <main className="max-w-5xl mx-auto px-4 py-6">
                 <div className="sticky top-[73px] z-10 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 py-2 border-b border-gray-200/50 mb-6">
-                    <ProductSearch onSearch={handleSearch} initialValue={searchQuery} />
+                    <ProductSearch onSearch={handleSearch} value={searchQuery} />
                 </div>
 
                 {/* Categories Navigation - Stories Style */}

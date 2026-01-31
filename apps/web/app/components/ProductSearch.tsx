@@ -8,10 +8,10 @@ import { useRef } from 'react';
 
 interface ProductSearchProps {
     onSearch: (query: string) => void;
-    initialValue?: string;
+    value?: string;
 }
 
-export function ProductSearch({ onSearch, initialValue = '' }: ProductSearchProps) {
+export function ProductSearch({ onSearch, value = '' }: ProductSearchProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleClear = () => {
@@ -30,7 +30,7 @@ export function ProductSearch({ onSearch, initialValue = '' }: ProductSearchProp
             <input
                 ref={inputRef}
                 type="text"
-                defaultValue={initialValue}
+                value={value}
                 placeholder="Buscar produtos..."
                 className="w-full pl-10 pr-10 py-4 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg"
                 onChange={(e) => onSearch(e.target.value)}
