@@ -12,7 +12,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function CatalogPage() {
+import { Suspense } from 'react';
+
+function CatalogContent() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -294,5 +296,13 @@ export default function CatalogPage() {
 
             <CartSummary />
         </div >
+    );
+}
+
+export default function CatalogPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <CatalogContent />
+        </Suspense>
     );
 }
