@@ -211,7 +211,7 @@ export class ServicesService {
         }
 
         // Map reason to status
-        let newStatus = ServiceStatus.CLOSED_CANCELED;
+        let newStatus: ServiceStatus = ServiceStatus.CLOSED_CANCELED;
         if (reason === 'HIRED') newStatus = ServiceStatus.CLOSED_HIRED;
         // if (reason === 'GAVE_UP') newStatus = ServiceStatus.CLOSED_GAVE_UP; // Removido pois não existe no Enum
         if (reason === 'GAVE_UP') newStatus = ServiceStatus.CLOSED_CANCELED;
