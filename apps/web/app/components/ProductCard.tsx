@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="h-40 bg-gray-50 rounded-lg mb-4 flex items-center justify-center text-gray-400 relative overflow-hidden">
                 {product.image_url ? (
                     <img
-                        src={product.image_url}
+                        src={product.image_url.startsWith('http') ? product.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${product.image_url}`}
                         alt={product.name}
                         className="h-full object-contain"
                         onError={(e) => {

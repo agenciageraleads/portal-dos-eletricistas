@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, Package, X } from 'lucide-react';
+import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, Package, X, HardHat } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import api from '@/lib/api';
 import Link from 'next/link';
@@ -239,17 +239,23 @@ function OrcamentoContent() {
             }
 
             const payload = {
-                items: items.map(i => ({
-                    productId: i.isExternal ? null : i.id,
-                    quantity: i.quantity,
-                    price: parseFloat(i.price),
-                    isExternal: i.isExternal,
-                    customName: i.isExternal ? i.name : undefined,
-                    customPhotoUrl: i.isExternal ? i.image_url : undefined,
-                    suggestedSource: i.isExternal ? i.suggestedSource : undefined
-                })),
-                laborValue: labor,
-                laborDescription: laborDescription,
+                items: items
+                    .filter(i => {
+                        if (mode === 'labor') return i.type === 'SERVICE';
+                        if (mode === 'product') return (i.type || 'MATERIAL') === 'MATERIAL';
+                        return (i.type || 'MATERIAL') === 'MATERIAL'; // mode 'full' only saves products as items
+                    })
+                    .map(i => ({
+                        productId: i.isExternal ? null : i.id,
+                        quantity: i.quantity,
+                        price: parseFloat(i.price),
+                        isExternal: i.isExternal,
+                        customName: i.isExternal ? i.name : undefined,
+                        customPhotoUrl: i.isExternal ? i.image_url : undefined,
+                        suggestedSource: i.isExternal ? i.suggestedSource : undefined
+                    })),
+                laborValue: mode === 'product' ? 0 : labor,
+                laborDescription: mode === 'product' ? '' : laborDescription,
                 clientName: customerName,
                 clientPhone: customerPhone,
                 executionTime: executionTime,
@@ -259,7 +265,7 @@ function OrcamentoContent() {
                 notes: notes,
                 showUnitPrices: showUnitPrices,
                 showLaborTotal: showLaborTotal,
-                status: 'DRAFT' // Always save as draft first, then generate link if shared
+                status: type === 'SHARED' ? 'SHARED' : 'DRAFT'
             };
 
             let responseData;
@@ -330,105 +336,160 @@ function OrcamentoContent() {
                     {/* 1. Itens / Serviços */}
                     <section className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${mode === 'labor' ? 'border-green-500' : 'border-yellow-500'} animate-in fade-in slide-in-from-bottom-4`}>
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="font-bold text-gray-800">{mode === 'labor' ? '1. Serviços Executados' : '1. Itens e Materiais'}</h2>
+                            <h2 className="font-bold text-gray-800">{mode === 'labor' ? '1. Serviços Executados' : '1. Materiais Selecionados'}</h2>
                             <button onClick={clearCart} className="text-red-500 text-xs hover:underline">
                                 Limpar
                             </button>
                         </div>
 
-                        {items.length === 0 ? (
-                            <div className="text-center py-10 text-gray-400">
-                                <p>{mode === 'labor' ? 'Nenhum serviço adicionado.' : 'Nenhum item adicionado ainda.'}</p>
-                                {mode !== 'labor' && (
-                                    <Link href="/catalogo" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
-                                        Ir para o Catálogo
-                                    </Link>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {items.map((item) => (
-                                    <div key={item.id} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                                            {item.image_url ? (
-                                                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-xs text-gray-400 font-bold">FOTO</span>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
-                                            <div className="mt-1">
-                                                <QuantityInput
-                                                    value={item.quantity}
-                                                    onChange={(val) => updateQuantity(item.id, val)}
-                                                />
-                                            </div>
-                                            {/* Price Input (Editable for Services/Manual, Read-only for Products) */}
-                                            <div className="mt-2 flex justify-center">
-                                                {(item.type === 'SERVICE' || item.isExternal) ? (
-                                                    <div className="relative w-20">
-                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">R$</span>
-                                                        <input
-                                                            type="number"
-                                                            className="w-full pl-6 pr-1 py-1 text-xs text-center border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 outline-none bg-white"
-                                                            value={item.price}
-                                                            onChange={(e) => updatePrice(item.id, e.target.value)}
-                                                            step="0.01"
+                        {mode !== 'labor' && (
+                            <>
+                                {items.filter(i => (i.type || 'MATERIAL') === 'MATERIAL').length === 0 ? (
+                                    <div className="text-center py-6 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl mb-4">
+                                        <p>Nenhum material adicionado ainda.</p>
+                                        <Link href="/catalogo" className="text-blue-600 font-bold hover:underline mt-2 inline-block">
+                                            Ir para o Catálogo
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 mb-6">
+                                        {items.filter(i => (i.type || 'MATERIAL') === 'MATERIAL').map((item) => (
+                                            <div key={item.id} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+                                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+                                                    {item.image_url ? (
+                                                        <img src={item.image_url.startsWith('http') ? item.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${item.image_url}`} alt={item.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400 font-bold">FOTO</span>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</h3>
+                                                    <div className="mt-1">
+                                                        <QuantityInput
+                                                            value={item.quantity}
+                                                            onChange={(val) => updateQuantity(item.id, val)}
                                                         />
                                                     </div>
-                                                ) : (
-                                                    <p className="text-xs text-center text-gray-400 py-1">{formatPrice(parseFloat(item.price))} un</p>
-                                                )}
+                                                    <div className="mt-2 flex justify-start">
+                                                        {item.isExternal ? (
+                                                            <div className="relative w-24">
+                                                                <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">R$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    className="w-full pl-5 pr-1 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                                                                    value={item.price}
+                                                                    onChange={(e) => updatePrice(item.id, e.target.value)}
+                                                                    step="0.01"
+                                                                    placeholder="0,00"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-[10px] text-gray-400 font-medium">un: {formatPrice(parseFloat(item.price))}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right flex flex-col justify-between h-16 py-1">
+                                                    <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
+                                                    <button
+                                                        onClick={() => removeFromCart(item.id)}
+                                                        className="text-red-400 p-1 hover:bg-red-50 rounded-full self-end"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="text-right flex flex-col justify-between h-16 py-1">
-                                            <p className="font-bold text-gray-900 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
-                                            <button
-                                                onClick={() => removeFromCart(item.id)}
-                                                className="text-red-500 p-1 hover:bg-red-50 rounded-full self-end"
-                                                title="Remover item"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
+                                        ))}
                                     </div>
-                                ))}
+                                )}
+                            </>
+                        )}
+
+                        {/* SEÇÃO DE SERVIÇOS DO CATÁLOGO - Apenas no Modo Labor */}
+                        {mode === 'labor' && (
+                            <div className="mt-6 border-t border-gray-100 pt-6">
+                                <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Serviços Selecionados
+                                </h2>
+                                {items.filter(i => i.type === 'SERVICE').length === 0 ? (
+                                    <div className="text-center py-6 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl mb-4">
+                                        <p>Nenhum serviço adicionado ainda.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {items.filter(i => i.type === 'SERVICE').map((item) => (
+                                            <div key={item.id} className="flex gap-3 py-3 bg-green-50/30 rounded-lg px-3 border border-green-100/50">
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-medium text-green-900 text-sm">{item.name}</h3>
+                                                    <div className="mt-2 flex items-center gap-4">
+                                                        <QuantityInput
+                                                            value={item.quantity}
+                                                            onChange={(val) => updateQuantity(item.id, val)}
+                                                        />
+                                                        <div className="relative w-24">
+                                                            <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-green-600">R$</span>
+                                                            <input
+                                                                type="number"
+                                                                className="w-full pl-5 pr-1 py-1 text-xs border border-green-200 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white font-semibold text-green-800"
+                                                                value={item.price}
+                                                                onChange={(e) => updatePrice(item.id, e.target.value)}
+                                                                step="0.01"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right flex flex-col justify-between py-1">
+                                                    <p className="font-bold text-green-700 text-sm">{formatPrice(parseFloat(item.price) * item.quantity)}</p>
+                                                    <button
+                                                        onClick={() => removeFromCart(item.id)}
+                                                        className="text-red-400 p-1 hover:bg-red-50 rounded-full self-end"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
-                        <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100">
+
+                        <div className="p-4 bg-gray-50 flex flex-col gap-4 border-t border-gray-100 mt-4 rounded-xl">
                             <div className="grid grid-cols-2 gap-3">
-                                {mode === 'labor' && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsServiceModalOpen(true)}
-                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-green-50 border-2 border-green-100 rounded-xl text-green-700 hover:bg-green-100 transition-all font-bold text-sm"
-                                    >
-                                        <Package size={24} />
-                                        Adicionar Serviço
-                                    </button>
-                                )}
                                 <button
                                     type="button"
                                     onClick={() => setIsManualModalOpen(true)}
-                                    className={`flex flex-col items-center justify-center gap-2 py-4 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm ${mode !== 'labor' ? 'col-span-2' : ''}`}
+                                    className={`flex flex-col items-center justify-center gap-2 py-4 px-4 bg-white border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all font-medium text-sm ${mode === 'labor' ? 'col-span-2' : ''}`}
                                 >
                                     <Plus size={24} />
                                     {mode !== 'labor' ? 'Adicionar Item Manual' : 'Serviço Manual'}
                                 </button>
                                 {mode !== 'labor' && (
-                                    <Link
-                                        href="/catalogo"
-                                        className="col-span-2 flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-50 border-2 border-blue-100 rounded-xl text-blue-700 hover:bg-blue-100 transition-all font-bold text-sm"
+                                    <button
+                                        onClick={() => window.location.href = '/catalogo'}
+                                        className="flex flex-col items-center justify-center gap-2 py-4 px-4 bg-blue-600 border-2 border-blue-600 rounded-xl text-white hover:bg-blue-700 transition-all font-bold text-sm shadow-sm"
                                     >
                                         <Package size={24} />
-                                        Adicionar do Catálogo
-                                    </Link>
+                                        Catálogo de Materiais
+                                    </button>
+                                )}
+                                {mode === 'labor' && (
+                                    <button
+                                        onClick={() => window.location.href = '/catalogo?cat=SERVICE'}
+                                        className="col-span-2 flex flex-col items-center justify-center gap-2 py-4 px-4 bg-green-600 border-2 border-green-600 rounded-xl text-white hover:bg-green-700 transition-all font-bold text-sm shadow-sm"
+                                    >
+                                        <HardHat size={24} />
+                                        Tabela de Serviços
+                                    </button>
                                 )}
                             </div>
                             <div className="flex justify-between items-center pt-2">
-                                <span className="text-gray-600 font-medium">{mode === 'labor' ? 'Total Serviços' : 'Subtotal Materiais'}</span>
-                                <span className="text-lg font-bold text-gray-900">{formatPrice(total)}</span>
+                                <span className="text-gray-600 font-medium">
+                                    {mode === 'labor' ? 'Total dos Serviços' : mode === 'product' ? 'Total dos Materiais' : 'Total dos Materiais'}
+                                </span>
+                                <span className="text-lg font-bold text-gray-900">
+                                    {formatPrice(mode === 'labor' ? items.filter(i => i.type === 'SERVICE').reduce((acc, curr) => acc + (parseFloat(curr.price) * curr.quantity), 0) : total)}
+                                </span>
                             </div>
                         </div>
                     </section>

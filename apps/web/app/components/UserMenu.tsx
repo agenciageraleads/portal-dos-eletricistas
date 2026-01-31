@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { User, LogOut, Settings, UserCircle, FileText } from 'lucide-react';
+import { User, LogOut, Settings, UserCircle, FileText, MessageSquare } from 'lucide-react';
 
 interface UserMenuProps {
     user: any;

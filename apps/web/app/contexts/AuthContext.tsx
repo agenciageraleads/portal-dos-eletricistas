@@ -46,14 +46,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         // Verificar token e buscar dados do usuário do backend
         // IMPORTANTE: Não mostra dados em cache antes de validar com backend
-        const token = Cookies.get('token') || localStorage.getItem('token');
+        const cookieToken = Cookies.get('token');
+        const localToken = localStorage.getItem('token');
+        const token = cookieToken || localToken;
+
         console.log('[AuthContext] 🔑 Verificando autenticação, token presente:', !!token);
 
         if (token) {
             // Sincronizar token entre cookies e localStorage
             // Middleware só lê Cookies, então garantimos que ele esteja lá
-            Cookies.set('token', token, { expires: 7, path: '/' });
-            if (!localStorage.getItem('token')) localStorage.setItem('token', token);
+            if (!cookieToken) Cookies.set('token', token, { expires: 7, path: '/' });
+            if (!localToken) localStorage.setItem('token', token);
 
             // Configurar header para requisições
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -70,11 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .catch((error) => {
                     // Token inválido - limpar TUDO
                     console.log('[AuthContext] ❌ Token inválido, limpando sessão...', error?.response?.status);
-                    Cookies.remove('token', { path: '/' });
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    delete axios.defaults.headers.common['Authorization'];
-                    setUser(null);
+
+                    // Só limpa se for erro de autenticação (401/403) ou se o backend confirmou invalidade
+                    if (error?.response?.status === 401 || error?.response?.status === 403) {
+                        Cookies.remove('token', { path: '/' });
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        delete axios.defaults.headers.common['Authorization'];
+                        setUser(null);
+                    }
                 })
                 .finally(() => {
                     setLoading(false);

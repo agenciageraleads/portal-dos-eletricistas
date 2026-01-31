@@ -51,6 +51,7 @@ model User {
   sankhya_synced_at    DateTime?  // Última sincronização
   view_count           Int        @default(0) // Contador de visualizações (Gamificação)
 
+  serviceLeads       ServiceLead[]
   chatMessages       ChatMessage[]
   chatSessions       ChatSession[]
 
@@ -257,6 +258,10 @@ model ServiceListing {
   type        ServiceType   @default(REQUEST) // REQUEST = Preciso de ajuda, OFFER = Estou disponível
   status      ServiceStatus @default(OPEN)
   
+  maxLeads        Int           @default(3)
+  leadsCount      Int           @default(0)
+  leads           ServiceLead[]
+  
   userId      String?
   user        User?    @relation(fields: [userId], references: [id])
   
@@ -294,11 +299,18 @@ enum ServiceStatus {
   OPEN
   FILLED
   CANCELLED
+  LIMIT_REACHED
+  CLOSED_HIRED
+  CLOSED_CANCELED
+  EXPIRED
 }
 
 enum ServiceType {
   REQUEST // Contratante (Preciso de obra/ajuda)
   OFFER   // Profissional (Estou livre para diária)
+  CLIENT_SERVICE
+  PRO_SUBCONTRACT
+  PRO_HELPER_JOB
 }
 
 model Notification {
@@ -324,4 +336,17 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id])
   
   @@map("push_subscriptions")
+}
+
+model ServiceLead {
+  id              String         @id @default(uuid())
+  serviceListingId String
+  userId          String
+  createdAt       DateTime       @default(now())
+  
+  serviceListing  ServiceListing @relation(fields: [serviceListingId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
+  
+  @@unique([serviceListingId, userId])
+  @@map("service_leads")
 }

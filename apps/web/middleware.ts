@@ -11,12 +11,15 @@ const publicRoutes = [
     '/redefinir-senha',
     '/services', // Mural de Vagas é público para visualização
     '/ferramentas', // Calculadoras
+    '/catalogo', // Catálogo de Materiais
 ];
 
 // Rotas que começam com estes prefixos são públicas
 const publicPrefixes = [
     '/ferramentas/',
-    '/services'
+    '/services',
+    '/perfil/', // Perfis públicos
+    '/o/', // Visualização de orçamentos (Links compartilhados)
 ];
 
 export function middleware(request: NextRequest) {

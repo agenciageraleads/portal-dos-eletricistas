@@ -56,7 +56,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_BUCKET: portal-staging
+      S3_BUCKET: portal-produtos
       S3_REGION: ${S3_REGION}
 
       # Sankhya Integration
@@ -112,6 +112,7 @@ services:
 networks:
   portal_staging_overlay:
     driver: overlay
+    attachable: true
   Portainer:
     external: true
 

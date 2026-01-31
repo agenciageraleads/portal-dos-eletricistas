@@ -9,13 +9,14 @@ import { Spinner } from '../../components/Spinner';
 export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const { login } = useAuth();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
         try {
             const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/login`, {
                 username,
@@ -23,8 +24,10 @@ export default function LoginPage() {
             });
             login(data.access_token, data.user);
             router.push('/');
-        } catch (error) {
-            alert('Falha no login. Verifique suas credenciais.');
+        } catch (err: any) {
+            console.error('Erro no login:', err);
+            const msg = err.response?.data?.message || 'Falha no login. Verifique suas credenciais.';
+            setError(Array.isArray(msg) ? msg[0] : msg);
         } finally {
             setLoading(false);
         }
@@ -34,6 +37,13 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
                 <h1 data-testid="login-title" className="text-2xl font-bold mb-6 text-center text-gray-800">Login Eletricista</h1>
+
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg animate-in fade-in slide-in-from-top-1">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Email ou CPF/CNPJ</label>

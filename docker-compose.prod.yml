@@ -1,119 +1,103 @@
 version: "3.8"
 services:
   # ==========================================
-  # 1. FRONTEND WEB PRODUCTION
+  # 1. FRONTEND WEB (v1.5.3)
   # ==========================================
-  web-prod:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-prod
+  web:
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-staging
     deploy:
       mode: replicated
-      replicas: 2 # Alta disponibilidade para produção
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
+      replicas: 1
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.portal_web_prod.rule=Host(`app.portaleletricos.com.br`)"
-        - "traefik.http.routers.portal_web_prod.entrypoints=websecure"
-        - "traefik.http.routers.portal_web_prod.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.portal_web_prod.loadbalancer.server.port=3000"
+        - "traefik.http.routers.portal_web.rule=Host(`app.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_web.entrypoints=websecure"
+        - "traefik.http.routers.portal_web.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_web.loadbalancer.server.port=3000"
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: https://api.portaleletricos.com.br
     networks:
-      - portal_prod_overlay
+      - portal_overlay
       - Portainer
 
   # ==========================================
-  # 2. BACKEND API PRODUCTION
+  # 2. BACKEND API (v1.5.3)
   # ==========================================
-  api-prod:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-prod
+  api:
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-staging
     deploy:
       mode: replicated
-      replicas: 2 # Alta disponibilidade para produção
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
+      replicas: 1
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.portal_api_prod.rule=Host(`api.portaleletricos.com.br`)"
-        - "traefik.http.routers.portal_api_prod.entrypoints=websecure"
-        - "traefik.http.routers.portal_api_prod.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.portal_api_prod.loadbalancer.server.port=3000"
+        - "traefik.http.routers.portal_api.rule=Host(`api.portaleletricos.com.br`)"
+        - "traefik.http.routers.portal_api.entrypoints=websecure"
+        - "traefik.http.routers.portal_api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.portal_api.loadbalancer.server.port=3000"
         - "traefik.docker.network=Portainer"
     environment:
       NODE_ENV: production
       PORT: 3000
-      JWT_SECRET: ${PROD_JWT_SECRET}
-      DATABASE_URL: postgresql://${PROD_DB_USER}:${PROD_DB_PASSWORD}@db-prod:5432/${PROD_DB_NAME}?schema=public
+      JWT_SECRET: super_chave_secreta_mude_depois
+      DATABASE_URL: postgres://portal:portal_senha_forte@db:5432/portal_eletricistas?schema=public
 
-      # S3/MinIO
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_BUCKET: portal-prod
-      S3_REGION: ${S3_REGION}
+      # S3 / MinIO Configuration
+      S3_ENDPOINT: https://s3.gera-leads.com
+      S3_ACCESS_KEY: admin
+      S3_SECRET_KEY: Lucas132395
+      S3_BUCKET: portal-produtos
+      S3_REGION: us-east-1
 
       # Sankhya Integration
-      SANKHYA_CLIENT_ID: ${SANKHYA_CLIENT_ID}
-      SANKHYA_CLIENT_SECRET: ${SANKHYA_CLIENT_SECRET}
-      SANKHYA_X_TOKEN: ${SANKHYA_X_TOKEN}
+      SANKHYA_CLIENT_ID: "e0e93f83-aa7c-4d38-a911-944b25365430"
+      SANKHYA_CLIENT_SECRET: "LHTBJC5TFVXB8IQ4TRxbrUwopxjk1zak"
+      SANKHYA_X_TOKEN: "c12fd66b-e030-4d80-9b92-7daf82d0d11f"
+
+      # Email Configuration
+      EMAIL_USER: "contato@portaldistribuidora.com.br"
+      EMAIL_PASSWORD: "fugs zisa vlmm phir"
 
       # Evolution API (WhatsApp)
-      EVOLUTION_API_URL: ${EVOLUTION_API_URL}
-      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
-      EVOLUTION_INSTANCE_NAME: ${EVOLUTION_INSTANCE_NAME}
-
-      # Email
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-
-      # Frontend
-      FRONTEND_URL: https://app.portaleletricos.com.br
+      EVOLUTION_API_URL: https://evolutionapi.gera-leads.com
+      EVOLUTION_API_KEY: cb988b940da16208625675ba7be69465
+      EVOLUTION_INSTANCE_NAME: WhatsAppPortal
 
       # OpenAI
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-    volumes:
-      - portal_uploads_prod:/app/uploads
+      OPENAI_API_KEY: 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
+
     networks:
-      - portal_prod_overlay
+      - portal_overlay
       - Portainer
     depends_on:
-      - db-prod
+      - db
 
   # ==========================================
-  # 3. POSTGRES PRODUCTION
+  # 3. POSTGRES 14 (PRODUÇÃO)
   # ==========================================
-  db-prod:
+  db:
     image: postgres:14
     volumes:
-      - db_prod_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${PROD_DB_USER}
-      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD}
-      POSTGRES_DB: ${PROD_DB_NAME}
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${PROD_DB_USER} -d ${PROD_DB_NAME}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal_senha_forte
+      POSTGRES_DB: portal_eletricistas
     deploy:
       mode: replicated
       replicas: 1
     networks:
-      - portal_prod_overlay
+      - portal_overlay
 
+# ==========================================
+# REDES E VOLUMES
+# ==========================================
 networks:
-  portal_prod_overlay:
+  portal_overlay:
     driver: overlay
   Portainer:
     external: true
 
 volumes:
-  db_prod_data:
-  portal_uploads_prod:
+  db_data:

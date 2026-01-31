@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Request, Query, Patch } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -11,7 +11,7 @@ export class ServicesController {
     findAll(
         @Query('search') search?: string,
         @Query('city') city?: string,
-        @Query('type') type?: 'REQUEST' | 'OFFER',
+        @Query('type') type?: string,
         @Query('minPrice') minPrice?: string,
         @Query('maxPrice') maxPrice?: string,
     ) {
@@ -34,5 +34,17 @@ export class ServicesController {
     @Delete(':id')
     remove(@Request() req: any, @Param('id') id: string) {
         return this.servicesService.remove(id, req.user.userId);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post(':id/contact')
+    getContact(@Request() req: any, @Param('id') id: string) {
+        return this.servicesService.getContact(id, req.user.userId);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Patch(':id/close')
+    close(@Request() req: any, @Param('id') id: string, @Body('reason') reason: string) {
+        return this.servicesService.close(id, req.user.userId, reason);
     }
 }

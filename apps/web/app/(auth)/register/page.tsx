@@ -265,17 +265,23 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        <div className="flex items-start space-x-2 pt-2">
-                            <input
-                                data-testid="terms-checkbox"
-                                type="checkbox"
-                                id="terms"
-                                checked={acceptedTerms}
-                                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                                className="w-4 h-4 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <label htmlFor="terms" className="text-sm text-gray-600 leading-tight">
-                                Li e concordo com os <Link href="/termos" target="_blank" className="text-blue-600 hover:underline">Termos de Uso</Link> e Política de Privacidade.
+                        <div className="flex items-start gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setAcceptedTerms(!acceptedTerms)}
+                                className={`
+                                    w-5 h-5 mt-0.5 rounded border transition-all flex items-center justify-center shrink-0
+                                    ${acceptedTerms ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300'}
+                                `}
+                            >
+                                {acceptedTerms && (
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                )}
+                            </button>
+                            <label className="text-sm text-gray-600 leading-tight">
+                                Li e concordo com os <Link href="/termos" target="_blank" className="text-blue-600 hover:underline font-medium">Termos de Uso</Link> e Política de Privacidade.
                             </label>
                         </div>
 

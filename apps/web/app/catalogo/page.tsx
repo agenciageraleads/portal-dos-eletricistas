@@ -30,13 +30,13 @@ function CatalogContent() {
 
     // Super Categories Grouping
     const SUPER_CATEGORIES = [
-        { id: 'iluminacao', label: 'Iluminação', icon: '💡', queries: ['Iluminação Comercial', 'Iluminação Decorativa'] },
-        { id: 'acessorios', label: 'Acessórios', icon: '🔌', queries: ['Acessórios', 'Ferragens', 'Elétrica', 'Equipamentos'] },
+        { id: 'iluminacao', label: 'Iluminação', icon: '💡', queries: ['Iluminação Comercial', 'Iluminação Decorativa', 'Iluminação'] },
+        { id: 'acessorios', label: 'Acessórios', icon: '🔌', queries: ['Acessórios', 'Ferragens', 'Elétrica', 'Equipamentos', 'Geral'] },
         { id: 'ferramentas', label: 'Ferramentas', icon: '🔧', queries: ['Ferramentas'] },
         { id: 'servicos', label: 'Serviços', icon: '🛠️', queries: ['SERVICE'] },
         { id: 'automacao', label: 'Automação', icon: '🤖', queries: ['Automação'] },
-        { id: 'interruptores', label: 'Interruptores e Tomadas', icon: '🏠', queries: ['Acabamento'] }, // "Acabamento" backend ID renamed to "Interruptores" for UI
-        { id: 'fios', label: 'Fios e Cabos', icon: '⚡', queries: ['Cabos Diversos', 'Cabos Energia'] },
+        { id: 'interruptores', label: 'Interruptores e Tomadas', icon: '🏠', queries: ['Acabamento'] },
+        { id: 'fios', label: 'Fios e Cabos', icon: '⚡', queries: ['Cabos Diversos', 'Cabos Energia', 'Fios e Cabos'] },
         { id: 'infra', label: 'Infra', icon: '🏗️', queries: ['Infraestrutura'] },
     ];
 
@@ -77,11 +77,17 @@ function CatalogContent() {
     };
 
     useEffect(() => {
-        if (initialQuery) {
+        const catParam = searchParams.get('cat');
+        if (catParam) {
+            setSelectedCategory(catParam);
+            fetchProducts(1, searchQuery, catParam, 'popularity', true);
+        } else if (initialQuery) {
             setSearchQuery(initialQuery);
+            fetchProducts(1, initialQuery, null, 'popularity', true);
+        } else {
+            fetchProducts(1, searchQuery, null, 'popularity', true);
         }
-        fetchProducts(1, initialQuery, null, 'popularity', true);
-    }, [initialQuery]);
+    }, [initialQuery, searchParams]);
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
