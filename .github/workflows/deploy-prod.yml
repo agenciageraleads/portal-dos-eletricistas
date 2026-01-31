@@ -68,10 +68,8 @@ jobs:
       - name: Wait for registry propagation
         run: sleep 30
 
-      # ATENÇÃO: Substitua as URLs abaixo pelos Webhooks reais criados no Portainer para o Stack de Produção
+      - name: Trigger Portainer Webhook (API)
+        run: curl -X POST https://portainer.gera-leads.com/api/webhooks/aff93dab-ecfe-4856-97a3-61653b2e04e9
 
-      # - name: Trigger Portainer Webhook (API)
-      #   run: curl -X POST https://portainer.gera-leads.com/api/webhooks/YOUR_API_WEBHOOK_UUID
-
-      # - name: Trigger Portainer Webhook (Web)
-      #   run: curl -X POST https://portainer.gera-leads.com/api/webhooks/YOUR_WEB_WEBHOOK_UUID
+      - name: Trigger Portainer Webhook (Web)
+        run: curl -X POST https://portainer.gera-leads.com/api/webhooks/5b9a49e2-72fb-4c3c-862a-455a8856b740
