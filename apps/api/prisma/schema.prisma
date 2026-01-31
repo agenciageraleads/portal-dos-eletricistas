@@ -129,6 +129,13 @@ model Budget {
   client_phone      String?
   status            BudgetStatus @default(DRAFT)
   expiresAt         DateTime?
+  
+  // Condicoes do Orcamento
+  execution_time    String?
+  payment_terms     String?
+  validity          String?
+  warranty          String?
+
   total_materials   Decimal      @default(0) @db.Decimal(10, 2)
   total_labor       Decimal      @default(0) @db.Decimal(10, 2)
   total_price       Decimal      @default(0) @db.Decimal(10, 2)
@@ -185,6 +192,7 @@ model Feedback {
   product   Product?     @relation(fields: [productId], references: [id])
   userId    String?
   user      User?        @relation(fields: [userId], references: [id])
+  status    String       @default("OPEN") // OPEN, RESOLVED
 
   @@map("feedbacks")
 }

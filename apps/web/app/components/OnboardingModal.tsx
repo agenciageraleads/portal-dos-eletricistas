@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, ChevronRight, ChevronLeft, Lightbulb, Map, MessageSquare, Rocket, Trophy, Zap } from 'lucide-react';
+import { X, Check, ChevronRight, ChevronLeft, Lightbulb, Map, MessageSquare, Rocket, Trophy, Zap, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function OnboardingModal() {
@@ -28,68 +28,55 @@ export function OnboardingModal() {
 
     const steps = [
         {
-            title: "Bem-vindo ao Portal!",
-            content: "Estamos muito felizes em ter você aqui. O Portal do Eletricista foi criado para facilitar o seu dia a dia, simplificando a criação de orçamentos e a busca por produtos.",
-            icon: <Rocket size={48} className="text-blue-600 mb-4" />,
+            title: "Sua Nova Identidade Profissional",
+            content: "Você acaba de criar muito mais que uma conta. Agora você tem uma página exclusiva no PortalElétricos para divulgar seu trabalho, ser encontrado no Google e fechar mais negócios.",
+            icon: <User size={48} className="text-blue-600 mb-4" />,
             image: null
         },
         {
-            title: "O que você pode fazer hoje?",
+            title: "Ranqueamento e Visibilidade",
             content: (
-                <ul className="text-sm space-y-2 text-left">
-                    <li className="flex gap-2 items-start">
-                        <span className="text-green-500 font-bold">✓</span>
-                        <span><b>Catálogo Completo:</b> Busque produtos, veja preços e detalhes técnicos.</span>
-                    </li>
-                    <li className="flex gap-2 items-start">
-                        <span className="text-green-500 font-bold">✓</span>
-                        <span><b>Orçamentos Profissionais:</b> Crie orçamentos detalhados com materiais e mão de obra de forma rápida.</span>
-                    </li>
-                    <li className="flex gap-2 items-start">
-                        <span className="text-green-500 font-bold">✓</span>
-                        <span><b>Compartilhe PDF:</b> Gere PDFs profissionais para enviar aos seus clientes pelo WhatsApp.</span>
-                    </li>
-                </ul>
-            ),
-            icon: <Lightbulb size={48} className="text-yellow-500 mb-4" />
-        },
-        {
-            title: "O que vem por aí?",
-            content: (
-                <div className="text-sm space-y-2">
-                    <p>Estamos trabalhando duro para trazer mais novidades:</p>
+                <div className="text-sm space-y-3">
+                    <p>Quanto mais completo seu perfil, mais destaque você ganha!</p>
                     <ul className="space-y-2 text-left bg-gray-50 p-3 rounded-lg border border-gray-100">
                         <li className="flex gap-2 items-center text-gray-700">
-                            <Map size={16} className="text-blue-500" />
-                            <span>Histórico de Orçamentos (Em breve)</span>
+                            <Trophy size={16} className="text-yellow-500" />
+                            <span><strong>Complete seu Perfil:</strong> Adicione foto, bio e cidade.</span>
                         </li>
                         <li className="flex gap-2 items-center text-gray-700">
-                            <Map size={16} className="text-purple-500" />
-                            <span> Gestão de Clientes</span>
-                        </li>
-                        <li className="flex gap-2 items-center text-gray-700">
-                            <Map size={16} className="text-green-500" />
-                            <span>Link de Pagamento Integrado</span>
+                            <Zap size={16} className="text-blue-500" />
+                            <span><strong>Seja Visto:</strong> Clientes buscam eletricistas por região.</span>
                         </li>
                     </ul>
                 </div>
             ),
-            icon: <Map size={48} className="text-purple-600 mb-4" />
-        },
-        {
-            title: "Seu Feedback é Vital",
-            content: "Construímos este portal para VOCÊ. Se encontrar erros, tiver ideias ou sentir falta de algo, clique no botão \"Alert\" no topo da página. Sua opinião guia nosso desenvolvimento!",
-            icon: <MessageSquare size={48} className="text-green-500 mb-4" />
-        },
-        {
-            title: "Instale o App",
-            content: "Para a melhor experiência, instale nosso App. Funciona offline, é mais rápido e você recebe notificações direto no celular. Procure o botão 'Instalar Aplicativo' na tela inicial.",
-            icon: <Zap size={48} className="text-blue-600 mb-4" />
-        },
-        {
-            title: "Sua Jornada Profissional",
-            content: "Acompanhe seu progresso como eletricista digital! Complete tarefas, ganhe conquistas e suba de nível. Toque no ícone de troféu para ver suas missões.",
             icon: <Trophy size={48} className="text-yellow-500 mb-4" />
+        },
+        {
+            title: "Core: Orçamentos & Catálogo",
+            content: (
+                <ul className="text-sm space-y-2 text-left">
+                    <li className="flex gap-2 items-start">
+                        <span className="text-green-500 font-bold">✓</span>
+                        <span><b>Orçamentos em PDF:</b> Crie propostas profissionais em segundos e envie por WhatsApp.</span>
+                    </li>
+                    <li className="flex gap-2 items-start">
+                        <span className="text-green-500 font-bold">✓</span>
+                        <span><b>Catálogo Atualizado:</b> Consulte preços médios de materiais para não errar no orçamento.</span>
+                    </li>
+                </ul>
+            ),
+            icon: <Rocket size={48} className="text-green-600 mb-4" />
+        },
+        {
+            title: "Ferramentas Técnicas",
+            content: "Tenha no bolso calculadoras essenciais para o dia a dia: Dimensionamento de Cabos, Queda de Tensão e muito mais. Tudo para garantir a segurança e eficiência dos seus projetos.",
+            icon: <Zap size={48} className="text-orange-500 mb-4" />
+        },
+        {
+            title: "Vamos Começar?",
+            content: "Seu primeiro passo é deixar seu perfil impecável. Clique abaixo e preencha suas informações para começar a subir no ranking!",
+            icon: <Check size={48} className="text-green-600 mb-4" />
         }
     ];
 

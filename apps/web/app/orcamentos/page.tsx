@@ -18,8 +18,10 @@ interface Budget {
     }
 }
 
+import UserMenu from '../components/UserMenu';
+
 export default function MyBudgetsPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, logout } = useAuth();
     const router = useRouter();
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [loading, setLoading] = useState(true);
@@ -104,12 +106,15 @@ export default function MyBudgetsPage() {
                         <h1 className="text-xl font-bold text-gray-800">Meus Orçamentos</h1>
                     </div>
 
-                    <Link
-                        href="/orcamento/novo"
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
-                    >
-                        + Novo
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/orcamento/novo"
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
+                        >
+                            + Novo
+                        </Link>
+                        <UserMenu user={user} logout={logout} />
+                    </div>
                 </div>
             </header>
 
@@ -144,7 +149,7 @@ export default function MyBudgetsPage() {
                         <h3 className="text-lg font-medium text-gray-900">Nenhum orçamento encontrado</h3>
                         <p className="text-gray-500 mt-2">Você ainda não criou nenhum orçamento.</p>
                         <Link
-                            href="/"
+                            href="/orcamento/novo"
                             className="mt-6 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
                         >
                             Criar Novo Orçamento

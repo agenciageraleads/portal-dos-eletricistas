@@ -111,12 +111,54 @@ function OrcamentoContent() {
     const mode = searchParams.get('mode') || 'full'; // 'full' or 'labor'
 
     // Load existing budget if ID present
+    // Load existing budget if ID present
     useEffect(() => {
         const id = searchParams.get('id');
         if (id) {
             setIsEditMode(true);
             setEditId(id);
-            // Load logic would go here, but omitted for now to save space/complexity
+            setLoading(true);
+
+            api.get(`/budgets/${id}`)
+                .then(({ data }) => {
+                    // Populate Form
+                    setCustomerName(data.client_name || '');
+                    setCustomerPhone(data.client_phone || '');
+                    setLaborValue(data.total_labor?.toString() || '');
+                    setLaborDescription(data.labor_description || '');
+
+                    // Conditions
+                    setExecutionTime(data.execution_time || '');
+                    setPaymentTerms(data.payment_terms || '');
+                    setValidity(data.validity || '');
+                    setWarranty(data.warranty || '');
+                    setNotes(data.notes || '');
+
+                    setShowUnitPrices(data.show_unit_prices ?? true);
+                    setShowLaborTotal(data.show_labor_total ?? true);
+
+                    // Populate Cart (Clear first?)
+                    clearCart();
+                    data.items.forEach((item: any) => {
+                        addToCart({
+                            id: item.productId || item.product?.id || `manual-${Date.now()}-${Math.random()}`,
+                            name: item.product?.name || item.custom_name || 'Item',
+                            price: item.price,
+                            image_url: item.product?.image_url || item.custom_photo_url || '',
+                            sankhya_code: item.product?.sankhya_code || 0,
+                            type: item.is_external ? 'MANUAL' : (item.product?.type || 'MATERIAL'),
+                            is_available: true,
+                            // Manual fields
+                            isExternal: item.is_external,
+                            suggestedSource: item.suggested_source
+                        }, item.quantity);
+                    });
+                })
+                .catch(err => {
+                    console.error('Failed to load budget', err);
+                    showToast('Erro ao carregar orçamento', 'error');
+                })
+                .finally(() => setLoading(false));
         }
     }, [searchParams]);
 
@@ -198,29 +240,41 @@ function OrcamentoContent() {
 
             const payload = {
                 items: items.map(i => ({
-                    product_id: i.isExternal ? null : i.id,
+                    productId: i.isExternal ? null : i.id,
                     quantity: i.quantity,
                     price: parseFloat(i.price),
-                    is_external: i.isExternal,
-                    custom_name: i.isExternal ? i.name : undefined,
-                    custom_photo_url: i.isExternal ? i.image_url : undefined,
-                    suggested_source: i.isExternal ? i.suggestedSource : undefined
+                    isExternal: i.isExternal,
+                    customName: i.isExternal ? i.name : undefined,
+                    customPhotoUrl: i.isExternal ? i.image_url : undefined,
+                    suggestedSource: i.isExternal ? i.suggestedSource : undefined
                 })),
-                labor_value: labor,
-                labor_description: laborDescription,
-                customer_name: customerName,
-                customer_phone: customerPhone,
-                execution_time: executionTime,
-                payment_terms: paymentTerms,
+                laborValue: labor,
+                laborDescription: laborDescription,
+                clientName: customerName,
+                clientPhone: customerPhone,
+                executionTime: executionTime,
+                paymentTerms: paymentTerms,
                 validity: validity,
                 warranty: warranty,
                 notes: notes,
-                show_unit_prices: showUnitPrices,
-                show_labor_total: showLaborTotal,
+                showUnitPrices: showUnitPrices,
+                showLaborTotal: showLaborTotal,
                 status: 'DRAFT' // Always save as draft first, then generate link if shared
             };
 
-            const { data } = await api.post('/budgets', payload);
+            let responseData;
+
+            if (isEditMode && editId) {
+                // Update existing
+                const res = await api.patch(`/budgets/${editId}`, payload);
+                responseData = res.data;
+            } else {
+                // Create new
+                const res = await api.post('/budgets', payload);
+                responseData = res.data;
+            }
+
+            const data = responseData;
 
             // Clear backup on success
             localStorage.removeItem('budget_draft_backup');
@@ -257,9 +311,11 @@ function OrcamentoContent() {
                 {/* Header Mobile */}
                 <header className="bg-white p-4 border-b border-gray-200 sticky top-0 z-20 flex items-center justify-between shadow-sm">
                     <button onClick={() => {
-                        if (isEditMode) router.push('/orcamentos');
-                        else if (searchParams.get('mode')) router.push('/orcamento/novo');
-                        else router.push('/orcamento/novo');
+                        // Always go back to budget list or home if history is empty? 
+                        // Actually if mode is set, we probably came from 'novo'.
+                        // Simplest: Go to /orcamento/novo if creating, or back.
+                        if (isEditMode) router.push('/orcamentos'); // If editing, go to list
+                        else router.back(); // If creating, go back (likely to selection screen)
                     }} className="p-2 -ml-2 text-gray-600 hover:bg-gray-50 rounded-full">
                         <ArrowLeft size={24} />
                     </button>

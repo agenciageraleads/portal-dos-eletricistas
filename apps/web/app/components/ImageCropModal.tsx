@@ -214,7 +214,7 @@ function createImage(url: string): Promise<HTMLImageElement> {
         const image = new Image();
         image.addEventListener('load', () => resolve(image));
         image.addEventListener('error', (error) => reject(error));
-        image.setAttribute('crossOrigin', 'anonymous');
+        // image.setAttribute('crossOrigin', 'anonymous'); // Removed to prevent Issues with Data URIs on iOS
         image.src = url;
     });
 }

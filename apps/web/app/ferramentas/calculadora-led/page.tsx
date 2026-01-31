@@ -139,6 +139,26 @@ export default function LedCalculatorPage() {
                     </div>
                 )}
 
+                {/* Search Buttons */}
+                <div className="grid grid-cols-2 gap-3">
+                    <Link
+                        href={`/catalogo?q=Fita LED ${voltage}V`}
+                        className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group"
+                    >
+                        <Zap className="text-gray-400 group-hover:text-blue-500 mb-2" />
+                        <span className="text-sm font-bold text-gray-700 group-hover:text-blue-600">Buscar Fitas</span>
+                    </Link>
+                    <Link
+                        href={`/catalogo?q=Fonte Chaveada ${results.recommendedPower}W`}
+                        className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group"
+                    >
+                        <div className="w-6 h-6 border-2 border-gray-400 rounded group-hover:border-blue-500 mb-2 flex items-center justify-center text-[10px] font-bold text-gray-400 group-hover:text-blue-500">
+                            12V
+                        </div>
+                        <span className="text-sm font-bold text-gray-700 group-hover:text-blue-600">Buscar Fontes</span>
+                    </Link>
+                </div>
+
                 <div className="bg-blue-50 p-4 rounded-xl flex gap-3 text-blue-800 text-sm">
                     <Info className="shrink-0" size={20} />
                     <p>O cálculo considera uma margem de segurança de 20% para garantir a vida útil da fonte e evitar superaquecimento.</p>

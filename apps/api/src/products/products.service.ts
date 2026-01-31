@@ -217,6 +217,22 @@ export class ProductsService implements OnModuleInit {
                                 else if (name.includes(term)) score += 10;
                             });
                             score += maxWordScore;
+
+                            // NEW: Improved Number Matching (v1.2.1)
+                            // Capture numbers loosely (e.g. from "10mm", "100v")
+                            const queryNumbers = normalizedQ.match(/\d+([.,]\d+)?/g);
+                            if (queryNumbers) {
+                                queryNumbers.forEach(num => {
+                                    // Check normalized number (e.g. 10.0 vs 10)
+                                    const hasNumber = nameWordsDeep.some(w => {
+                                        return parseFloat(w) === parseFloat(num);
+                                    });
+                                    if (!hasNumber) {
+                                        score -= 500; // Giant penalty to push to bottom
+                                    }
+                                });
+                            }
+
                             return score;
                         }
 

@@ -81,6 +81,16 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
                             Termos de Uso
                         </Link>
 
+                        <Link
+                            href="https://wa.me/5562982435286"
+                            target="_blank"
+                            className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            <MessageSquare size={18} className="text-green-600" />
+                            Falar com Suporte
+                        </Link>
+
                         <div className="h-px bg-gray-100 my-1"></div>
 
                         <button

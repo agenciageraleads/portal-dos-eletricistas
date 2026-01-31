@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Patch, Param, UseGuards, Request, Injectable } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Param, UseGuards, Request, Injectable, Query } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { Prisma } from '@prisma/client';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
@@ -45,13 +45,20 @@ export class FeedbackController {
 
     @Get()
     @UseGuards(AuthGuard('jwt'))
-    findAll(@Request() req: any) {
-        return this.feedbackService.findAll(req.user);
+    @Get()
+    @UseGuards(AuthGuard('jwt'))
+    findAll(@Request() req: any, @Query('scope') scope?: string) {
+        return this.feedbackService.findAll(req.user, scope);
     }
 
     @Patch(':id/reply')
     @UseGuards(OptionalJwtAuthGuard)
     async reply(@Param('id') id: string, @Body() body: { reply: string }) {
         return this.feedbackService.reply(id, body.reply);
+    }
+    @Patch(':id/resolve')
+    @UseGuards(OptionalJwtAuthGuard)
+    async resolve(@Param('id') id: string) {
+        return this.feedbackService.resolve(id);
     }
 }

@@ -168,4 +168,9 @@ export class UsersController {
     async getPublicProfile(@Param('id') id: string) {
         return this.usersService.getPublicProfile(id);
     }
+
+    @Get('count')
+    async count() {
+        return this.usersService.count();
+    }
 }

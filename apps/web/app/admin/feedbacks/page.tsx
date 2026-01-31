@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, MessageSquare, Package, Calendar, MessageCircle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Package, Calendar, MessageCircle, Check } from 'lucide-react';
 import api from '@/lib/api';
 
 interface Feedback {
@@ -21,6 +21,7 @@ interface Feedback {
         name: string;
         sankhya_code: number;
     } | null;
+    status: 'OPEN' | 'RESOLVED';
 }
 
 export default function AdminFeedbacks() {
@@ -38,11 +39,11 @@ export default function AdminFeedbacks() {
         if (!replyText.trim()) return;
         setSubmitting(true);
         try {
-            await api.patch(`/admin/feedbacks/${id}/reply`, { reply: replyText });
+            await api.patch(`/feedback/${id}/reply`, { reply: replyText });
             setReplyingId(null);
             setReplyText('');
             // Reload
-            const { data } = await api.get(`/admin/feedbacks?page=${page}`);
+            const { data } = await api.get(`/feedback?scope=all&page=${page}`);
             setFeedbacks(data.data);
             alert('Resposta enviada!');
         } catch (error) {
@@ -50,6 +51,17 @@ export default function AdminFeedbacks() {
             alert('Erro ao enviar resposta');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleResolve = async (id: string) => {
+        if (!confirm('Marcar este feedback como resolvido?')) return;
+        try {
+            await api.patch(`/feedback/${id}/resolve`);
+            setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: 'RESOLVED' } : f));
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao resolver feedback');
         }
     };
 
@@ -61,7 +73,14 @@ export default function AdminFeedbacks() {
 
         const fetchFeedbacks = async () => {
             try {
-                const { data } = await api.get(`/admin/feedbacks?page=${page}`);
+                // Admin needs to see ALL feedbacks, not just their own.
+                // We added ?scope=me in previous step for user.
+                // Now we need to ensure admin sees all. The controller default is 'me' unless 'scope' param says otherwise?
+                // Wait, logic was: if (user.role !== 'ADMIN' || scope === 'me') -> filter by userId.
+                // So if ADMIN and no scope (or scope!=me), it returns all?
+                // Yes: `where.userId` is NOT set if ADMIN and scope!=me.
+                // So just calling `/feedback` as ADMIN returns all.
+                const { data } = await api.get(`/feedback?page=${page}`);
                 setFeedbacks(data.data);
                 setTotalPages(data.pagination.totalPages);
             } catch (error) {
@@ -123,16 +142,23 @@ export default function AdminFeedbacks() {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="space-y-4">
                     {feedbacks.map((feedback) => (
-                        <div key={feedback.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div key={feedback.id} className={`bg-white rounded-xl shadow-sm border p-6 ${feedback.status === 'RESOLVED' ? 'border-green-100 bg-green-50/30' : 'border-gray-100'}`}>
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
+                                    <div className={`p-3 rounded-lg ${feedback.status === 'RESOLVED' ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
                                         <MessageSquare size={20} />
                                     </div>
                                     <div>
-                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">
-                                            {getTypeText(feedback.type)}
-                                        </span>
+                                        <div className="flex gap-2 mb-1">
+                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">
+                                                {getTypeText(feedback.type)}
+                                            </span>
+                                            {feedback.status === 'RESOLVED' && (
+                                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1">
+                                                    <Check size={10} /> Resolvido
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                                             <Calendar size={12} />
                                             {new Date(feedback.createdAt).toLocaleDateString('pt-BR')}
@@ -150,6 +176,16 @@ export default function AdminFeedbacks() {
                                         >
                                             <MessageCircle size={14} /> WhatsApp
                                         </button>
+
+                                        {feedback.status !== 'RESOLVED' && (
+                                            <button
+                                                onClick={() => handleResolve(feedback.id)}
+                                                className="flex items-center gap-2 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 hover:text-green-700 transition-colors"
+                                            >
+                                                <Check size={14} /> Resolver
+                                            </button>
+                                        )}
+
                                         <button
                                             onClick={() => setReplyingId(replyingId === feedback.id ? null : feedback.id)}
                                             className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors"

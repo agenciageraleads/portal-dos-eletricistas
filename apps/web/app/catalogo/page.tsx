@@ -9,6 +9,7 @@ import { CartSummary } from '../components/CartSummary';
 import { OnboardingModal } from '../components/OnboardingModal';
 import { PackageSearch, User, FileText, TriangleAlert, LogOut, ShieldCheck, Calculator, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function CatalogPage() {
@@ -19,6 +20,8 @@ export default function CatalogPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [orderBy, setOrderBy] = useState('popularity');
+    const searchParams = useSearchParams();
+    const initialQuery = searchParams.get('q') || '';
     const { user, logout } = useAuth();
 
 
@@ -72,8 +75,11 @@ export default function CatalogPage() {
     };
 
     useEffect(() => {
-        fetchProducts(1, '', null, 'popularity', true);
-    }, []);
+        if (initialQuery) {
+            setSearchQuery(initialQuery);
+        }
+        fetchProducts(1, initialQuery, null, 'popularity', true);
+    }, [initialQuery]);
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
@@ -146,7 +152,7 @@ export default function CatalogPage() {
 
             <main className="max-w-5xl mx-auto px-4 py-6">
                 <div className="sticky top-[73px] z-10 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 py-2 border-b border-gray-200/50 mb-6">
-                    <ProductSearch onSearch={handleSearch} />
+                    <ProductSearch onSearch={handleSearch} initialValue={searchQuery} />
                 </div>
 
                 {/* Categories Navigation - Stories Style */}

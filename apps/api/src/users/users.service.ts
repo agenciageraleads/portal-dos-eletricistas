@@ -148,4 +148,11 @@ export class UsersService {
 
         return user;
     }
+
+    async count() {
+        // Count only finalized registrations or all? 
+        // For gamification/social proof, counting all valid emails is usually better.
+        // Assuming we want 'users' not just electricians.
+        return { count: await this.prisma.user.count() };
+    }
 }

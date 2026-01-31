@@ -114,6 +114,10 @@ export default function ServicesPage() {
         return `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
     };
 
+    const [optimisticAvailable, setOptimisticAvailable] = useState<boolean | null>(null);
+
+    const isAvailable = optimisticAvailable ?? user?.isAvailableForWork ?? false;
+
     const toggleAvailability = async () => {
         if (!user) return;
 
@@ -125,15 +129,16 @@ export default function ServicesPage() {
         }
 
         const newStatus = !user.isAvailableForWork;
+
+        // Optimistic Update
+        setOptimisticAvailable(newStatus);
+
         try {
             await api.patch('/users/profile', { isAvailableForWork: newStatus });
             await refreshUser();
-            // Refresh professionals list if we are on that tab
-            if (activeTab === 'PROFESSIONALS') {
-                fetchProfessionals();
-            }
         } catch (e) {
             alert('Erro ao atualizar disponibilidade');
+            setOptimisticAvailable(null); // Revert
         }
     };
 
@@ -150,13 +155,13 @@ export default function ServicesPage() {
                     {user?.role === 'ELETRICISTA' ? (
                         <button
                             onClick={toggleAvailability}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs transition-all shadow-sm border ${user.isAvailableForWork
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs transition-all shadow-sm border ${isAvailable
                                 ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
                                 : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                                 }`}
                         >
-                            <div className={`w-2 h-2 rounded-full ${user.isAvailableForWork ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
-                            {user.isAvailableForWork ? 'Estou Disponível' : 'Ficar Disponível'}
+                            <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
+                            {isAvailable ? 'Estou Disponível' : 'Ficar Disponível'}
                         </button>
                     ) : (
                         <h1 className="text-lg font-bold text-gray-900">Oportunidades</h1>

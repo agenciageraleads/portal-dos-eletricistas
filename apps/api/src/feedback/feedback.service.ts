@@ -13,18 +13,17 @@ export class FeedbackService {
     }
 
     // List feedbacks with privacy (Item 2.5)
-    async findAll(user: any) {
+    async findAll(user: any, scope?: string) {
         const where: Prisma.FeedbackWhereInput = {};
 
-        // If not ADMIN, only see own feedbacks
-        if (user.role !== 'ADMIN') {
+        if (scope === 'me' || (user && user.role !== 'ADMIN')) {
             where.userId = user.id;
         }
 
         return this.prisma.feedback.findMany({
             where,
             orderBy: { createdAt: 'desc' },
-            include: { product: true }
+            include: { user: { select: { name: true, email: true } } }
         });
     }
 
@@ -33,8 +32,16 @@ export class FeedbackService {
             where: { id },
             data: {
                 reply,
-                repliedAt: new Date()
+                repliedAt: new Date(),
+                status: 'RESOLVED' // Auto-resolve on reply? Maybe optional. stick to explicit resolve.
             }
+        });
+    }
+
+    async resolve(id: string) {
+        return this.prisma.feedback.update({
+            where: { id },
+            data: { status: 'RESOLVED' }
         });
     }
 }

@@ -163,7 +163,7 @@ export default function PerfilPage() {
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/*"
+                            accept="image/png, image/jpeg, image/jpg, image/webp"
                             onChange={handleFileSelect}
                             className="hidden"
                         />
@@ -263,8 +263,8 @@ export default function PerfilPage() {
                         <p className="text-xs text-gray-500 mt-1">Será exibida nos orçamentos para facilitar pagamentos</p>
                     </div>
 
-                     {/* Location */}
-                     <div className="grid grid-cols-3 gap-4">
+                    {/* Location */}
+                    <div className="grid grid-cols-3 gap-4">
                         <div className="col-span-2">
                             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                                 <span className="font-bold">📍</span>

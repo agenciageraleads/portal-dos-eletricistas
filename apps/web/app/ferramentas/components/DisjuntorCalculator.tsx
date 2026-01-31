@@ -109,7 +109,7 @@ export function DisjuntorCalculator() {
                     </div>
 
                     <button
-                        onClick={() => router.push(`/catalogo?q=DISJUNTOR+${result.amps}A`)}
+                        onClick={() => router.push(`/catalogo?q=DISJUNTOR ${result.amps}A`)}
                         className="mt-4 w-full bg-white border border-gray-200 text-gray-800 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50"
                     >
                         Ver Disjuntores {result.amps}A <ChevronRight size={16} />

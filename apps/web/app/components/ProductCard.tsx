@@ -113,7 +113,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <div className="mt-2 text-right">
                 <div className="flex items-baseline justify-end gap-1">
-                    <p className="text-xl font-bold text-gray-900 tracking-tight">{formatPrice(product.price)}</p>
+                    <p className="text-xl font-bold text-gray-900 tracking-tight">
+                        {parseFloat(product.price) > 0 ? formatPrice(product.price) : <span className="text-sm text-blue-600 font-semibold">Sob Consulta</span>}
+                    </p>
                     <span className="text-xs text-gray-500 font-medium">/{product.unit?.toLowerCase() || 'un'}</span>
                 </div>
             </div>

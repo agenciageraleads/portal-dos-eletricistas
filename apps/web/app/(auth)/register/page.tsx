@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Spinner } from '../../components/Spinner';
 import { useToast } from '../../components/Toast';
 import { isValidCPF } from '../../../api/src/common/validators/cpf-validator-utils'; // Suposição ou helper local
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function RegisterPage() {
     const [step, setStep] = useState(1); // 1: CPF Check, 2: Full Info
@@ -67,6 +68,8 @@ export default function RegisterPage() {
         }
     };
 
+    const { login } = useAuth(); // Hook de autenticação
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -86,6 +89,7 @@ export default function RegisterPage() {
         try {
             console.log('[REGISTER] Enviando dados:', { name, email, cpf_cnpj: cleanCpf, phone });
 
+            // 1. Registrar o usuário
             await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/register`, {
                 name,
                 email,
@@ -95,12 +99,28 @@ export default function RegisterPage() {
                 termsAccepted: true
             });
 
-            showToast('Cadastro realizado com sucesso! Redirecionando...', 'success');
+            showToast('Cadastro realizado! Entrando...', 'success');
 
-            // Aguardar 2 segundos para usuário ver mensagem
-            setTimeout(() => {
+            // 2. Realizar Login Automático
+            try {
+                const { data: loginData } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/login`, {
+                    username: email, // O backend aceita email ou CPF no campo username
+                    password
+                });
+
+                if (loginData.access_token && loginData.user) {
+                    login(loginData.access_token, loginData.user);
+                    router.push('/'); // Redirecionar para a Home logado
+                } else {
+                    // Fallback visual caso o login falhe (raro)
+                    router.push('/login');
+                }
+            } catch (loginError) {
+                console.error('[AUTO-LOGIN] Erro ao fazer login automático:', loginError);
+                // Se falhar o auto-login, manda para login normal
                 router.push('/login');
-            }, 2000);
+            }
+
         } catch (error: any) {
             console.error('[REGISTER] Erro:', error);
 

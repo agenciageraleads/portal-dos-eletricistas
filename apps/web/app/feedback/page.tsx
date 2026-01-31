@@ -21,7 +21,7 @@ export default function FeedbackPage() {
 
     // Fetch feedbacks
     useEffect(() => {
-        api.get('/feedback').then(({ data }) => setFeedbacks(data)).catch(console.error);
+        api.get('/feedback?scope=me').then(({ data }) => setFeedbacks(data)).catch(console.error);
     }, [sent]);
 
     const handleReply = async (id: string, reply: string) => {
@@ -127,6 +127,19 @@ export default function FeedbackPage() {
                             {isLoading ? 'Enviando...' : <span>Enviar</span>}
                         </button>
                     </form>
+                </div>
+
+                {/* Support Button */}
+                <div className="flex justify-center mb-8">
+                    <a
+                        href="https://wa.me/5562982435286"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
+                    >
+                        <MessageSquare size={20} />
+                        Falar com Suporte no WhatsApp
+                    </a>
                 </div>
 
                 <h3 className="font-bold text-gray-800 mb-4 px-1">Histórico</h3>

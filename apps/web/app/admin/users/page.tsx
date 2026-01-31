@@ -28,6 +28,7 @@ export default function AdminUsersPage() {
     const [resetToken, setResetToken] = useState<string | null>(null);
     const [resetLink, setResetLink] = useState<string | null>(null);
     const [editingUser, setEditingUser] = useState<string | null>(null);
+    const [togglingRole, setTogglingRole] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<{ name: string; email: string; phone?: string }>({ name: '', email: '' });
 
     useEffect(() => {
@@ -70,12 +71,15 @@ export default function AdminUsersPage() {
 
         if (!confirm(`Deseja realmente ${action} este usuário?`)) return;
 
+        setTogglingRole(userId);
         try {
             await api.patch(`/users/${userId}/role`, { role: newRole });
-            fetchUsers(); // Reload list
+            await fetchUsers(); // Reload list
         } catch (error) {
             console.error('Erro ao alterar papel:', error);
             alert('Erro ao alterar permissões do usuário.');
+        } finally {
+            setTogglingRole(null);
         }
     };
 
@@ -235,14 +239,20 @@ export default function AdminUsersPage() {
                                                         <Edit2 size={18} />
                                                     </button>
                                                     <button
-                                                        onClick={() => toggleRole(user.id, user.role)}
-                                                        className={`text-sm font-medium ${user.role === 'ADMIN'
-                                                            ? 'text-orange-600 hover:text-orange-700'
-                                                            : 'text-blue-600 hover:text-blue-700'
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleRole(user.id, user.role);
+                                                        }}
+                                                        className={`text-sm font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-2 ${user.role === 'ADMIN'
+                                                            ? 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+                                                            : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                                                             }`}
-                                                        disabled={user.id === currentUser?.id}
+                                                        disabled={user.id === currentUser?.id || togglingRole === user.id}
                                                     >
-                                                        {user.role === 'ADMIN' ? 'Rebaixar' : 'Virar Admin'}
+                                                        {togglingRole === user.id ? (
+                                                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                        ) : null}
+                                                        {user.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
                                                     </button>
 
                                                     <button
