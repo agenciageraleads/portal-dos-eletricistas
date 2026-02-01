@@ -4,7 +4,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: true, // Disabled as requested by the user
+  disable: process.env.NODE_ENV === "development",
   importScripts: ["/custom-worker.js"],
   runtimeCaching: [
     {

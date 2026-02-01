@@ -7,8 +7,59 @@ import { UpdateBudgetDto } from './dto/update-budget.dto';
 export class BudgetsService {
     constructor(private prisma: PrismaService) { }
 
+    private normalizeClientName(name?: string) {
+        return (name || '').trim().toUpperCase();
+    }
+
+    private normalizeClientPhone(phone?: string) {
+        return phone ? phone.replace(/\D/g, '') : '';
+    }
+
+    private async upsertClientContact(userId: string, clientName?: string, clientPhone?: string) {
+        const normalizedName = this.normalizeClientName(clientName);
+        if (!normalizedName) return;
+
+        const normalizedPhone = this.normalizeClientPhone(clientPhone);
+
+        await this.prisma.clientContact.upsert({
+            where: {
+                userId_normalized_name_normalized_phone: {
+                    userId,
+                    normalized_name: normalizedName,
+                    normalized_phone: normalizedPhone
+                }
+            },
+            update: {
+                name: clientName?.trim() || normalizedName,
+                phone: clientPhone || null,
+                last_used_at: new Date()
+            },
+            create: {
+                userId,
+                name: clientName?.trim() || normalizedName,
+                phone: clientPhone || null,
+                normalized_name: normalizedName,
+                normalized_phone: normalizedPhone,
+                last_used_at: new Date()
+            }
+        });
+    }
+
     async create(userId: string, createBudgetDto: CreateBudgetDto) {
         const { clientName, clientPhone, items, laborValue } = createBudgetDto;
+
+        // Idempotency guard: avoid duplicate budgets created within a short window
+        const recentBudget = await this.prisma.budget.findFirst({
+            where: {
+                userId,
+                createdAt: { gte: new Date(Date.now() - 5000) }
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                items: { include: { product: true } },
+                user: true
+            }
+        });
 
         // 1. Validate User (Optional, since AuthGuard handles it, but good to check status)
         // const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -16,6 +67,33 @@ export class BudgetsService {
         // 2. Create Budget
         const totalMaterials = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         const totalPrice = totalMaterials + laborValue;
+
+        if (recentBudget) {
+            const sameClient = (recentBudget.client_name || '') === (clientName || '');
+            const sameTotals = Number(recentBudget.total_materials) === totalMaterials
+                && Number(recentBudget.total_labor) === laborValue
+                && Number(recentBudget.total_price) === totalPrice;
+            const sameCount = recentBudget.items.length === items.length;
+            if (sameClient && sameTotals && sameCount) {
+                const normalizeItems = (list: any[]) =>
+                    list
+                        .map(i => ({
+                            productId: i.productId || null,
+                            isExternal: !!i.is_external || !!i.isExternal,
+                            customName: i.custom_name || i.customName || null,
+                            quantity: i.quantity,
+                            price: Number(i.price)
+                        }))
+                        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+
+                const a = normalizeItems(recentBudget.items);
+                const b = normalizeItems(items);
+                const sameItems = a.length === b.length && a.every((val, idx) => JSON.stringify(val) === JSON.stringify(b[idx]));
+                if (sameItems) {
+                    return recentBudget;
+                }
+            }
+        }
 
         const budget = await this.prisma.budget.create({
             data: {
@@ -56,6 +134,8 @@ export class BudgetsService {
                 user: true
             }
         });
+
+        await this.upsertClientContact(userId, clientName, clientPhone);
 
         return budget;
     }
@@ -113,7 +193,7 @@ export class BudgetsService {
         const currentMaterials = Number(items ? items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) : budget.total_materials);
         const totalPrice = currentMaterials + currentLabor;
 
-        return this.prisma.$transaction(async (prisma) => {
+        const updatedBudget = await this.prisma.$transaction(async (prisma) => {
             // Update Header
             const updatedBudget = await prisma.budget.update({
                 where: { id },
@@ -156,6 +236,14 @@ export class BudgetsService {
 
             return updatedBudget;
         });
+
+        await this.upsertClientContact(
+            userId,
+            clientName ?? budget.client_name || '',
+            clientPhone ?? budget.client_phone || ''
+        );
+
+        return updatedBudget;
     }
 
     async remove(id: string, userId: string) {

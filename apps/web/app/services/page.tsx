@@ -84,6 +84,13 @@ export default function ServicesPage() {
         }
     }, [activeTab, cityFilter, minPrice, maxPrice, searchFilter, installationTypeFilter, needsInfraFilter, contractTypeFilter, urgencyFilter, professionalNameFilter]);
 
+    useEffect(() => {
+        if (activeTab === 'PROFESSIONALS') {
+            setShowFilters(false);
+            setCityFilter('');
+        }
+    }, [activeTab]);
+
     const fetchServices = async () => {
         setIsLoading(true);
         try {
@@ -298,126 +305,126 @@ export default function ServicesPage() {
                 </div>
 
                 {/* Filter Bar */}
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                    <div className="flex gap-2">
-                        <div className="relative flex-1">
-                            <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder={`Filtrar ${activeTab === 'BOARD' ? 'vagas' : 'profissionais'} por cidade`}
-                                value={cityFilter}
-                                onChange={(e) => setCityFilter(e.target.value)}
-                                className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        </div>
-                        {activeTab === 'BOARD' && (
+                {activeTab === 'BOARD' && (
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Filtrar vagas por cidade"
+                                    value={cityFilter}
+                                    onChange={(e) => setCityFilter(e.target.value)}
+                                    className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
                                 className={`p-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-300 text-gray-600'}`}
                             >
                                 <Filter size={20} />
                             </button>
-                        )}
-                    </div>
+                        </div>
 
-                    {/* Extended Filters (Aligned with form fields) */}
-                    {showFilters && activeTab === 'BOARD' && (
-                        <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200 animate-in slide-in-from-top-2">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Busca</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar por título ou descrição"
-                                        value={searchFilter}
-                                        onChange={(e) => setSearchFilter(e.target.value)}
-                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Instalação</label>
-                                    <select
-                                        value={installationTypeFilter}
-                                        onChange={(e) => setInstallationTypeFilter(e.target.value)}
-                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
-                                    >
-                                        <option value="">Todos</option>
-                                        <option value="RESIDENCIAL">Residencial</option>
-                                        <option value="COMERCIAL">Comercial</option>
-                                        <option value="INDUSTRIAL">Industrial</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Infraestrutura</label>
-                                    <select
-                                        value={needsInfraFilter}
-                                        onChange={(e) => setNeedsInfraFilter(e.target.value)}
-                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
-                                    >
-                                        <option value="">Todos</option>
-                                        <option value="true">Precisa de infra</option>
-                                        <option value="false">Sem infra</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Contrato</label>
-                                    <select
-                                        value={contractTypeFilter}
-                                        onChange={(e) => setContractTypeFilter(e.target.value)}
-                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
-                                    >
-                                        <option value="">Todos</option>
-                                        <option value="DIARIA">Diária</option>
-                                        <option value="EMPREITADA">Empreitada</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Urgência</label>
-                                    <select
-                                        value={urgencyFilter}
-                                        onChange={(e) => setUrgencyFilter(e.target.value)}
-                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
-                                    >
-                                        <option value="">Todas</option>
-                                        <option value="IMEDIATO">Imediato</option>
-                                        <option value="ATE_7_DIAS">Até 7 dias</option>
-                                        <option value="ATE_15_DIAS">Até 15 dias</option>
-                                        <option value="FLEXIVEL">Sem urgência</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Faixa de Preço</label>
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative flex-1">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                            <input
-                                                type="number"
-                                                placeholder="Mínimo"
-                                                value={minPrice}
-                                                onChange={(e) => setMinPrice(e.target.value)}
-                                                className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
-                                            />
-                                        </div>
-                                        <span className="text-gray-400">-</span>
-                                        <div className="relative flex-1">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                            <input
-                                                type="number"
-                                                placeholder="Máximo"
-                                                value={maxPrice}
-                                                onChange={(e) => setMaxPrice(e.target.value)}
-                                                className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
-                                            />
+                        {/* Extended Filters (Aligned with form fields) */}
+                        {showFilters && (
+                            <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200 animate-in slide-in-from-top-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Busca</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar por título ou descrição"
+                                            value={searchFilter}
+                                            onChange={(e) => setSearchFilter(e.target.value)}
+                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Instalação</label>
+                                        <select
+                                            value={installationTypeFilter}
+                                            onChange={(e) => setInstallationTypeFilter(e.target.value)}
+                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                        >
+                                            <option value="">Todos</option>
+                                            <option value="RESIDENCIAL">Residencial</option>
+                                            <option value="COMERCIAL">Comercial</option>
+                                            <option value="INDUSTRIAL">Industrial</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Infraestrutura</label>
+                                        <select
+                                            value={needsInfraFilter}
+                                            onChange={(e) => setNeedsInfraFilter(e.target.value)}
+                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                        >
+                                            <option value="">Todos</option>
+                                            <option value="true">Precisa de infra</option>
+                                            <option value="false">Sem infra</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Contrato</label>
+                                        <select
+                                            value={contractTypeFilter}
+                                            onChange={(e) => setContractTypeFilter(e.target.value)}
+                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                        >
+                                            <option value="">Todos</option>
+                                            <option value="DIARIA">Diária</option>
+                                            <option value="EMPREITADA">Empreitada</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Urgência</label>
+                                        <select
+                                            value={urgencyFilter}
+                                            onChange={(e) => setUrgencyFilter(e.target.value)}
+                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                        >
+                                            <option value="">Todas</option>
+                                            <option value="IMEDIATO">Imediato</option>
+                                            <option value="ATE_7_DIAS">Até 7 dias</option>
+                                            <option value="ATE_15_DIAS">Até 15 dias</option>
+                                            <option value="FLEXIVEL">Sem urgência</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Faixa de Preço</label>
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Mínimo"
+                                                    value={minPrice}
+                                                    onChange={(e) => setMinPrice(e.target.value)}
+                                                    className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                                />
+                                            </div>
+                                            <span className="text-gray-400">-</span>
+                                            <div className="relative flex-1">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Máximo"
+                                                    value={maxPrice}
+                                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                                    className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
 
                 {activeTab === 'PROFESSIONALS' && (
-                    <div className="px-4 py-2 bg-white border-b border-gray-200">
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
                         <div className="relative">
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
@@ -425,7 +432,7 @@ export default function ServicesPage() {
                                 placeholder="Buscar profissional por nome"
                                 value={professionalNameFilter}
                                 onChange={(e) => setProfessionalNameFilter(e.target.value)}
-                                className="w-full bg-gray-50 text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             />
                         </div>
                     </div>

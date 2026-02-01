@@ -19,7 +19,7 @@ export default function LoginPage() {
         setLoading(true);
         setError('');
         try {
-            const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/login`, {
+            const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
                 username,
                 password
             });
@@ -55,7 +55,7 @@ export default function LoginPage() {
                             onChange={(e) => setUsername(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded-lg mt-1 placeholder-gray-500"
                             required
-                            placeholder="Digite seu email ou CPF"
+                            placeholder="Digite seu email ou CPF/CNPJ"
                         />
                     </div>
                     <div>

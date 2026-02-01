@@ -19,7 +19,7 @@ interface Task {
 
 export default function JornadaModal() {
     const { user } = useAuth();
-    const { isInstalled, triggerInstall } = useInstallPrompt();
+    const { isInstalled, triggerInstall, showInstallPrompt, isIOS } = useInstallPrompt();
     const [isOpen, setIsOpen] = useState(false);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [progress, setProgress] = useState(0);
@@ -42,6 +42,7 @@ export default function JornadaModal() {
     useEffect(() => {
         if (!user) return;
 
+        const canShowInstall = !isInstalled && (showInstallPrompt || isIOS);
         const checkList: Task[] = [
             {
                 id: 'profile',
@@ -72,14 +73,14 @@ export default function JornadaModal() {
                 isCompleted: hasSharedWhatsapp,
                 action: '/orcamentos' // User needs to go there to share
             },
-            {
+            ...(canShowInstall ? [{
                 id: 'install_app',
-                title: 'Instale o Aplicativo',
-                description: 'Tenha acesso offline e mais agilidade.',
+                title: 'Salvar na Tela Inicial',
+                description: 'Acesse mais rápido o Portal no seu celular.',
                 isCompleted: isInstalled,
                 action: '#install-trigger',
                 tourTrigger: 'install-trigger'
-            },
+            }] : []),
             {
                 id: 'invite',
                 title: 'Convide 5 Parceiros',
@@ -105,7 +106,7 @@ export default function JornadaModal() {
             localStorage.setItem('jornada_seen_v1', 'true');
         }
 
-    }, [user, isInstalled, hasSharedWhatsapp]);
+    }, [user, isInstalled, hasSharedWhatsapp, showInstallPrompt, isIOS]);
 
     // Listen for trigger click from Home
     useEffect(() => {
@@ -209,7 +210,7 @@ export default function JornadaModal() {
                                             className="inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
                                         >
                                             {task.action === '#install-trigger' ? (
-                                                <span className="flex items-center gap-1">Instalar Agora <ChevronRight size={16} /></span>
+                                                <span className="flex items-center gap-1">Salvar na tela inicial <ChevronRight size={16} /></span>
                                             ) : (
                                                 <Link href={task.action || '#'} onClick={() => setIsOpen(false)} className="flex items-center gap-1">
                                                     Vamos lá <ChevronRight size={16} />

@@ -14,12 +14,13 @@ export class AuthService {
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
+        const normalizedCpfCnpj = username.replace(/\D/g, '');
         // Busca por email OU cpf_cnpj
         const user = await this.prisma.user.findFirst({
             where: {
                 OR: [
                     { email: username },
-                    { cpf_cnpj: username }
+                    { cpf_cnpj: normalizedCpfCnpj }
                 ]
             }
         });
@@ -184,12 +185,13 @@ export class AuthService {
     }
 
     async requestPasswordReset(identifier: string) {
+        const normalizedCpfCnpj = identifier.replace(/\D/g, '');
         // Find user by email or CPF/CNPJ
         const user = await this.prisma.user.findFirst({
             where: {
                 OR: [
                     { email: identifier },
-                    { cpf_cnpj: identifier }
+                    { cpf_cnpj: normalizedCpfCnpj }
                 ]
             }
         });

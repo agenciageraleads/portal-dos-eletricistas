@@ -66,7 +66,7 @@ export function InstallProvider({ children }: { children: React.ReactNode }) {
 
     const triggerInstall = async () => {
         if (isIOS) {
-            alert('Para instalar no iPhone: toque em Compartilhar e depois em "Adicionar à Tela de Início".');
+            alert('No iPhone: toque em Compartilhar e depois em "Adicionar à Tela de Início".');
         } else if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
@@ -76,7 +76,7 @@ export function InstallProvider({ children }: { children: React.ReactNode }) {
             setDeferredPrompt(null);
         } else {
             // Fallback
-            alert('Para instalar, procure a opção "Adicionar à Tela de Início" no menu do seu navegador.');
+            alert('Abra o menu do navegador e selecione "Adicionar à Tela de Início".');
         }
     };
 

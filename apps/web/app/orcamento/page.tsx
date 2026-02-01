@@ -79,6 +79,10 @@ function OrcamentoContent() {
 
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [clientSuggestions, setClientSuggestions] = useState<any[]>([]);
+    const [clientQuery, setClientQuery] = useState('');
+    const [clientMenuOpen, setClientMenuOpen] = useState(false);
+    const clientMenuCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Privacy
     const [showUnitPrices, setShowUnitPrices] = useState(true);
@@ -254,19 +258,40 @@ function OrcamentoContent() {
         }
     }, [items, laborValue, laborDescription, customerName, customerPhone, executionTime, paymentTerms, validity, warranty, notes, labor]);
 
+    useEffect(() => {
+        if (!clientMenuOpen) return;
+        const timeout = setTimeout(async () => {
+            try {
+                const { data } = await api.get('/clients', { params: { search: clientQuery } });
+                setClientSuggestions(data || []);
+            } catch (error) {
+                console.error('Erro ao buscar clientes:', error);
+            }
+        }, 250);
+
+        return () => clearTimeout(timeout);
+    }, [clientQuery, clientMenuOpen]);
+
     const { showToast } = useToast();
 
     const handleFinish = async (type: 'DRAFT' | 'SHARED') => {
         if (loading || isSavingRef.current) return;
+
+        // Basic validation
+        if (items.length === 0 && labor === 0) {
+            showToast('Adicione pelo menos um item ou valor de mão de obra.', 'warning');
+            return;
+        }
+
+        const trimmedName = customerName.trim();
+        if (!trimmedName) {
+            showToast('Informe o nome do cliente para salvar o orçamento.', 'warning');
+            return;
+        }
+
         isSavingRef.current = true;
         setLoading(true);
         try {
-            // Basic validation
-            if (items.length === 0 && labor === 0) {
-                showToast('Adicione pelo menos um item ou valor de mão de obra.', 'warning');
-                setLoading(false);
-                return;
-            }
 
             const payload = {
                 items: items
@@ -286,7 +311,7 @@ function OrcamentoContent() {
                     })),
                 laborValue: mode === 'product' ? 0 : labor,
                 laborDescription: mode === 'product' ? '' : laborDescription,
-                clientName: customerName,
+                clientName: trimmedName,
                 clientPhone: customerPhone,
                 executionTime: executionTime,
                 paymentTerms: paymentTerms,
@@ -677,13 +702,52 @@ function OrcamentoContent() {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Cliente</label>
-                                <input
-                                    type="text"
-                                    placeholder="Informe o nome completo do cliente"
-                                    value={customerName}
-                                    onChange={(e) => setCustomerName(e.target.value)}
-                                    className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Informe o nome completo do cliente"
+                                        value={customerName}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setCustomerName(value);
+                                            setClientQuery(value);
+                                        }}
+                                        onFocus={() => {
+                                            if (clientMenuCloseTimeout.current) {
+                                                clearTimeout(clientMenuCloseTimeout.current);
+                                                clientMenuCloseTimeout.current = null;
+                                            }
+                                            setClientMenuOpen(true);
+                                            setClientQuery(customerName);
+                                        }}
+                                        onBlur={() => {
+                                            clientMenuCloseTimeout.current = setTimeout(() => setClientMenuOpen(false), 150);
+                                        }}
+                                        className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                    {clientMenuOpen && clientSuggestions.length > 0 && (
+                                        <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                                            {clientSuggestions.map((client) => (
+                                                <button
+                                                    key={client.id}
+                                                    type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => {
+                                                        setCustomerName(client.name || '');
+                                                        setCustomerPhone(formatPhoneInput(client.phone || ''));
+                                                        setClientMenuOpen(false);
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    <p className="text-sm font-semibold text-gray-800">{client.name}</p>
+                                                    {client.phone && (
+                                                        <p className="text-xs text-gray-500">{client.phone}</p>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <div className="flex items-center justify-between gap-3 mb-1">

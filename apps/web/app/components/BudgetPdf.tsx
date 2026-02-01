@@ -312,33 +312,15 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                         </View>
                     )}
 
-                    {/* Commercial Conditions (Parsed) */}
+                    {/* Commercial Conditions */}
                     {(() => {
-                        const fullNotes = budget.notes || '';
-                        let conditions: any = {};
-                        let generalNotes = fullNotes;
-
-                        // Try to parse structured conditions
-                        if (fullNotes.includes('[Condições Comerciais]')) {
-                            const parts = fullNotes.split('[Observações Gerais]');
-                            const conditionPart = parts[0].replace('[Condições Comerciais]', '');
-                            generalNotes = parts[1] ? parts[1].trim() : '';
-
-                            // Extract fields
-                            const execMatch = conditionPart.match(/Prazo de Execução: (.*)/);
-                            if (execMatch) conditions.execution = execMatch[1];
-
-                            const paymentMatch = conditionPart.match(/Forma de Pagamento: (.*)/);
-                            if (paymentMatch) conditions.payment = paymentMatch[1];
-
-                            const validityMatch = conditionPart.match(/Validade da Proposta: (.*)/);
-                            if (validityMatch) conditions.validity = validityMatch[1];
-
-                            const warrantyMatch = conditionPart.match(/Garantia: (.*)/);
-                            if (warrantyMatch) conditions.warranty = warrantyMatch[1];
-                        }
-
-                        const hasConditions = Object.keys(conditions).length > 0;
+                        const conditions = {
+                            execution: budget.execution_time,
+                            payment: budget.payment_terms,
+                            validity: budget.validity,
+                            warranty: budget.warranty
+                        };
+                        const hasConditions = Object.values(conditions).some(Boolean);
 
                         return (
                             <>
@@ -377,10 +359,10 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                                 )}
 
                                 {/* General Notes */}
-                                {generalNotes && (
+                                {budget.notes && (
                                     <View style={{ marginBottom: 10, padding: 5, backgroundColor: '#F9FAFB', borderRadius: 4 }}>
                                         <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#374151', marginBottom: 2 }}>OBSERVAÇÕES GERAIS:</Text>
-                                        <Text style={{ fontSize: 8, color: '#4B5563', lineHeight: 1.3 }}>{generalNotes}</Text>
+                                        <Text style={{ fontSize: 8, color: '#4B5563', lineHeight: 1.3 }}>{budget.notes}</Text>
                                     </View>
                                 )}
                             </>

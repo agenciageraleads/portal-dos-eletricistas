@@ -15,6 +15,10 @@ export class UpdateProfileDto {
 
     @IsOptional()
     @IsString()
+    cpf_cnpj?: string;
+
+    @IsOptional()
+    @IsString()
     bio?: string;
 
     @IsOptional()

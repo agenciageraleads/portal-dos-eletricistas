@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -18,6 +19,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { ServicesModule } from './services/services.module';
 import { AssistantModule } from './assistant/assistant.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ClientsModule } from './clients/clients.module';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -26,6 +28,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true, // Loads .env globally
     }),
+    ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',
@@ -47,6 +50,7 @@ import { ConfigModule } from '@nestjs/config';
     ServicesModule,
     AssistantModule,
     NotificationsModule,
+    ClientsModule,
   ], controllers: [AppController],
   providers: [
     AppService,

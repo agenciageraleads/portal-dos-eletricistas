@@ -1,6 +1,7 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { isValidCpfCnpj } from '../common/validators/cpf-cnpj.validator';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -31,9 +32,37 @@ export class UsersService implements OnModuleInit {
     async updateProfile(userId: string, data: UpdateProfileDto) {
         try {
             console.log('Updating profile for user:', userId, 'Data:', data);
+            const current = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (!current) {
+                throw new BadRequestException('Usuário não encontrado');
+            }
+
+            let normalizedCpfCnpj = data.cpf_cnpj;
+            if (data.cpf_cnpj) {
+                normalizedCpfCnpj = data.cpf_cnpj.replace(/\D/g, '');
+                if (!isValidCpfCnpj(normalizedCpfCnpj)) {
+                    throw new BadRequestException('CPF/CNPJ inválido');
+                }
+            }
+
+            const merged = {
+                ...current,
+                ...data,
+                cpf_cnpj: normalizedCpfCnpj ?? current.cpf_cnpj
+            };
+
+            const shouldFinalize = !!(merged.name && merged.email && merged.phone && merged.cpf_cnpj);
+
             return await this.prisma.user.update({
                 where: { id: userId },
-                data,
+                data: {
+                    ...data,
+                    cpf_cnpj: normalizedCpfCnpj,
+                    cadastro_finalizado: shouldFinalize ? true : current.cadastro_finalizado,
+                    pre_cadastrado: shouldFinalize ? false : current.pre_cadastrado,
+                    activatedAt: shouldFinalize && !current.activatedAt ? new Date() : current.activatedAt,
+                    status: shouldFinalize ? 'ACTIVE' : current.status
+                },
             });
         } catch (error) {
             console.error('Error updating profile:', error);
@@ -49,6 +78,7 @@ export class UsersService implements OnModuleInit {
                 name: true,
                 email: true,
                 phone: true,
+                cpf_cnpj: true,
                 role: true,
                 bio: true,
                 pix_key: true,

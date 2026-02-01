@@ -6,6 +6,16 @@ import { getVariations, STOPWORDS, reloadSynonyms, RAW_SYNONYMS } from './search
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
 
+function normalizeSearchQuery(input: string): string {
+    let normalized = input.toUpperCase().trim();
+    normalized = normalized.replace(/[’´`]/g, "'");
+    normalized = normalized.replace(/(\d)\s*'\s*(\d)/g, '$1,$2');
+    normalized = normalized.replace(/["]+/g, '');
+    normalized = normalized.replace(/'+/g, ' ');
+    normalized = normalized.replace(/\s+/g, ' ').trim();
+    return normalized;
+}
+
 @Injectable()
 export class ProductsService implements OnModuleInit {
     private openai: OpenAI;
@@ -114,7 +124,7 @@ export class ProductsService implements OnModuleInit {
 
             if (query) {
                 isSearch = true;
-                normalizedQ = query.toUpperCase().trim();
+                normalizedQ = normalizeSearchQuery(query);
 
                 const tokens = normalizedQ.split(/\s+/)
                     .filter(t => !STOPWORDS.has(t));

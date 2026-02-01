@@ -36,11 +36,15 @@ export class CreateBudgetDto {
     @IsNotEmpty()
     clientName: string;
 
-    @Transform(({ value }) => typeof value === 'string' ? value.replace(/\D/g, '') : value) // Remove non-digits
+    @Transform(({ value }) => {
+        if (typeof value !== 'string') return value;
+        const digits = value.replace(/\D/g, '');
+        return digits.length ? digits : undefined;
+    }) // Remove non-digits e normaliza vazio para optional
+    @IsOptional()
     @IsString()
     @Matches(/^(\d{10,11})$/, { message: 'clientPhone must contain only 10 or 11 digits (DDD + Number)' })
-    @IsNotEmpty()
-    clientPhone: string;
+    clientPhone?: string;
 
     @IsArray()
     @ValidateNested({ each: true })

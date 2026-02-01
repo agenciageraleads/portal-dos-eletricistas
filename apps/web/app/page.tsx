@@ -27,7 +27,7 @@ import UserMenu from './components/UserMenu';
 
 export default function Home() {
     const { user, logout } = useAuth();
-    const { triggerInstall, isIOS, isInstalled } = useInstallPrompt();
+    const { triggerInstall, isIOS, isInstalled, showInstallPrompt } = useInstallPrompt();
     const [hasSharedWhatsapp, setHasSharedWhatsapp] = useState(false);
 
     useEffect(() => {
@@ -73,6 +73,7 @@ export default function Home() {
 
     const jornadaTasks = useMemo(() => {
         if (!user) return [];
+        const canShowInstall = !isInstalled && (showInstallPrompt || isIOS);
         return [
             {
                 id: 'profile',
@@ -102,13 +103,13 @@ export default function Home() {
                 isCompleted: hasSharedWhatsapp,
                 action: '/orcamentos'
             },
-            {
+            ...(canShowInstall ? [{
                 id: 'install_app',
-                title: 'Instale o Aplicativo',
-                description: 'Tenha acesso offline e mais agilidade.',
+                title: 'Salvar na Tela Inicial',
+                description: 'Acesse mais rápido o Portal no seu celular.',
                 isCompleted: isInstalled,
                 action: '#install-trigger'
-            },
+            }] : []),
             {
                 id: 'invite',
                 title: 'Convide 5 Parceiros',
@@ -116,7 +117,7 @@ export default function Home() {
                 isCompleted: false
             }
         ];
-    }, [user, isInstalled, hasSharedWhatsapp]);
+    }, [user, isInstalled, hasSharedWhatsapp, showInstallPrompt, isIOS]);
 
     const jornadaProgress = useMemo(() => {
         if (!jornadaTasks.length) return 0;
@@ -248,7 +249,7 @@ export default function Home() {
                                                         onClick={triggerInstall}
                                                         className="mt-3 inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
                                                     >
-                                                        Instalar agora <ChevronRight size={16} />
+                                                        Salvar na tela inicial <ChevronRight size={16} />
                                                     </button>
                                                 ) : (
                                                     <Link

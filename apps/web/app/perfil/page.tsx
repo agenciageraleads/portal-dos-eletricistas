@@ -16,6 +16,7 @@ export default function PerfilPage() {
     const [name, setName] = useState('');
     const [businessName, setBusinessName] = useState('');
     const [phone, setPhone] = useState('');
+    const [cpfCnpj, setCpfCnpj] = useState('');
     const [bio, setBio] = useState('');
     const [logoUrl, setLogoUrl] = useState('');
     const [pixKey, setPixKey] = useState('');
@@ -49,6 +50,7 @@ export default function PerfilPage() {
                 setName(profile.name || '');
                 setBusinessName(profile.business_name || '');
                 setPhone(profile.phone || '');
+                setCpfCnpj(profile.cpf_cnpj || '');
                 setBio(profile.bio || '');
                 setLogoUrl(profile.logo_url || '');
                 setPixKey(profile.pix_key || '');
@@ -119,6 +121,7 @@ export default function PerfilPage() {
                 name: name || undefined,
                 business_name: businessName || undefined,
                 phone: phone || undefined,
+                cpf_cnpj: cpfCnpj || undefined,
                 bio: bio || undefined,
                 pix_key: pixKey || undefined,
                 city: city || undefined,
@@ -260,6 +263,36 @@ export default function PerfilPage() {
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
                             placeholder="Informe seu WhatsApp para contato"
                         />
+                    </div>
+
+                    {/* CPF/CNPJ */}
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                            <FileText size={18} />
+                            CPF ou CNPJ
+                        </label>
+                        <input
+                            type="text"
+                            value={cpfCnpj}
+                            onChange={(e) => {
+                                let v = e.target.value.replace(/\D/g, '');
+                                if (v.length <= 11) {
+                                    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                                    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                                    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                                } else {
+                                    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+                                    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                                    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                                    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+                                }
+                                setCpfCnpj(v);
+                            }}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                            placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                            maxLength={18}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Usamos o CPF/CNPJ para confirmar seu cadastro.</p>
                     </div>
 
                     {/* Bio */}

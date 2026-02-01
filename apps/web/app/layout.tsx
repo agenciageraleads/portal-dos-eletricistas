@@ -35,12 +35,6 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "PortalElétricos",
   },
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "PortalElétricos",
-  },
   // Icons are handled automatically by app/icon.png
 };
 

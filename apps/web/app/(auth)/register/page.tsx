@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Spinner } from '../../components/Spinner';
 import { useToast } from '../../components/Toast';
-import { isValidCPF } from '../../../api/src/common/validators/cpf-validator-utils'; // Suposição ou helper local
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function RegisterPage() {
@@ -22,7 +21,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const { showToast } = useToast();
 
-    // Helper simples para validação local de CPF se o import falhar
+    // Helper simples para validação local de CPF/CNPJ
     const isValidCPFLocal = (cpf: string) => {
         if (typeof cpf !== 'string') return false;
         cpf = cpf.replace(/[^\d]+/g, '');
@@ -32,10 +31,51 @@ export default function RegisterPage() {
         return rest(10) === cpfArr[9] && rest(11) === cpfArr[10];
     };
 
+    const isValidCNPJLocal = (cnpj: string) => {
+        cnpj = cnpj.replace(/\D/g, '');
+        if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
+
+        let length = cnpj.length - 2;
+        let numbers = cnpj.substring(0, length);
+        const digits = cnpj.substring(length);
+        let sum = 0;
+        let pos = length - 7;
+
+        for (let i = length; i >= 1; i--) {
+            sum += parseInt(numbers.charAt(length - i)) * pos--;
+            if (pos < 2) pos = 9;
+        }
+
+        let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+        if (result !== parseInt(digits.charAt(0))) return false;
+
+        length = length + 1;
+        numbers = cnpj.substring(0, length);
+        sum = 0;
+        pos = length - 7;
+
+        for (let i = length; i >= 1; i--) {
+            sum += parseInt(numbers.charAt(length - i)) * pos--;
+            if (pos < 2) pos = 9;
+        }
+
+        result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+        if (result !== parseInt(digits.charAt(1))) return false;
+
+        return true;
+    };
+
+    const isValidCpfCnpjLocal = (document: string) => {
+        const cleaned = document.replace(/\D/g, '');
+        if (cleaned.length === 11) return isValidCPFLocal(cleaned);
+        if (cleaned.length === 14) return isValidCNPJLocal(cleaned);
+        return false;
+    };
+
     const handleCheckCpf = async () => {
         const cleanCpf = cpf.replace(/\D/g, '');
-        if (!isValidCPFLocal(cleanCpf)) {
-            showToast('CPF inválido.', 'error');
+        if (!isValidCpfCnpjLocal(cleanCpf)) {
+            showToast('CPF/CNPJ inválido.', 'error');
             return;
         }
 
@@ -80,8 +120,8 @@ export default function RegisterPage() {
 
         // Validar CPF antes de enviar
         const cleanCpf = cpf.replace(/\D/g, '');
-        if (cleanCpf.length === 11 && !isValidCPFLocal(cleanCpf)) {
-            showToast('CPF inválido. Verifique o número digitado.', 'error');
+        if (!isValidCpfCnpjLocal(cleanCpf)) {
+            showToast('CPF/CNPJ inválido. Verifique o número digitado.', 'error');
             return;
         }
 
@@ -152,7 +192,7 @@ export default function RegisterPage() {
             <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
                 <h1 data-testid="register-title" className="text-2xl font-bold mb-2 text-center text-gray-800">Cadastro Eletricista</h1>
                 <p data-testid="register-subtitle" className="text-gray-500 text-center text-sm mb-6">
-                    {step === 1 ? 'Informe seu CPF para começar' : 'Complete seus dados de acesso'}
+                    {step === 1 ? 'Informe seu CPF ou CNPJ para começar' : 'Complete seus dados de acesso'}
                 </p>
 
                 {step === 1 ? (
@@ -177,15 +217,15 @@ export default function RegisterPage() {
                                     }
                                     setCpf(v);
                                     const clean = v.replace(/\D/g, '');
-                                    if (clean.length === 11) {
-                                        setCpfError(isValidCPFLocal(clean) ? '' : 'CPF inválido');
-                                    } else {
-                                        setCpfError('');
-                                    }
-                                }}
+                            if (clean.length === 11 || clean.length === 14) {
+                                setCpfError(isValidCpfCnpjLocal(clean) ? '' : 'CPF/CNPJ inválido');
+                            } else {
+                                setCpfError('');
+                            }
+                        }}
                                 className={`w-full p-3 border ${cpfError ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl mt-1 placeholder-gray-500 transition-colors`}
                                 required
-                                placeholder="000.000.000-00"
+                                placeholder="000.000.000-00 ou 00.000.000/0000-00"
                                 maxLength={18}
                             />
                             {cpfError && <p className="text-red-500 text-xs mt-1">{cpfError}</p>}
