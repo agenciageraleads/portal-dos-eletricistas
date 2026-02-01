@@ -1,12 +1,16 @@
 import { Controller, Request, Post, UseGuards, Body, Get, Param, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-recovery.dto';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(
+        private authService: AuthService,
+        private usersService: UsersService
+    ) { }
 
     @Throttle({ default: { limit: 20, ttl: 900000 } }) // 20 attempts per 15 minutes
     @Post('login')
@@ -21,7 +25,9 @@ export class AuthController {
         if (!user) {
             throw new UnauthorizedException('Credenciais inválidas');
         }
-        return this.authService.login(user);
+        const auth = await this.authService.login(user);
+        const fullUser = await this.usersService.findById(user.id);
+        return { access_token: auth.access_token, user: fullUser };
     }
 
     @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 attempts per hour
@@ -38,8 +44,8 @@ export class AuthController {
 
     @UseGuards(AuthGuard('jwt'))
     @Get('me')
-    getProfile(@Request() req: any) {
-        return req.user;
+    async getProfile(@Request() req: any) {
+        return this.usersService.findById(req.user?.userId || req.user?.id);
     }
 
     @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 attempts per hour

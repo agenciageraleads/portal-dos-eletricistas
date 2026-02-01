@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { User, LogOut, Settings, UserCircle, FileText, MessageSquare } from 'lucide-react';
+import { getImageUrl } from '@/lib/utils';
 
 interface UserMenuProps {
     user: any;
@@ -12,6 +13,7 @@ interface UserMenuProps {
 export default function UserMenu({ user, logout }: UserMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const avatarUrl = getImageUrl(user?.logo_url);
 
     // Close on click outside
     useEffect(() => {
@@ -32,9 +34,9 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95 focus:outline-none"
             >
-                {user.logo_url ? (
+                {avatarUrl ? (
                     <img
-                        src={user.logo_url.startsWith('http') ? user.logo_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${user.logo_url}`}
+                        src={avatarUrl}
                         alt="Profile"
                         className="w-9 h-9 rounded-full object-cover border border-gray-200"
                     />
@@ -106,7 +108,7 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
 
                         <div className="pt-2 pb-1 text-center">
                             <span className="text-[10px] text-gray-400 font-mono">
-                                v1.6.0
+                                v1.6.1
                             </span>
                         </div>
                     </div>

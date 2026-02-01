@@ -57,6 +57,12 @@ export class UsersService implements OnModuleInit {
                 isAvailableForWork: true,
                 logo_url: true,
                 business_name: true,
+                specialties: true,
+                specialties_public: true,
+                experience_years: true,
+                experience_public: true,
+                certifications: true,
+                certifications_public: true,
                 cadastro_finalizado: true,
                 pre_cadastrado: true,
                 _count: {
@@ -143,7 +149,7 @@ export class UsersService implements OnModuleInit {
     }
 
     // Services: Find available electricians (v2.0)
-    async findAvailable(city?: string) {
+    async findAvailable(city?: string, search?: string) {
         const isFeatureEnabled = process.env.FEATURE_PRE_REG_DISABLED !== 'true';
 
         const where: any = {
@@ -159,6 +165,10 @@ export class UsersService implements OnModuleInit {
 
         if (city) {
             where.city = { contains: city, mode: 'insensitive' };
+        }
+
+        if (search) {
+            where.name = { contains: search, mode: 'insensitive' };
         }
 
         const users = await this.prisma.user.findMany({
@@ -234,6 +244,12 @@ export class UsersService implements OnModuleInit {
                 ambassador_rank: true,
                 total_orders: true,
                 view_count: true,
+                specialties: true,
+                specialties_public: true,
+                experience_years: true,
+                experience_public: true,
+                certifications: true,
+                certifications_public: true,
                 createdAt: true,
             }
         });
@@ -266,7 +282,76 @@ export class UsersService implements OnModuleInit {
         `;
         const rank = rankResult[0]?.rank ?? null;
 
-        // Normalize name
+        // Hide fields that are not public
+        const publicUser = {
+            ...user,
+            specialties: user.specialties_public ? user.specialties : null,
+            experience_years: user.experience_public ? user.experience_years : null,
+            certifications: user.certifications_public ? user.certifications : null,
+            rank,
+            name: this.normalizeName(user.name)
+        };
+
+        return publicUser;
+    }
+
+    async getPeerProfile(id: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                business_name: true,
+                city: true,
+                state: true,
+                bio: true,
+                logo_url: true,
+                role: true,
+                phone: true,
+                cadastro_finalizado: true,
+                commercial_index: true,
+                is_ambassador: true,
+                ambassador_rank: true,
+                total_orders: true,
+                view_count: true,
+                specialties: true,
+                specialties_public: true,
+                experience_years: true,
+                experience_public: true,
+                certifications: true,
+                certifications_public: true,
+                createdAt: true,
+            }
+        });
+
+        if (!user) {
+            return null;
+        }
+
+        const rankResult = await this.prisma.$queryRaw<
+            { rank: number }[]
+        >`
+            SELECT rank
+            FROM (
+                SELECT
+                    id,
+                    ROW_NUMBER() OVER (
+                        ORDER BY
+                            CASE WHEN "is_ambassador" THEN 0 ELSE 1 END ASC,
+                            CASE WHEN "is_ambassador" THEN COALESCE("ambassador_rank", 9999) ELSE 9999 END ASC,
+                            "commercial_index" DESC NULLS LAST,
+                            "cadastro_finalizado" DESC,
+                            "name" ASC
+                    ) AS rank
+                FROM users
+                WHERE role = 'ELETRICISTA'
+                  AND ("isAvailableForWork" = true OR "pre_cadastrado" = true)
+            ) ranked
+            WHERE id = ${id}
+            LIMIT 1
+        `;
+        const rank = rankResult[0]?.rank ?? null;
+
         return {
             ...user,
             rank,

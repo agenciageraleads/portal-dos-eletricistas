@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsInt, Min } from 'class-validator';
 
 export class UpdateProfileDto {
     @IsOptional()
@@ -35,4 +35,29 @@ export class UpdateProfileDto {
 
     @IsOptional()
     isAvailableForWork?: boolean;
+
+    @IsOptional()
+    @IsString()
+    specialties?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    specialties_public?: boolean;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    experience_years?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    experience_public?: boolean;
+
+    @IsOptional()
+    @IsString()
+    certifications?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    certifications_public?: boolean;
 }

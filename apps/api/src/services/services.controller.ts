@@ -14,13 +14,21 @@ export class ServicesController {
         @Query('type') type?: string,
         @Query('minPrice') minPrice?: string,
         @Query('maxPrice') maxPrice?: string,
+        @Query('installationType') installationType?: string,
+        @Query('needsInfra') needsInfra?: string,
+        @Query('contractType') contractType?: string,
+        @Query('urgency') urgency?: string,
     ) {
         return this.servicesService.findAll({
             search,
             city,
             type: type as any,
             minPrice,
-            maxPrice
+            maxPrice,
+            installationType,
+            needsInfra,
+            contractType,
+            urgency
         });
     }
 

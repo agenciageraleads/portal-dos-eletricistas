@@ -28,6 +28,12 @@ model User {
   business_name        String?
   city                 String?
   state                String?
+  specialties          String?
+  specialties_public   Boolean   @default(true)
+  experience_years     Int?
+  experience_public    Boolean   @default(true)
+  certifications       String?
+  certifications_public Boolean  @default(true)
   isAvailableForWork   Boolean    @default(false)
   budgets              Budget[]
   ai_corrections       AiMatchFeedback[]
@@ -256,6 +262,11 @@ model ServiceListing {
   date        DateTime // Data do serviço
   
   whatsapp    String?
+
+  installation_type String?
+  needs_infra       Boolean?
+  contract_type     String?
+  urgency           String?
   
   type        ServiceType   @default(REQUEST) // REQUEST = Preciso de ajuda, OFFER = Estou disponível
   status      ServiceStatus @default(OPEN)

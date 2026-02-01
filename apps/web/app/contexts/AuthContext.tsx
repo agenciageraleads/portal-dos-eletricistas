@@ -14,9 +14,18 @@ interface User {
     role?: string;
     bio?: string;
     pix_key?: string;
+    business_name?: string;
     city?: string;
     state?: string;
+    specialties?: string;
+    specialties_public?: boolean;
+    experience_years?: number;
+    experience_public?: boolean;
+    certifications?: string;
+    certifications_public?: boolean;
     isAvailableForWork?: boolean;
+    cadastro_finalizado?: boolean;
+    pre_cadastrado?: boolean;
     _count?: {
         budgets: number;
     };
@@ -118,6 +127,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: userData.role
             });
         }
+
+        // Pull full profile (bio, pix, counts) right after login
+        refreshUser().catch((error) => {
+            console.error('Error refreshing user after login:', error);
+        });
     };
 
     const logout = () => {

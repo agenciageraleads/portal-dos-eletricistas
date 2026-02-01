@@ -21,6 +21,12 @@ export default function PerfilPage() {
     const [pixKey, setPixKey] = useState('');
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
+    const [specialties, setSpecialties] = useState('');
+    const [specialtiesPublic, setSpecialtiesPublic] = useState(true);
+    const [experienceYears, setExperienceYears] = useState('');
+    const [experiencePublic, setExperiencePublic] = useState(true);
+    const [certifications, setCertifications] = useState('');
+    const [certificationsPublic, setCertificationsPublic] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Crop modal states
@@ -48,6 +54,12 @@ export default function PerfilPage() {
                 setPixKey(profile.pix_key || '');
                 setCity(profile.city || '');
                 setState(profile.state || '');
+                setSpecialties(profile.specialties || '');
+                setSpecialtiesPublic(profile.specialties_public ?? true);
+                setExperienceYears(profile.experience_years?.toString() || '');
+                setExperiencePublic(profile.experience_public ?? true);
+                setCertifications(profile.certifications || '');
+                setCertificationsPublic(profile.certifications_public ?? true);
             } catch (error) {
                 console.error('Erro ao carregar perfil:', error);
                 // Non-blocking error
@@ -110,7 +122,13 @@ export default function PerfilPage() {
                 bio: bio || undefined,
                 pix_key: pixKey || undefined,
                 city: city || undefined,
-                state: state || undefined
+                state: state || undefined,
+                specialties: specialties || undefined,
+                specialties_public: specialtiesPublic,
+                experience_years: experienceYears ? Number(experienceYears) : undefined,
+                experience_public: experiencePublic,
+                certifications: certifications || undefined,
+                certifications_public: certificationsPublic
             };
 
             await api.patch(
@@ -209,7 +227,7 @@ export default function PerfilPage() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                            placeholder="Seu nome completo"
+                            placeholder="Informe seu nome completo"
                         />
                     </div>
 
@@ -224,7 +242,7 @@ export default function PerfilPage() {
                             value={businessName}
                             onChange={(e) => setBusinessName(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                            placeholder="Ex: J Silva Instalações Elétricas"
+                            placeholder="Informe o nome da empresa ou nome fantasia"
                         />
                         <p className="text-xs text-gray-500 mt-1">Este nome aparecerá com destaque nos seus orçamentos.</p>
                     </div>
@@ -240,7 +258,7 @@ export default function PerfilPage() {
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                            placeholder="(11) 99999-9999"
+                            placeholder="Informe seu WhatsApp para contato"
                         />
                     </div>
 
@@ -255,7 +273,7 @@ export default function PerfilPage() {
                             onChange={(e) => setBio(e.target.value)}
                             rows={4}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500"
-                            placeholder="Descreva seus serviços, especialidades, experiência..."
+                            placeholder="Descreva seus serviços, especialidades e experiência"
                         />
                     </div>
 
@@ -270,7 +288,7 @@ export default function PerfilPage() {
                             value={pixKey}
                             onChange={(e) => setPixKey(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                            placeholder="CPF, CNPJ, Email ou Telefone"
+                            placeholder="Informe sua chave PIX para receber pagamentos"
                         />
                         <p className="text-xs text-gray-500 mt-1">Será exibida nos orçamentos para facilitar pagamentos</p>
                     </div>
@@ -287,7 +305,7 @@ export default function PerfilPage() {
                                 value={city}
                                 onChange={(e) => setCity(e.target.value)}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
-                                placeholder="Sua cidade"
+                                placeholder="Informe sua cidade"
                             />
                         </div>
                         <div>
@@ -310,6 +328,73 @@ export default function PerfilPage() {
                                 <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
                                 <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
                             </select>
+                        </div>
+                    </div>
+
+                    {/* Professional Details + Visibility */}
+                    <div className="pt-2 border-t border-gray-100">
+                        <h3 className="text-sm font-bold text-gray-700 mb-3">Informações Profissionais</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Especialidades</label>
+                                <input
+                                    type="text"
+                                    value={specialties}
+                                    onChange={(e) => setSpecialties(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                                    placeholder="Informe suas principais especialidades"
+                                />
+                                <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={specialtiesPublic}
+                                        onChange={(e) => setSpecialtiesPublic(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    Mostrar no perfil público
+                                </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Anos de Experiência</label>
+                                <input
+                                    type="number"
+                                    value={experienceYears}
+                                    onChange={(e) => setExperienceYears(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                                    placeholder="Informe quantos anos de experiência"
+                                />
+                                <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={experiencePublic}
+                                        onChange={(e) => setExperiencePublic(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    Mostrar no perfil público
+                                </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Certificações</label>
+                                <input
+                                    type="text"
+                                    value={certifications}
+                                    onChange={(e) => setCertifications(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                                    placeholder="Informe certificações relevantes (se houver)"
+                                />
+                                <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={certificationsPublic}
+                                        onChange={(e) => setCertificationsPublic(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    Mostrar no perfil público
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>

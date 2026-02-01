@@ -23,7 +23,11 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
         city: '',
         state: '',
         date: '',
-        whatsapp: ''
+        whatsapp: '',
+        installationType: '',
+        needsInfra: '',
+        contractType: '',
+        urgency: ''
     });
 
     const { user } = useAuth(); // Import useAuth to check login status
@@ -42,7 +46,11 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                 city: formData.city,
                 date: new Date(formData.date),
                 whatsapp: formData.whatsapp,
-                type: type // Fixed to REQUEST
+                type: type, // Fixed to REQUEST
+                installationType: formData.installationType || null,
+                needsInfra: formData.needsInfra === '' ? null : formData.needsInfra === 'YES',
+                contractType: formData.contractType || null,
+                urgency: formData.urgency || null
             };
 
             if (user) {
@@ -127,27 +135,81 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Título do Pedido</label>
-                            <input
-                                required
-                                type="text"
-                                placeholder="Ex: Preciso de Eletricista para Instalação"
-                                value={formData.title}
-                                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                            />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Título do Pedido</label>
+                                <input
+                                    required
+                                    type="text"
+                                    placeholder="Informe o título do pedido"
+                                    value={formData.title}
+                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Detalhada</label>
-                            <textarea
-                                required
-                                rows={3}
-                                placeholder="Descreva o serviço que você precisa..."
-                                value={formData.description}
-                                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                            />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Detalhada</label>
+                                <textarea
+                                    required
+                                    rows={3}
+                                    placeholder="Descreva o serviço com detalhes importantes"
+                                    value={formData.description}
+                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Instalação</label>
+                                <select
+                                    value={formData.installationType}
+                                    onChange={e => setFormData({ ...formData, installationType: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                >
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="RESIDENCIAL">Residencial</option>
+                                    <option value="COMERCIAL">Comercial</option>
+                                    <option value="INDUSTRIAL">Industrial</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Precisa de Infraestrutura?</label>
+                                <select
+                                    value={formData.needsInfra}
+                                    onChange={e => setFormData({ ...formData, needsInfra: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                >
+                                    <option value="">Selecione</option>
+                                    <option value="YES">Sim, precisa</option>
+                                    <option value="NO">Não precisa</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Contrato</label>
+                                <select
+                                    value={formData.contractType}
+                                    onChange={e => setFormData({ ...formData, contractType: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                >
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="DIARIA">Diária</option>
+                                    <option value="EMPREITADA">Empreitada</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Urgência / Prazo</label>
+                                <select
+                                    value={formData.urgency}
+                                    onChange={e => setFormData({ ...formData, urgency: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                >
+                                    <option value="">Selecione a urgência</option>
+                                    <option value="IMEDIATO">Imediato</option>
+                                    <option value="ATE_7_DIAS">Até 7 dias</option>
+                                    <option value="ATE_15_DIAS">Até 15 dias</option>
+                                    <option value="FLEXIVEL">Sem urgência</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -155,7 +217,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Orçamento (R$)</label>
                                 <input
                                     type="number"
-                                    placeholder="0,00"
+                                    placeholder="Informe o orçamento (opcional)"
                                     value={formData.price}
                                     onChange={e => setFormData({ ...formData, price: e.target.value })}
                                     className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -166,7 +228,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                                 <input
                                     required
                                     type="tel"
-                                    placeholder="(11) 99999-9999"
+                                    placeholder="Informe o WhatsApp para contato"
                                     value={formData.whatsapp}
                                     onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
                                     className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -180,6 +242,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                                 <input
                                     required
                                     type="text"
+                                    placeholder="Informe a cidade do serviço"
                                     value={formData.city}
                                     onChange={e => setFormData({ ...formData, city: e.target.value })}
                                     className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"

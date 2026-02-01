@@ -35,12 +35,14 @@ export default function BudgetViewPage() {
 
     const handleShare = () => {
         const shareLink = window.location.href;
-        const message = `Olá ${budget.client_name}! Seu orçamento está pronto. Acesse: ${shareLink}`;
+        const message = `Aqui está o seu orçamento, acesse esse link para visualizar os detalhes: ${shareLink}`;
         const phone = budget.client_phone?.replace(/\D/g, '');
 
         if (phone) {
             const finalPhone = phone.length <= 11 ? `55${phone}` : phone;
             window.open(`https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(message)}`, '_blank');
+            localStorage.setItem('hasSharedWhatsapp', 'true');
+            window.dispatchEvent(new Event('jornada-progress-update'));
         } else {
             // Fallback se não tiver telefone: copia o link
             navigator.clipboard.writeText(shareLink)
@@ -103,13 +105,7 @@ export default function BudgetViewPage() {
                     <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold border-4 border-white/30 shrink-0 mx-auto sm:mx-0 overflow-hidden">
                         {electrician?.logo_url ? (
                             <img
-                                src={
-                                    electrician.logo_url.startsWith('http')
-                                        ? electrician.logo_url
-                                        : electrician.logo_url.startsWith('/products')
-                                            ? electrician.logo_url
-                                            : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${electrician.logo_url}`
-                                }
+                                src={getImageUrl(electrician.logo_url) || undefined}
                                 alt={electrician.name}
                                 className="w-full h-full object-cover"
                             />

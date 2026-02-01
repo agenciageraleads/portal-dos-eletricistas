@@ -158,6 +158,14 @@ export class BudgetsService {
         });
     }
 
+    async remove(id: string, userId: string) {
+        const budget = await this.prisma.budget.findUnique({ where: { id } });
+        if (!budget) throw new NotFoundException('Orçamento não encontrado');
+        if (budget.userId !== userId) throw new ForbiddenException('Você não tem permissão para excluir este orçamento');
+
+        return this.prisma.budget.delete({ where: { id } });
+    }
+
     // Admin: View all budgets (v1.2.0)
     async findAllForAdmin(userId: string) {
         // Check if user is admin

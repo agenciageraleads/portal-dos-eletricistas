@@ -7,6 +7,7 @@ import BottomNav from '../components/BottomNav';
 import { Plus, MapPin, Calendar, User, Trash2, ArrowLeft, Filter, Search, CheckCircle, Eye, Lock, Unlock } from 'lucide-react';
 import Link from 'next/link';
 import CreateServiceModal from '../components/CreateServiceModal';
+import { getImageUrl } from '@/lib/utils';
 
 interface ServiceListing {
     id: string;
@@ -18,6 +19,10 @@ interface ServiceListing {
     date: string;
     whatsapp: string | null;
     type: string; // 'CLIENT_SERVICE', 'PRO_SUBCONTRACT', 'PRO_HELPER_JOB', etc.
+    installation_type?: string | null;
+    needs_infra?: boolean | null;
+    contract_type?: string | null;
+    urgency?: string | null;
     userId: string;
     status: 'OPEN' | 'FILLED' | 'CANCELLED' | 'LIMIT_REACHED' | 'CLOSED_HIRED' | 'EXPIRED';
     maxLeads: number;
@@ -64,6 +69,12 @@ export default function ServicesPage() {
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [showFilters, setShowFilters] = useState(false);
+    const [searchFilter, setSearchFilter] = useState('');
+    const [installationTypeFilter, setInstallationTypeFilter] = useState('');
+    const [needsInfraFilter, setNeedsInfraFilter] = useState('');
+    const [contractTypeFilter, setContractTypeFilter] = useState('');
+    const [urgencyFilter, setUrgencyFilter] = useState('');
+    const [professionalNameFilter, setProfessionalNameFilter] = useState('');
 
     useEffect(() => {
         if (activeTab === 'BOARD') {
@@ -71,7 +82,7 @@ export default function ServicesPage() {
         } else {
             fetchProfessionals();
         }
-    }, [activeTab, cityFilter, minPrice, maxPrice]);
+    }, [activeTab, cityFilter, minPrice, maxPrice, searchFilter, installationTypeFilter, needsInfraFilter, contractTypeFilter, urgencyFilter, professionalNameFilter]);
 
     const fetchServices = async () => {
         setIsLoading(true);
@@ -81,6 +92,11 @@ export default function ServicesPage() {
             if (cityFilter) params.append('city', cityFilter);
             if (minPrice) params.append('minPrice', minPrice);
             if (maxPrice) params.append('maxPrice', maxPrice);
+            if (searchFilter) params.append('search', searchFilter);
+            if (installationTypeFilter) params.append('installationType', installationTypeFilter);
+            if (needsInfraFilter) params.append('needsInfra', needsInfraFilter);
+            if (contractTypeFilter) params.append('contractType', contractTypeFilter);
+            if (urgencyFilter) params.append('urgency', urgencyFilter);
 
             const { data } = await api.get(`/services?${params.toString()}`);
             setServices(data);
@@ -96,6 +112,7 @@ export default function ServicesPage() {
         try {
             const params = new URLSearchParams();
             if (cityFilter) params.append('city', cityFilter);
+            if (professionalNameFilter) params.append('search', professionalNameFilter);
 
             const { data } = await api.get(`/users/available?${params.toString()}`);
             setProfessionals(data);
@@ -287,7 +304,7 @@ export default function ServicesPage() {
                             <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder={`Filtrar ${activeTab === 'BOARD' ? 'vagas' : 'profissionais'} por cidade...`}
+                                placeholder={`Filtrar ${activeTab === 'BOARD' ? 'vagas' : 'profissionais'} por cidade`}
                                 value={cityFilter}
                                 onChange={(e) => setCityFilter(e.target.value)}
                                 className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -303,36 +320,116 @@ export default function ServicesPage() {
                         )}
                     </div>
 
-                    {/* Extended Filters (Price) Only for Board */}
+                    {/* Extended Filters (Aligned with form fields) */}
                     {showFilters && activeTab === 'BOARD' && (
                         <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200 animate-in slide-in-from-top-2">
-                            <label className="text-xs font-bold text-gray-500 mb-2 block uppercase">Faixa de Preço</label>
-                            <div className="flex items-center gap-2">
-                                <div className="relative flex-1">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Busca</label>
                                     <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={minPrice}
-                                        onChange={(e) => setMinPrice(e.target.value)}
-                                        className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                        type="text"
+                                        placeholder="Buscar por título ou descrição"
+                                        value={searchFilter}
+                                        onChange={(e) => setSearchFilter(e.target.value)}
+                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300"
                                     />
                                 </div>
-                                <span className="text-gray-400">-</span>
-                                <div className="relative flex-1">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        value={maxPrice}
-                                        onChange={(e) => setMaxPrice(e.target.value)}
-                                        className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
-                                    />
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Instalação</label>
+                                    <select
+                                        value={installationTypeFilter}
+                                        onChange={(e) => setInstallationTypeFilter(e.target.value)}
+                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                    >
+                                        <option value="">Todos</option>
+                                        <option value="RESIDENCIAL">Residencial</option>
+                                        <option value="COMERCIAL">Comercial</option>
+                                        <option value="INDUSTRIAL">Industrial</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Infraestrutura</label>
+                                    <select
+                                        value={needsInfraFilter}
+                                        onChange={(e) => setNeedsInfraFilter(e.target.value)}
+                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                    >
+                                        <option value="">Todos</option>
+                                        <option value="true">Precisa de infra</option>
+                                        <option value="false">Sem infra</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Contrato</label>
+                                    <select
+                                        value={contractTypeFilter}
+                                        onChange={(e) => setContractTypeFilter(e.target.value)}
+                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                    >
+                                        <option value="">Todos</option>
+                                        <option value="DIARIA">Diária</option>
+                                        <option value="EMPREITADA">Empreitada</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Urgência</label>
+                                    <select
+                                        value={urgencyFilter}
+                                        onChange={(e) => setUrgencyFilter(e.target.value)}
+                                        className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                    >
+                                        <option value="">Todas</option>
+                                        <option value="IMEDIATO">Imediato</option>
+                                        <option value="ATE_7_DIAS">Até 7 dias</option>
+                                        <option value="ATE_15_DIAS">Até 15 dias</option>
+                                        <option value="FLEXIVEL">Sem urgência</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Faixa de Preço</label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                            <input
+                                                type="number"
+                                                placeholder="Mínimo"
+                                                value={minPrice}
+                                                onChange={(e) => setMinPrice(e.target.value)}
+                                                className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                            />
+                                        </div>
+                                        <span className="text-gray-400">-</span>
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
+                                            <input
+                                                type="number"
+                                                placeholder="Máximo"
+                                                value={maxPrice}
+                                                onChange={(e) => setMaxPrice(e.target.value)}
+                                                className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
+
+                {activeTab === 'PROFESSIONALS' && (
+                    <div className="px-4 py-2 bg-white border-b border-gray-200">
+                        <div className="relative">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Buscar profissional por nome"
+                                value={professionalNameFilter}
+                                onChange={(e) => setProfessionalNameFilter(e.target.value)}
+                                className="w-full bg-gray-50 text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {activeTab === 'PROFESSIONALS' && professionals.length > 0 && (
                     <div className="px-4 py-2 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider border-b border-blue-100">
@@ -371,6 +468,33 @@ export default function ServicesPage() {
                             const remaining = Math.max(service.maxLeads - service.leadsCount, 0);
                             const urgent = remaining <= 1;
                             const contextTags = getServiceContextTags(service.type);
+                            const detailTags: string[] = [];
+                            if (service.installation_type) {
+                                const label = service.installation_type === 'RESIDENCIAL'
+                                    ? 'Residencial'
+                                    : service.installation_type === 'COMERCIAL'
+                                        ? 'Comercial'
+                                        : service.installation_type === 'INDUSTRIAL'
+                                            ? 'Industrial'
+                                            : service.installation_type;
+                                detailTags.push(label);
+                            }
+                            if (service.contract_type) {
+                                detailTags.push(service.contract_type === 'DIARIA' ? 'Diária' : 'Empreitada');
+                            }
+                            if (service.needs_infra !== null && service.needs_infra !== undefined) {
+                                detailTags.push(service.needs_infra ? 'Com infra' : 'Sem infra');
+                            }
+                            if (service.urgency) {
+                                const urgencyLabel = service.urgency === 'IMEDIATO'
+                                    ? 'Urgente'
+                                    : service.urgency === 'ATE_7_DIAS'
+                                        ? 'Até 7 dias'
+                                        : service.urgency === 'ATE_15_DIAS'
+                                            ? 'Até 15 dias'
+                                            : 'Sem urgência';
+                                detailTags.push(urgencyLabel);
+                            }
                             return (
                                 <div key={service.id} className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden hover:shadow-md transition-shadow ${service.status === 'LIMIT_REACHED' ? 'opacity-70' : ''}`}>
                                     {getStatusBadge(service.status, service.leadsCount, service.maxLeads)}
@@ -382,6 +506,11 @@ export default function ServicesPage() {
                                             {getTypeBadge(service.type)}
                                             {contextTags.map(tag => (
                                                 <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                            {detailTags.map(tag => (
+                                                <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase">
                                                     {tag}
                                                 </span>
                                             ))}
@@ -403,7 +532,7 @@ export default function ServicesPage() {
                                     <div className="flex items-start gap-3 mb-3">
                                         <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-blue-100 text-blue-600 border-blue-200">
                                             {service.user.logo_url ? (
-                                                <img src={service.user.logo_url} alt={service.user.name} className="w-full h-full object-cover" />
+                                                <img src={getImageUrl(service.user.logo_url) || undefined} alt={service.user.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <User size={20} />
                                             )}
@@ -517,7 +646,7 @@ export default function ServicesPage() {
                                         <div className="relative">
                                             <div className="w-14 h-14 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden">
                                                 {prof.logo_url ? (
-                                                    <img src={prof.logo_url.startsWith('http') ? prof.logo_url : `${process.env.NEXT_PUBLIC_API_URL || ''}${prof.logo_url}`} alt={prof.name} className="w-full h-full object-cover" />
+                                                    <img src={getImageUrl(prof.logo_url) || undefined} alt={prof.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold text-lg">
                                                         {prof.name.charAt(0)}

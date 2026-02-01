@@ -164,13 +164,23 @@ export class UsersController {
     }
     // Public: Find available electricians
     @Get('available')
-    async findAvailable(@Query('city') city?: string) {
-        return this.usersService.findAvailable(city);
+    async findAvailable(@Query('city') city?: string, @Query('search') search?: string) {
+        return this.usersService.findAvailable(city, search);
     }
 
     @Get('profile/public/:id')
     async getPublicProfile(@Param('id') id: string) {
         return this.usersService.getPublicProfile(id);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('profile/peer/:id')
+    async getPeerProfile(@Request() req: any, @Param('id') id: string) {
+        const requester = await this.usersService.findById(req.user.sub || req.user.id);
+        if (!requester || requester.role !== 'ELETRICISTA') {
+            throw new ForbiddenException('Apenas eletricistas podem ver este perfil completo');
+        }
+        return this.usersService.getPeerProfile(id);
     }
 
     @Get('count')

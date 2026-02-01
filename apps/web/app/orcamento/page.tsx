@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Trash2, Share2, Loader2, LogIn, Save, Plus, Package, X, HardHat } from 'lucide-react';
@@ -65,6 +65,7 @@ const QuantityInput = ({ value, onChange }: { value: number, onChange: (val: num
 
 function OrcamentoContent() {
     const { items, total, removeFromCart, updateQuantity, updatePrice, clearCart, addManualItem, addToCart } = useCart();
+    const { refreshUser } = useAuth();
 
     // State
     const [laborValue, setLaborValue] = useState('');
@@ -91,6 +92,7 @@ function OrcamentoContent() {
     const [shareData, setShareData] = useState<any>(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState('');
+    const isSavingRef = useRef(false);
 
     // Manual Item Form
     const [manualName, setManualName] = useState('');
@@ -195,7 +197,8 @@ function OrcamentoContent() {
             name: manualName,
             price: parseFloat(manualPrice.replace(',', '.')).toString(),
             image_url: manualImage,
-            suggestedSource: manualSource,
+            suggestedSource: mode === 'labor' ? undefined : manualSource,
+            type: mode === 'labor' ? 'SERVICE' : 'MATERIAL',
             quantity: parseInt(manualQty) || 1
         });
         setIsManualModalOpen(false);
@@ -204,6 +207,32 @@ function OrcamentoContent() {
         setManualQty('1');
         setManualSource('');
         setManualImage('');
+    };
+
+    const formatPhoneInput = (value: string) => {
+        let v = value.replace(/\D/g, '');
+        v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+        v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+        return v;
+    };
+
+    const handlePickContact = async () => {
+        const contactsApi = (navigator as any)?.contacts;
+        if (!contactsApi?.select) {
+            alert('Seu navegador não permite importar contatos. Preencha manualmente.');
+            return;
+        }
+        try {
+            const [contact] = await contactsApi.select(['name', 'tel'], { multiple: false });
+            if (!contact) return;
+            const name = Array.isArray(contact.name) ? contact.name[0] : contact.name;
+            const phone = Array.isArray(contact.tel) ? contact.tel[0] : contact.tel;
+            if (name) setCustomerName(name);
+            if (phone) setCustomerPhone(formatPhoneInput(phone));
+        } catch (error) {
+            console.error('Erro ao importar contato', error);
+            alert('Não foi possível importar o contato. Tente novamente.');
+        }
     };
 
     // Auto-save draft to localStorage to prevent data loss
@@ -228,7 +257,8 @@ function OrcamentoContent() {
     const { showToast } = useToast();
 
     const handleFinish = async (type: 'DRAFT' | 'SHARED') => {
-        if (loading) return;
+        if (loading || isSavingRef.current) return;
+        isSavingRef.current = true;
         setLoading(true);
         try {
             // Basic validation
@@ -241,7 +271,7 @@ function OrcamentoContent() {
             const payload = {
                 items: items
                     .filter(i => {
-                        if (mode === 'labor') return i.type === 'SERVICE';
+                        if (mode === 'labor') return i.type === 'SERVICE' || i.isExternal;
                         if (mode === 'product') return (i.type || 'MATERIAL') === 'MATERIAL';
                         return (i.type || 'MATERIAL') === 'MATERIAL'; // mode 'full' only saves products as items
                     })
@@ -281,19 +311,22 @@ function OrcamentoContent() {
             }
 
             const data = responseData;
+            if (data?.id) {
+                setEditId(data.id);
+                setIsEditMode(true);
+            }
 
             // Clear backup on success
             localStorage.removeItem('budget_draft_backup');
+            refreshUser().catch((err) => console.error('Error refreshing user after budget save:', err));
 
             if (type === 'SHARED') {
                 const link = `${window.location.origin}/o/${data.id}`;
                 setShareData({
                     shareLink: link,
-                    whatsappUrl: `https://wa.me/?text=${encodeURIComponent('Orçamento: ' + link)}`
+                    whatsappUrl: `https://wa.me/?text=${encodeURIComponent(`Aqui está o seu orçamento, acesse esse link para visualizar os detalhes: ${link}`)}`
                 });
                 setShowSuccessModal(true);
-                setEditId(data.id);
-                setIsEditMode(true);
                 showToast('Orçamento salvo e link gerado!', 'success');
             } else {
                 showToast('Rascunho salvo com sucesso!', 'success');
@@ -308,6 +341,7 @@ function OrcamentoContent() {
             alert(`Houve um erro: ${errorMsg}. Seus dados estão salvos localmente.`);
         } finally {
             setLoading(false);
+            isSavingRef.current = false;
         }
     };
 
@@ -411,13 +445,13 @@ function OrcamentoContent() {
                                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                     Serviços Selecionados
                                 </h2>
-                                {items.filter(i => i.type === 'SERVICE').length === 0 ? (
+                                {items.filter(i => i.type === 'SERVICE' || (i.isExternal && !i.type)).length === 0 ? (
                                     <div className="text-center py-6 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl mb-4">
                                         <p>Nenhum serviço adicionado ainda.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {items.filter(i => i.type === 'SERVICE').map((item) => (
+                                        {items.filter(i => i.type === 'SERVICE' || (i.isExternal && !i.type)).map((item) => (
                                             <div key={item.id} className="flex gap-3 py-3 bg-green-50/30 rounded-lg px-3 border border-green-100/50">
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="font-medium text-green-900 text-sm">{item.name}</h3>
@@ -488,7 +522,9 @@ function OrcamentoContent() {
                                     {mode === 'labor' ? 'Total dos Serviços' : mode === 'product' ? 'Total dos Materiais' : 'Total dos Materiais'}
                                 </span>
                                 <span className="text-lg font-bold text-gray-900">
-                                    {formatPrice(mode === 'labor' ? items.filter(i => i.type === 'SERVICE').reduce((acc, curr) => acc + (parseFloat(curr.price) * curr.quantity), 0) : total)}
+                                    {formatPrice(mode === 'labor'
+                                        ? items.filter(i => i.type === 'SERVICE' || (i.isExternal && !i.type)).reduce((acc, curr) => acc + (parseFloat(curr.price) * curr.quantity), 0)
+                                        : total)}
                                 </span>
                             </div>
                         </div>
@@ -512,7 +548,7 @@ function OrcamentoContent() {
                                 <textarea
                                     value={laborDescription}
                                     onChange={(e) => setLaborDescription(e.target.value)}
-                                    placeholder="Descreva o que será feito (ex: Troca de fiação, instalação de 5 pontos...)"
+                                    placeholder="Descreva o serviço que será executado"
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
                                 />
                             </div>
@@ -559,7 +595,7 @@ function OrcamentoContent() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Prazo de Execução</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: 5 dias úteis"
+                                    placeholder="Informe o prazo de execução"
                                     value={executionTime}
                                     onChange={(e) => setExecutionTime(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -576,7 +612,7 @@ function OrcamentoContent() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: 50% entrada + 50% final"
+                                    placeholder="Informe como será o pagamento"
                                     value={paymentTerms}
                                     onChange={(e) => setPaymentTerms(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -593,7 +629,7 @@ function OrcamentoContent() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Validade do Orçamento</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: 7 dias"
+                                    placeholder="Informe a validade do orçamento"
                                     value={validity}
                                     onChange={(e) => setValidity(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -610,7 +646,7 @@ function OrcamentoContent() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Garantia (Mão de Obra)</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: 90 dias"
+                                    placeholder="Informe a garantia da mão de obra"
                                     value={warranty}
                                     onChange={(e) => setWarranty(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -629,7 +665,7 @@ function OrcamentoContent() {
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Outros detalhes..."
+                            placeholder="Adicione observações importantes para o cliente"
                             className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
                         />
                         <p className="text-xs text-gray-500 mt-2">Todas as informações acima aparecerão no PDF e na visão do cliente.</p>
@@ -643,23 +679,29 @@ function OrcamentoContent() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Cliente</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: Dona Maria"
+                                    placeholder="Informe o nome completo do cliente"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp do Cliente (Opcional)</label>
+                                <div className="flex items-center justify-between gap-3 mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">WhatsApp do Cliente (Opcional)</label>
+                                    <button
+                                        type="button"
+                                        onClick={handlePickContact}
+                                        className="text-xs font-bold text-blue-600 hover:text-blue-700"
+                                    >
+                                        Importar da agenda
+                                    </button>
+                                </div>
                                 <input
                                     type="tel"
-                                    placeholder="Ex: (11) 99999-9999"
+                                    placeholder="Informe o WhatsApp do cliente"
                                     value={customerPhone}
                                     onChange={(e) => {
-                                        let v = e.target.value.replace(/\D/g, '');
-                                        v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
-                                        v = v.replace(/(\d)(\d{4})$/, '$1-$2');
-                                        setCustomerPhone(v);
+                                        setCustomerPhone(formatPhoneInput(e.target.value));
                                     }}
                                     maxLength={15}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -717,6 +759,10 @@ function OrcamentoContent() {
                                     href={shareData.whatsappUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={() => {
+                                        localStorage.setItem('hasSharedWhatsapp', 'true');
+                                        window.dispatchEvent(new Event('jornada-progress-update'));
+                                    }}
                                     className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-green-200"
                                 >
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -771,7 +817,7 @@ function OrcamentoContent() {
                                         type="text"
                                         value={manualName}
                                         onChange={(e) => setManualName(e.target.value)}
-                                        placeholder={mode === 'labor' ? "Ex: Instalação de Chuveiro" : "Ex: Fita Isolante 3M Alta Fusão"}
+                                        placeholder={mode === 'labor' ? 'Descreva o serviço manual que será executado' : 'Descreva o item/material manual'}
                                         className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                     />
                                 </div>
@@ -785,7 +831,7 @@ function OrcamentoContent() {
                                                 type="number"
                                                 value={manualPrice}
                                                 onChange={(e) => setManualPrice(e.target.value)}
-                                                placeholder="0,00"
+                                                placeholder="Informe o preço unitário"
                                                 className="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
                                             />
                                         </div>
@@ -801,19 +847,23 @@ function OrcamentoContent() {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Sugestão de onde comprar (Opcional)</label>
-                                    <input
-                                        type="text"
-                                        value={manualSource}
-                                        onChange={(e) => setManualSource(e.target.value)}
-                                        placeholder="Ex: Leroy Merlin, Loja da Esquina..."
-                                        className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    />
-                                </div>
+                                {mode !== 'labor' && (
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1">Sugestão de onde comprar (Opcional)</label>
+                                        <input
+                                            type="text"
+                                            value={manualSource}
+                                            onChange={(e) => setManualSource(e.target.value)}
+                                            placeholder="Informe onde o cliente pode comprar (opcional)"
+                                            className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                    </div>
+                                )}
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Foto do Produto (Opcional)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                        {mode === 'labor' ? 'Foto do Serviço (Opcional)' : 'Foto do Produto (Opcional)'}
+                                    </label>
                                     <div className="flex items-center gap-4">
                                         {manualImage ? (
                                             <div className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden group">
@@ -839,7 +889,9 @@ function OrcamentoContent() {
                                 </div>
 
                                 <p className="text-xs text-gray-500 italic">
-                                    * Este item não será faturado pelo Portal Distribuidora e deve ser providenciado pelo eletricista.
+                                    {mode === 'labor'
+                                        ? '* Este serviço será apresentado como item manual no orçamento.'
+                                        : '* Este item não será faturado pelo Portal Distribuidora e deve ser providenciado pelo eletricista.'}
                                 </p>
                             </div>
 

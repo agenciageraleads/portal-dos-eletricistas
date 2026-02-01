@@ -6,6 +6,8 @@ import api from '@/lib/api';
 import { ArrowLeft, MapPin, Phone, Star, MessageCircle, Calendar, ShieldCheck, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import BottomNav from '../../components/BottomNav';
+import { useAuth } from '../../contexts/AuthContext';
+import { getImageUrl } from '@/lib/utils';
 
 interface PublicProfile {
     id: string;
@@ -22,6 +24,12 @@ interface PublicProfile {
     rank?: number | null;
     total_orders: number | null;
     view_count: number | null;
+    specialties?: string | null;
+    specialties_public?: boolean | null;
+    experience_years?: number | null;
+    experience_public?: boolean | null;
+    certifications?: string | null;
+    certifications_public?: boolean | null;
     cadastro_finalizado: boolean;
     createdAt: string;
 }
@@ -29,6 +37,7 @@ interface PublicProfile {
 export default function PublicProfilePage() {
     const params = useParams();
     const router = useRouter();
+    const { user } = useAuth();
     const [profile, setProfile] = useState<PublicProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -36,11 +45,14 @@ export default function PublicProfilePage() {
         if (params.id) {
             fetchProfile();
         }
-    }, [params.id]);
+    }, [params.id, user?.role]);
 
     const fetchProfile = async () => {
         try {
-            const { data } = await api.get(`/users/profile/public/${params.id}`);
+            const endpoint = user?.role === 'ELETRICISTA'
+                ? `/users/profile/peer/${params.id}`
+                : `/users/profile/public/${params.id}`;
+            const { data } = await api.get(endpoint);
             setProfile(data);
         } catch (error) {
             console.error('Erro ao buscar perfil:', error);
@@ -106,6 +118,8 @@ export default function PublicProfilePage() {
         );
     }
 
+    const canViewPrivate = user?.role === 'ELETRICISTA';
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
             {/* Cover / Header */}
@@ -126,7 +140,7 @@ export default function PublicProfilePage() {
                         <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-lg border-4 border-white overflow-hidden">
                             {profile.logo_url ? (
                                 <img
-                                    src={profile.logo_url.startsWith('http') ? profile.logo_url : `${process.env.NEXT_PUBLIC_API_URL || ''}${profile.logo_url}`}
+                                    src={getImageUrl(profile.logo_url) || undefined}
                                     alt={profile.name}
                                     className="w-full h-full object-cover rounded-xl"
                                 />
@@ -204,6 +218,28 @@ export default function PublicProfilePage() {
                         <p className="text-gray-600 leading-relaxed text-sm italic">
                             {profile.bio || "Este profissional ainda não preencheu sua descrição, mas você pode entrar em contato para saber mais sobre seus serviços!"}
                         </p>
+                    </div>
+
+                    {/* Professional Details */}
+                    <div className="mt-6 space-y-3">
+                        {(profile.specialties && (profile.specialties_public || canViewPrivate)) && (
+                            <div>
+                                <p className="text-xs uppercase tracking-wide text-gray-400 font-bold">Especialidades</p>
+                                <p className="text-sm text-gray-700 font-semibold">{profile.specialties}</p>
+                            </div>
+                        )}
+                        {(profile.experience_years !== null && profile.experience_years !== undefined && (profile.experience_public || canViewPrivate)) && (
+                            <div>
+                                <p className="text-xs uppercase tracking-wide text-gray-400 font-bold">Experiência</p>
+                                <p className="text-sm text-gray-700 font-semibold">{profile.experience_years} anos</p>
+                            </div>
+                        )}
+                        {(profile.certifications && (profile.certifications_public || canViewPrivate)) && (
+                            <div>
+                                <p className="text-xs uppercase tracking-wide text-gray-400 font-bold">Certificações</p>
+                                <p className="text-sm text-gray-700 font-semibold">{profile.certifications}</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Actions */}

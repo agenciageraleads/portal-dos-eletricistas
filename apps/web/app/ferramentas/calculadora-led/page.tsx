@@ -101,7 +101,7 @@ export default function LedCalculatorPage() {
                                 type="number"
                                 value={length || ''}
                                 onChange={(e) => setLength(Number(e.target.value))}
-                                placeholder="Ex: 5"
+                                placeholder="Informe o comprimento total em metros"
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none pl-10"
                             />
                             <span className="absolute left-3 top-3.5 text-gray-400">m</span>
