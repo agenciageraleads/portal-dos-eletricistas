@@ -239,8 +239,8 @@ export class BudgetsService {
 
         await this.upsertClientContact(
             userId,
-            clientName ?? budget.client_name || '',
-            clientPhone ?? budget.client_phone || ''
+            clientName ?? (budget.client_name || ''),
+            clientPhone ?? (budget.client_phone || '')
         );
 
         return updatedBudget;
