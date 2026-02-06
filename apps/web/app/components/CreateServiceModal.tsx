@@ -60,9 +60,10 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
             }
 
             onSuccess();
-        } catch (error) {
-            console.error(error);
-            setErrors('Erro ao publicar. Verifique os dados.');
+        } catch (error: any) {
+            console.error('Erro ao publicar:', error);
+            const msg = error.response?.data?.message || 'Erro ao publicar. Verifique os dados.';
+            setErrors(msg);
         } finally {
             setIsLoading(false);
         }

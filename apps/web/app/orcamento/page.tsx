@@ -196,10 +196,20 @@ function OrcamentoContent() {
     };
 
     const handleAddManualItem = () => {
-        if (!manualName || !manualPrice) return;
+        if (!manualName || !manualPrice) {
+            alert('Preencha o nome e o preço do item.');
+            return;
+        }
+        
+        const price = parseFloat(manualPrice.replace(',', '.'));
+        if (isNaN(price)) {
+            alert('Preço inválido.');
+            return;
+        }
+
         addManualItem({
             name: manualName,
-            price: parseFloat(manualPrice.replace(',', '.')).toString(),
+            price: price.toString(),
             image_url: manualImage,
             suggestedSource: mode === 'labor' ? undefined : manualSource,
             type: mode === 'labor' ? 'SERVICE' : 'MATERIAL',
