@@ -1,10 +1,7 @@
 name: Build and Push Staging Images
 
 on:
-  push:
-    branches:
-      - dev  # Trigger on push to dev branch
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:  # Manual only to avoid paid builds on every dev push
 
 env:
   REGISTRY: ghcr.io
