@@ -4,7 +4,7 @@ services:
   # 1. FRONTEND WEB (v1.5.3)
   # ==========================================
   web:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-staging
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-1.6.2
     deploy:
       mode: replicated
       replicas: 1
@@ -26,7 +26,7 @@ services:
   # 2. BACKEND API (v1.5.3)
   # ==========================================
   api:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-staging
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-1.6.2
     deploy:
       mode: replicated
       replicas: 1

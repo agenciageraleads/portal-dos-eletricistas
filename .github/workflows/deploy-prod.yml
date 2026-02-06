@@ -9,6 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/agenciageraleads/portal-dos-eletricistas
+  VERSION: 1.6.2
 
 jobs:
   build-and-push-prod:
@@ -39,8 +40,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}:web-prod
-            ${{ env.IMAGE_PREFIX }}:web-prod-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}:web-${{ env.VERSION }}
+            ${{ env.IMAGE_PREFIX }}:web-${{ env.VERSION }}-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -54,16 +55,16 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}:api-prod
-            ${{ env.IMAGE_PREFIX }}:api-prod-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}:api-${{ env.VERSION }}
+            ${{ env.IMAGE_PREFIX }}:api-${{ env.VERSION }}-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
       - name: Summary
         run: |
           echo "✅ Production Images built and pushed successfully!"
-          echo "Web: ${{ env.IMAGE_PREFIX }}:web-prod"
-          echo "API: ${{ env.IMAGE_PREFIX }}:api-prod"
+          echo "Web: ${{ env.IMAGE_PREFIX }}:web-${{ env.VERSION }}"
+          echo "API: ${{ env.IMAGE_PREFIX }}:api-${{ env.VERSION }}"
 
       - name: Wait for registry propagation
         run: sleep 30
