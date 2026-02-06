@@ -146,6 +146,13 @@ export class UsersService implements OnModuleInit {
         });
     }
 
+    async updateAmbassador(userId: string, isAmbassador: boolean) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { is_ambassador: isAmbassador }
+        });
+    }
+
     // Admin: Generate Reset Token manually
     async generateManualResetToken(userId: string) {
         // Generate 6-digit code

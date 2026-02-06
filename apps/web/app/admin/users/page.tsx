@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '@/lib/api';
-import { ChevronLeft, Shield, Users, Key, Copy, X, Edit2 } from 'lucide-react';
+import { ChevronLeft, Shield, Users, Key, Copy, X, Edit2, Search, Award } from 'lucide-react';
 
 interface User {
     id: string;
@@ -13,6 +13,7 @@ interface User {
     email: string;
     phone?: string;
     role: 'ELETRICISTA' | 'ADMIN';
+    is_ambassador?: boolean;
     logo_url?: string;
     createdAt: string;
     _count: {
@@ -29,6 +30,8 @@ export default function AdminUsersPage() {
     const [resetLink, setResetLink] = useState<string | null>(null);
     const [editingUser, setEditingUser] = useState<string | null>(null);
     const [togglingRole, setTogglingRole] = useState<string | null>(null);
+    const [togglingAmbassador, setTogglingAmbassador] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const [editForm, setEditForm] = useState<{ name: string; email: string; phone?: string }>({ name: '', email: '' });
 
     useEffect(() => {
@@ -83,6 +86,27 @@ export default function AdminUsersPage() {
         }
     };
 
+    const toggleAmbassador = async (userId: string, currentStatus: boolean) => {
+        const action = !currentStatus ? 'promover a Embaixador' : 'remover de Embaixador';
+        if (!confirm(`Deseja realmente ${action} este usuário?`)) return;
+
+        setTogglingAmbassador(userId);
+        try {
+            await api.patch(`/users/${userId}/ambassador`, { is_ambassador: !currentStatus });
+            await fetchUsers();
+        } catch (error) {
+            console.error('Erro ao alterar status de embaixador:', error);
+            alert('Erro ao atualizar status de embaixador.');
+        } finally {
+            setTogglingAmbassador(null);
+        }
+    };
+
+    const filteredUsers = users.filter(user => 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const handleResetPassword = async (userId: string) => {
         if (!confirm('Gerar código de redefinição de senha para este usuário?')) return;
 
@@ -123,6 +147,17 @@ export default function AdminUsersPage() {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 py-6">
+                <div className="mb-6 relative">
+                    <input
+                        type="text"
+                        placeholder="Buscar usuário por nome ou email..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -146,7 +181,7 @@ export default function AdminUsersPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {users.map((user) => (
+                                {filteredUsers.map((user) => (
                                     <tr key={user.id} className="hover:bg-gray-50 transition">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
@@ -253,6 +288,23 @@ export default function AdminUsersPage() {
                                                             <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                                         ) : null}
                                                         {user.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleAmbassador(user.id, !!user.is_ambassador);
+                                                        }}
+                                                        className={`text-sm font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-2 ${user.is_ambassador
+                                                            ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
+                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                            }`}
+                                                        disabled={togglingAmbassador === user.id}
+                                                        title={user.is_ambassador ? 'Remover Embaixador' : 'Tornar Embaixador'}
+                                                    >
+                                                        {togglingAmbassador === user.id ? (
+                                                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                        ) : <Award size={16} />}
                                                     </button>
 
                                                     <button

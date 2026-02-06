@@ -152,6 +152,16 @@ export class UsersController {
         return this.usersService.updateRole(userId, role);
     }
 
+    @UseGuards(AuthGuard('jwt'))
+    @Patch(':id/ambassador')
+    async updateAmbassador(@Request() req: any, @Param('id') userId: string, @Body('is_ambassador') isAmbassador: boolean) {
+        const admin = await this.usersService.findById(req.user.sub || req.user.id);
+        if (!admin || admin.role !== 'ADMIN') {
+            throw new ForbiddenException('Apenas administradores podem gerenciar embaixadores');
+        }
+        return this.usersService.updateAmbassador(userId, isAmbassador);
+    }
+
     // Admin: Generate Reset Token (v1.3.0)
     @UseGuards(AuthGuard('jwt'))
     @Post(':id/reset-token')
