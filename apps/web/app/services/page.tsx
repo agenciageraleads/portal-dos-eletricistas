@@ -63,6 +63,7 @@ export default function ServicesPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'BOARD' | 'PROFESSIONALS'>('BOARD');
     const [unlockingId, setUnlockingId] = useState<string | null>(null);
+    const [selectedService, setSelectedService] = useState<ServiceListing | null>(null);
 
     // Filters
     const [cityFilter, setCityFilter] = useState('');
@@ -528,15 +529,19 @@ export default function ServicesPage() {
                                                     Urgente
                                                 </span>
                                             )}
-                                            {user && user.id === service.userId && (
-                                                <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500 p-1">
+                                            {user && (user.id === service.userId || user.role === 'ADMIN') && (
+                                                <button onClick={() => handleDelete(service.id)} className="text-gray-400 hover:text-red-500 p-1" title="Excluir anúncio">
                                                     <Trash2 size={16} />
                                                 </button>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="flex items-start gap-3 mb-3">
+                                    <button
+                                        onClick={() => setSelectedService(service)}
+                                        className="flex items-start gap-3 mb-3 text-left w-full"
+                                        type="button"
+                                    >
                                         <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden shadow-sm shrink-0 border bg-blue-100 text-blue-600 border-blue-200">
                                             {service.user.logo_url ? (
                                                 <img src={getImageUrl(service.user.logo_url) || undefined} alt={service.user.name} className="w-full h-full object-cover" />
@@ -560,7 +565,7 @@ export default function ServicesPage() {
                                                 )}
                                             </p>
                                         </div>
-                                    </div>
+                                    </button>
 
                                     <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
                                         {service.description}
@@ -731,6 +736,57 @@ export default function ServicesPage() {
                         fetchServices();
                     }}
                 />
+            )}
+
+            {selectedService && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+                        <div className="p-4 border-b flex items-center justify-between">
+                            <h3 className="font-bold text-gray-900">Detalhes do serviço</h3>
+                            <button onClick={() => setSelectedService(null)} className="text-gray-400 hover:text-gray-600">
+                                ✕
+                            </button>
+                        </div>
+                        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                            <div>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {getTypeBadge(selectedService.type)}
+                                </div>
+                                <h2 className="text-lg font-bold text-gray-900">{selectedService.title}</h2>
+                                <p className="text-sm text-gray-500">
+                                    {selectedService.user.name.split(' ')[0]} · {new Date(selectedService.createdAt).toLocaleDateString()}
+                                    {selectedService.city && ` · ${selectedService.city}/${selectedService.state || ''}`}
+                                </p>
+                            </div>
+                            <div className="text-sm text-gray-700 whitespace-pre-line">
+                                {selectedService.description}
+                            </div>
+                            {selectedService.images && selectedService.images.length > 0 && (
+                                <div className="grid grid-cols-3 gap-2">
+                                    {selectedService.images.map((img, idx) => (
+                                        <img
+                                            key={`${selectedService.id}-detail-${idx}`}
+                                            src={getImageUrl(img) || undefined}
+                                            alt=""
+                                            className="w-full h-24 object-cover rounded-lg border"
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-gray-500">
+                                    {selectedService.price ? `R$ ${Number(selectedService.price).toFixed(2)}` : 'Valor a combinar'}
+                                </div>
+                                <button
+                                    onClick={() => setSelectedService(null)}
+                                    className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold"
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <BottomNav />

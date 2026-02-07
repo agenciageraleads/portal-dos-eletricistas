@@ -51,7 +51,7 @@ export class UsersService implements OnModuleInit {
                 cpf_cnpj: normalizedCpfCnpj ?? current.cpf_cnpj
             };
 
-            const shouldFinalize = !!(merged.name && merged.email && merged.phone && merged.cpf_cnpj);
+            const shouldFinalize = !!(merged.name && merged.email && merged.phone && merged.city && merged.state);
 
             return await this.prisma.user.update({
                 where: { id: userId },
@@ -149,7 +149,10 @@ export class UsersService implements OnModuleInit {
     async updateAmbassador(userId: string, isAmbassador: boolean) {
         return this.prisma.user.update({
             where: { id: userId },
-            data: { is_ambassador: isAmbassador }
+            data: {
+                is_ambassador: isAmbassador,
+                ambassador_rank: isAmbassador ? undefined : null
+            }
         });
     }
 
@@ -169,6 +172,21 @@ export class UsersService implements OnModuleInit {
         });
 
         return { token };
+    }
+
+    // Admin: Soft delete user (block + remove from listings)
+    async deleteUser(userId: string) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                status: 'BLOCKED',
+                isAvailableForWork: false,
+                pre_cadastrado: false,
+                cadastro_finalizado: false,
+                is_ambassador: false,
+                ambassador_rank: null
+            }
+        });
     }
 
     // Helper to fix ALL CAPS names from legacy systems
@@ -222,27 +240,40 @@ export class UsersService implements OnModuleInit {
                 cadastro_finalizado: true,
                 commercial_index: true,
                 is_ambassador: true,
-                ambassador_rank: true
+                ambassador_rank: true,
+                _count: {
+                    select: { budgets: true }
+                }
             },
-            orderBy: [
-                { cadastro_finalizado: 'desc' },
-                { name: 'asc' }
-            ]
+            orderBy: { name: 'asc' }
         });
 
-        // Sort: ambassadors first (fixed order), then commercial_index desc (nulls last), then finalized, then name
+        // Sort: ambassadors first (ranked), then finalized, then has photo, then budgets count desc,
+        // then commercial_index desc (fallback), then name
         users.sort((a, b) => {
+            const aAmb = a.is_ambassador ? 0 : 1;
+            const bAmb = b.is_ambassador ? 0 : 1;
+            if (aAmb !== bAmb) return aAmb - bAmb;
+
             const aRank = a.is_ambassador ? (a.ambassador_rank ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
             const bRank = b.is_ambassador ? (b.ambassador_rank ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
             if (aRank !== bRank) return aRank - bRank;
 
-            const aIndex = a.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(a.commercial_index);
-            const bIndex = b.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(b.commercial_index);
-            if (aIndex !== bIndex) return bIndex - aIndex;
-
             if (a.cadastro_finalizado !== b.cadastro_finalizado) {
                 return a.cadastro_finalizado ? -1 : 1;
             }
+
+            const aHasPhoto = a.logo_url ? 0 : 1;
+            const bHasPhoto = b.logo_url ? 0 : 1;
+            if (aHasPhoto !== bHasPhoto) return aHasPhoto - bHasPhoto;
+
+            const aBudgets = a._count?.budgets ?? 0;
+            const bBudgets = b._count?.budgets ?? 0;
+            if (aBudgets !== bBudgets) return bBudgets - aBudgets;
+
+            const aIndex = a.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(a.commercial_index);
+            const bIndex = b.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(b.commercial_index);
+            if (aIndex !== bIndex) return bIndex - aIndex;
 
             const aName = this.normalizeName(a.name);
             const bName = this.normalizeName(b.name);

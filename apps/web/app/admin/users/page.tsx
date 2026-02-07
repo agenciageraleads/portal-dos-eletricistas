@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '@/lib/api';
-import { ChevronLeft, Shield, Users, Key, Copy, X, Edit2, Search, Award } from 'lucide-react';
+import { ChevronLeft, Shield, Users, Key, Copy, X, Edit2, Search, Award, Trash2 } from 'lucide-react';
 
 interface User {
     id: string;
@@ -99,6 +99,18 @@ export default function AdminUsersPage() {
             alert('Erro ao atualizar status de embaixador.');
         } finally {
             setTogglingAmbassador(null);
+        }
+    };
+
+    const deleteUser = async (userId: string) => {
+        if (!confirm('Deseja realmente excluir este usuário?')) return;
+        try {
+            await api.delete(`/users/${userId}`);
+            await fetchUsers();
+            alert('Usuário excluído com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir usuário:', error);
+            alert('Erro ao excluir usuário.');
         }
     };
 
@@ -305,6 +317,17 @@ export default function AdminUsersPage() {
                                                         {togglingAmbassador === user.id ? (
                                                             <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                                         ) : <Award size={16} />}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            deleteUser(user.id);
+                                                        }}
+                                                        className="text-red-500 hover:text-red-600"
+                                                        title="Excluir Usuário"
+                                                    >
+                                                        <Trash2 size={18} />
                                                     </button>
 
                                                     <button

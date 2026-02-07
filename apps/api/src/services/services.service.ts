@@ -147,7 +147,13 @@ export class ServicesService {
         if (!listing) throw new NotFoundException('Vaga não encontrada');
 
         if (listing.userId !== userId) {
-            throw new ForbiddenException('Você não pode excluir este anúncio');
+            const requester = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { role: true }
+            });
+            if (!requester || requester.role !== 'ADMIN') {
+                throw new ForbiddenException('Você não pode excluir este anúncio');
+            }
         }
 
         return this.prisma.serviceListing.delete({ where: { id } });

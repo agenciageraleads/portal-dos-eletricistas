@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get, Param, UseGuards, Request, Patch, Delete, 
 import { BudgetsService } from './budgets.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
+import { BudgetDecisionDto } from './dto/budget-decision.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 import { BudgetImportService } from './budget-import.service';
@@ -28,6 +29,12 @@ export class BudgetsController {
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.budgetsService.findOne(id);
+    }
+
+    // Public: Client decision (accept/reject/negotiate)
+    @Post(':id/decision')
+    submitDecision(@Param('id') id: string, @Body() body: BudgetDecisionDto) {
+        return this.budgetsService.submitClientDecision(id, body);
     }
 
     @UseGuards(AuthGuard('jwt'))

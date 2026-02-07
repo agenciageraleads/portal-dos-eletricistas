@@ -1,10 +1,10 @@
 version: "3.8"
 services:
   # ==========================================
-  # 1. FRONTEND WEB (v1.5.3)
+  # 1. FRONTEND WEB (v1.6.3)
   # ==========================================
   web:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-1.6.2
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-1.6.3
     deploy:
       mode: replicated
       replicas: 1
@@ -23,10 +23,10 @@ services:
       - Portainer
 
   # ==========================================
-  # 2. BACKEND API (v1.5.3)
+  # 2. BACKEND API (v1.6.3)
   # ==========================================
   api:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-1.6.2
+    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-1.6.3
     deploy:
       mode: replicated
       replicas: 1

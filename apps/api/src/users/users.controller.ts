@@ -1,4 +1,4 @@
-import { Controller, Patch, Body, Request, UseGuards, Get, Post, UseInterceptors, UploadedFile, BadRequestException, Param, ForbiddenException, Query } from '@nestjs/common';
+import { Controller, Patch, Body, Request, UseGuards, Get, Post, UseInterceptors, UploadedFile, BadRequestException, Param, ForbiddenException, Query, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { extname, join } from 'path';
@@ -160,6 +160,17 @@ export class UsersController {
             throw new ForbiddenException('Apenas administradores podem gerenciar embaixadores');
         }
         return this.usersService.updateAmbassador(userId, isAmbassador);
+    }
+
+    // Admin: Soft delete user
+    @UseGuards(AuthGuard('jwt'))
+    @Delete(':id')
+    async deleteUser(@Request() req: any, @Param('id') userId: string) {
+        const admin = await this.usersService.findById(req.user.sub || req.user.id);
+        if (!admin || admin.role !== 'ADMIN') {
+            throw new ForbiddenException('Apenas administradores podem excluir usuários');
+        }
+        return this.usersService.deleteUser(userId);
     }
 
     // Admin: Generate Reset Token (v1.3.0)

@@ -36,6 +36,10 @@ async function bootstrap() {
     const path = require('path');
     expressApp.useStaticAssets(path.join(process.cwd(), 'uploads'), {
       prefix: '/uploads',
+      setHeaders: (res: any) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      },
     });
   }
 
