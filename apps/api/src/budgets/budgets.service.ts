@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
@@ -244,6 +244,55 @@ export class BudgetsService {
         );
 
         return updatedBudget;
+    }
+
+    async submitClientDecision(id: string, body: { decision: 'ACCEPT' | 'REJECT' | 'NEGOTIATE'; name?: string; cpf?: string; signatureDataUrl?: string; rejectReasons?: string; rejectNote?: string }) {
+        const budget = await this.prisma.budget.findUnique({ where: { id } });
+        if (!budget) throw new NotFoundException('Orçamento não encontrado');
+
+        const decision = body.decision;
+        if (decision === 'ACCEPT') {
+            const name = (body.name || '').trim();
+            const cpf = (body.cpf || '').replace(/\D/g, '');
+            const signature = body.signatureDataUrl || '';
+            if (!name || !cpf || !signature) {
+                throw new BadRequestException('Nome, CPF e assinatura são obrigatórios para aceitar.');
+            }
+            return this.prisma.budget.update({
+                where: { id },
+                data: {
+                    status: 'APPROVED',
+                    client_accept_name: name,
+                    client_accept_cpf: cpf,
+                    client_accept_signature: signature,
+                    client_accept_at: new Date(),
+                    client_reject_reasons: null,
+                    client_reject_note: null,
+                    client_reject_at: null,
+                    client_negotiation_at: null
+                }
+            });
+        }
+
+        if (decision === 'REJECT') {
+            return this.prisma.budget.update({
+                where: { id },
+                data: {
+                    status: 'REJECTED',
+                    client_reject_reasons: body.rejectReasons || null,
+                    client_reject_note: body.rejectNote || null,
+                    client_reject_at: new Date()
+                }
+            });
+        }
+
+        return this.prisma.budget.update({
+            where: { id },
+            data: {
+                status: 'NEGOTIATING',
+                client_negotiation_at: new Date()
+            }
+        });
     }
 
     async remove(id: string, userId: string) {

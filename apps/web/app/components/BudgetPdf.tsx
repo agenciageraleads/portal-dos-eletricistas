@@ -390,6 +390,18 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                     </View>
                 </View>
 
+                {/* Client Acceptance (if approved) */}
+                {(budget.status === 'APPROVED' || budget.client_accept_signature) && (
+                    <View style={{ marginTop: 12, padding: 6, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 4 }} wrap={false}>
+                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#374151', marginBottom: 4 }}>ACEITE DO CLIENTE</Text>
+                        <Text style={{ fontSize: 9, color: '#4B5563' }}>Nome: {budget.client_accept_name || budget.client_name || ''}</Text>
+                        <Text style={{ fontSize: 9, color: '#4B5563' }}>CPF: {budget.client_accept_cpf || 'Não informado'}</Text>
+                        {budget.client_accept_signature ? (
+                            <Image src={budget.client_accept_signature} style={{ width: 160, height: 60, objectFit: 'contain', marginTop: 6 }} />
+                        ) : null}
+                    </View>
+                )}
+
                 {/* Footer */}
                 <View style={styles.footer} fixed>
                     <Text>Orçamento válido por 15 dias. Sujeito a alteração de preços sem aviso prévio.</Text>

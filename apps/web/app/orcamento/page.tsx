@@ -119,7 +119,7 @@ function OrcamentoContent() {
     // Load existing budget if ID present
     // Load existing budget if ID present
     useEffect(() => {
-        const id = searchParams.get('id');
+        const id = searchParams.get('id') || searchParams.get('edit');
         if (id) {
             setIsEditMode(true);
             setEditId(id);

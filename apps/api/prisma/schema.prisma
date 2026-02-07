@@ -139,6 +139,16 @@ model Budget {
   client_phone      String?
   status            BudgetStatus @default(DRAFT)
   expiresAt         DateTime?
+
+  // Client Decision / Contract
+  client_accept_name      String?
+  client_accept_cpf       String?
+  client_accept_signature String? // base64 data URL
+  client_accept_at        DateTime?
+  client_reject_reasons   String?
+  client_reject_note      String?
+  client_reject_at        DateTime?
+  client_negotiation_at   DateTime?
   
   // Condicoes do Orcamento
   execution_time    String?
@@ -243,6 +253,8 @@ enum BudgetStatus {
   DRAFT
   SHARED
   APPROVED
+  REJECTED
+  NEGOTIATING
   CONVERTED
   EXPIRED
 }

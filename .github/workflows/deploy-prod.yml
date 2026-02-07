@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/agenciageraleads/portal-dos-eletricistas
-  VERSION: 1.6.2
+  VERSION: 1.6.3
 
 jobs:
   build-and-push-prod:

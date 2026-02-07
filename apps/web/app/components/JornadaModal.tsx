@@ -83,10 +83,10 @@ export default function JornadaModal() {
             }] : []),
             {
                 id: 'invite',
-                title: 'Convide 5 Parceiros',
-                description: 'Construa sua rede (Em Breve).',
+                title: 'Compartilhe o app no WhatsApp',
+                description: 'Convide parceiros para conhecerem o Portal.',
                 isCompleted: false,
-                // action: '#'
+                action: 'whatsapp-invite'
             }
         ];
 
@@ -131,6 +131,11 @@ export default function JornadaModal() {
             });
             driverObj.drive();
         }, 300);
+    };
+
+    const shareAppOnWhatsApp = () => {
+        const message = 'Conheça o Portal do Eletricista ⚡️ https://app.portaleletricos.com.br';
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     };
 
     if (!isOpen) return null;
@@ -201,6 +206,9 @@ export default function JornadaModal() {
                                                 if (task.action === '#install-trigger') {
                                                     triggerInstall();
                                                     setIsOpen(false);
+                                                } else if (task.action === 'whatsapp-invite') {
+                                                    shareAppOnWhatsApp();
+                                                    setIsOpen(false);
                                                 } else if (task.action) {
                                                     // For links, we might want to let Link handle it or router push?
                                                     // But we are inside a button now?
@@ -211,6 +219,8 @@ export default function JornadaModal() {
                                         >
                                             {task.action === '#install-trigger' ? (
                                                 <span className="flex items-center gap-1">Salvar na tela inicial <ChevronRight size={16} /></span>
+                                            ) : task.action === 'whatsapp-invite' ? (
+                                                <span className="flex items-center gap-1">Compartilhar no WhatsApp <ChevronRight size={16} /></span>
                                             ) : (
                                                 <Link href={task.action || '#'} onClick={() => setIsOpen(false)} className="flex items-center gap-1">
                                                     Vamos lá <ChevronRight size={16} />

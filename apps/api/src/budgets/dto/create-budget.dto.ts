@@ -69,9 +69,9 @@ export class CreateBudgetDto {
     @IsOptional()
     showLaborTotal?: boolean;
 
-    @IsIn(['DRAFT', 'SHARED', 'APPROVED', 'CONVERTED', 'EXPIRED'], { message: 'Status inválido' })
+    @IsIn(['DRAFT', 'SHARED', 'APPROVED', 'REJECTED', 'NEGOTIATING', 'CONVERTED', 'EXPIRED'], { message: 'Status inválido' })
     @IsOptional()
-    status?: 'DRAFT' | 'SHARED' | 'APPROVED' | 'CONVERTED' | 'EXPIRED';
+    status?: 'DRAFT' | 'SHARED' | 'APPROVED' | 'REJECTED' | 'NEGOTIATING' | 'CONVERTED' | 'EXPIRED';
 
     // Campos de Condições
     @IsString({ message: 'Prazo de execução deve ser um texto' })

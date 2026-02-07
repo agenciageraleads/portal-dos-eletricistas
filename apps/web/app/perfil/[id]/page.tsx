@@ -49,13 +49,19 @@ export default function PublicProfilePage() {
 
     const fetchProfile = async () => {
         try {
-            const endpoint = user?.role === 'ELETRICISTA'
+            const primaryEndpoint = user?.role === 'ELETRICISTA'
                 ? `/users/profile/peer/${params.id}`
                 : `/users/profile/public/${params.id}`;
-            const { data } = await api.get(endpoint);
+            const { data } = await api.get(primaryEndpoint);
             setProfile(data);
         } catch (error) {
-            console.error('Erro ao buscar perfil:', error);
+            try {
+                const { data } = await api.get(`/users/profile/public/${params.id}`);
+                setProfile(data);
+            } catch (fallbackError) {
+                console.error('Erro ao buscar perfil:', fallbackError);
+                setProfile(null);
+            }
         } finally {
             setLoading(false);
         }
