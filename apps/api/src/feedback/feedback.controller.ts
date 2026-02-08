@@ -47,8 +47,6 @@ export class FeedbackController {
 
     @Get()
     @UseGuards(AuthGuard('jwt'))
-    @Get()
-    @UseGuards(AuthGuard('jwt'))
     findAll(@Request() req: any, @Query('scope') scope?: string) {
         return this.feedbackService.findAll(req.user, scope);
     }

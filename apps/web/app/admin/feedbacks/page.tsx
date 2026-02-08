@@ -39,11 +39,11 @@ export default function AdminFeedbacks() {
         if (!replyText.trim()) return;
         setSubmitting(true);
         try {
-            await api.patch(`/feedback/${id}/reply`, { reply: replyText });
+            await api.patch(`/admin/feedbacks/${id}/reply`, { reply: replyText });
             setReplyingId(null);
             setReplyText('');
             // Reload
-            const { data } = await api.get(`/feedback?scope=all&page=${page}`);
+            const { data } = await api.get(`/admin/feedbacks?page=${page}`);
             setFeedbacks(data.data);
             alert('Resposta enviada!');
         } catch (error) {
@@ -80,7 +80,7 @@ export default function AdminFeedbacks() {
                 // So if ADMIN and no scope (or scope!=me), it returns all?
                 // Yes: `where.userId` is NOT set if ADMIN and scope!=me.
                 // So just calling `/feedback` as ADMIN returns all.
-                const { data } = await api.get(`/feedback?page=${page}`);
+                const { data } = await api.get(`/admin/feedbacks?page=${page}`);
                 setFeedbacks(data.data);
                 setTotalPages(data.pagination.totalPages);
             } catch (error) {

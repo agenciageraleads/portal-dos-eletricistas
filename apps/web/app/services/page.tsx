@@ -49,6 +49,7 @@ interface Professional {
     commercial_index: number | null;
     is_ambassador?: boolean;
     ambassador_rank?: number | null;
+    rank?: number | null;
 }
 
 export default function ServicesPage() {
@@ -430,7 +431,7 @@ export default function ServicesPage() {
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Buscar profissional por nome"
+                                placeholder="Buscar profissional por nome ou cidade"
                                 value={professionalNameFilter}
                                 onChange={(e) => setProfessionalNameFilter(e.target.value)}
                                 className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -683,7 +684,7 @@ export default function ServicesPage() {
                                                     <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">Aguardando Ativação</span>
                                                 )}
                                                 <span className="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
-                                                    Rank #{index + 1}
+                                                    Rank #{prof.rank ?? index + 1}
                                                 </span>
                                             </div>
                                             {prof.city && (

@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { isValidCpfCnpj } from '../common/validators/cpf-cnpj.validator';
@@ -206,81 +207,79 @@ export class UsersService implements OnModuleInit {
     // Services: Find available electricians (v2.0)
     async findAvailable(city?: string, search?: string) {
         const isFeatureEnabled = process.env.FEATURE_PRE_REG_DISABLED !== 'true';
+        const cityTerm = city?.trim();
+        const searchTerm = search?.trim();
 
-        const where: any = {
-            role: 'ELETRICISTA',
-            OR: [
-                { isAvailableForWork: true }
-            ]
-        };
+        const availabilityCondition = isFeatureEnabled
+            ? Prisma.sql`(u."isAvailableForWork" = true OR u.pre_cadastrado = true)`
+            : Prisma.sql`(u."isAvailableForWork" = true)`;
 
-        if (isFeatureEnabled) {
-            where.OR.push({ pre_cadastrado: true });
+        const filters: Prisma.Sql[] = [];
+        if (cityTerm) {
+            filters.push(Prisma.sql`u.city ILIKE ${`%${cityTerm}%`}`);
+        }
+        if (searchTerm) {
+            filters.push(Prisma.sql`(u.name ILIKE ${`%${searchTerm}%`} OR u.city ILIKE ${`%${searchTerm}%`})`);
         }
 
-        if (city) {
-            where.city = { contains: city, mode: 'insensitive' };
-        }
+        const users = await this.prisma.$queryRaw<
+            Array<{
+                id: string;
+                name: string;
+                city: string | null;
+                state: string | null;
+                logo_url: string | null;
+                phone: string | null;
+                isAvailableForWork: boolean;
+                pre_cadastrado: boolean;
+                cadastro_finalizado: boolean;
+                commercial_index: number | null;
+                is_ambassador: boolean;
+                ambassador_rank: number | null;
+                budgets_count: number;
+                rank: number;
+            }>
+        >(Prisma.sql`
+            WITH base AS (
+                SELECT
+                    u.id,
+                    u.name,
+                    u.city,
+                    u.state,
+                    u.logo_url,
+                    u.phone,
+                    u."isAvailableForWork",
+                    u.pre_cadastrado,
+                    u.cadastro_finalizado,
+                    u.commercial_index,
+                    u.is_ambassador,
+                    u.ambassador_rank,
+                    COALESCE(b.budgets_count, 0) AS budgets_count,
+                    ROW_NUMBER() OVER (
+                        ORDER BY
+                            CASE WHEN u.is_ambassador THEN 0 ELSE 1 END ASC,
+                            CASE WHEN u.is_ambassador THEN COALESCE(u.ambassador_rank, 9999) ELSE 9999 END ASC,
+                            CASE WHEN u.cadastro_finalizado THEN 0 ELSE 1 END ASC,
+                            CASE WHEN u.logo_url IS NOT NULL THEN 0 ELSE 1 END ASC,
+                            COALESCE(b.budgets_count, 0) DESC,
+                            u.commercial_index DESC NULLS LAST,
+                            u.name ASC
+                    ) AS rank
+                FROM users u
+                LEFT JOIN (
+                    SELECT "userId" AS user_id, COUNT(*)::int AS budgets_count
+                    FROM budgets
+                    GROUP BY "userId"
+                ) b ON b.user_id = u.id
+                WHERE u.role = 'ELETRICISTA'
+                  AND ${availabilityCondition}
+            )
+            SELECT *
+            FROM base
+            ${filters.length ? Prisma.sql`WHERE ${Prisma.join(filters, Prisma.sql` AND `)}` : Prisma.empty}
+            ORDER BY rank ASC
+        `);
 
-        if (search) {
-            where.name = { contains: search, mode: 'insensitive' };
-        }
-
-        const users = await this.prisma.user.findMany({
-            where,
-            select: {
-                id: true,
-                name: true,
-                city: true,
-                state: true,
-                logo_url: true,
-                phone: true,
-                isAvailableForWork: true,
-                pre_cadastrado: true,
-                cadastro_finalizado: true,
-                commercial_index: true,
-                is_ambassador: true,
-                ambassador_rank: true,
-                _count: {
-                    select: { budgets: true }
-                }
-            },
-            orderBy: { name: 'asc' }
-        });
-
-        // Sort: ambassadors first (ranked), then finalized, then has photo, then budgets count desc,
-        // then commercial_index desc (fallback), then name
-        users.sort((a, b) => {
-            const aAmb = a.is_ambassador ? 0 : 1;
-            const bAmb = b.is_ambassador ? 0 : 1;
-            if (aAmb !== bAmb) return aAmb - bAmb;
-
-            const aRank = a.is_ambassador ? (a.ambassador_rank ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
-            const bRank = b.is_ambassador ? (b.ambassador_rank ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
-            if (aRank !== bRank) return aRank - bRank;
-
-            if (a.cadastro_finalizado !== b.cadastro_finalizado) {
-                return a.cadastro_finalizado ? -1 : 1;
-            }
-
-            const aHasPhoto = a.logo_url ? 0 : 1;
-            const bHasPhoto = b.logo_url ? 0 : 1;
-            if (aHasPhoto !== bHasPhoto) return aHasPhoto - bHasPhoto;
-
-            const aBudgets = a._count?.budgets ?? 0;
-            const bBudgets = b._count?.budgets ?? 0;
-            if (aBudgets !== bBudgets) return bBudgets - aBudgets;
-
-            const aIndex = a.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(a.commercial_index);
-            const bIndex = b.commercial_index == null ? Number.NEGATIVE_INFINITY : Number(b.commercial_index);
-            if (aIndex !== bIndex) return bIndex - aIndex;
-
-            const aName = this.normalizeName(a.name);
-            const bName = this.normalizeName(b.name);
-            return aName.localeCompare(bName, 'pt-BR');
-        });
-
-        // Normalize names on the fly
         return users.map(user => ({
             ...user,
             name: this.normalizeName(user.name)
@@ -328,26 +327,33 @@ export class UsersService implements OnModuleInit {
 
         const rankResult = await this.prisma.$queryRaw<
             { rank: number }[]
-        >`
+        >(Prisma.sql`
             SELECT rank
             FROM (
                 SELECT
-                    id,
+                    u.id,
                     ROW_NUMBER() OVER (
                         ORDER BY
-                            CASE WHEN "is_ambassador" THEN 0 ELSE 1 END ASC,
-                            CASE WHEN "is_ambassador" THEN COALESCE("ambassador_rank", 9999) ELSE 9999 END ASC,
-                            "commercial_index" DESC NULLS LAST,
-                            "cadastro_finalizado" DESC,
-                            "name" ASC
+                            CASE WHEN u.is_ambassador THEN 0 ELSE 1 END ASC,
+                            CASE WHEN u.is_ambassador THEN COALESCE(u.ambassador_rank, 9999) ELSE 9999 END ASC,
+                            CASE WHEN u.cadastro_finalizado THEN 0 ELSE 1 END ASC,
+                            CASE WHEN u.logo_url IS NOT NULL THEN 0 ELSE 1 END ASC,
+                            COALESCE(b.budgets_count, 0) DESC,
+                            u.commercial_index DESC NULLS LAST,
+                            u.name ASC
                     ) AS rank
-                FROM users
-                WHERE role = 'ELETRICISTA'
-                  AND ("isAvailableForWork" = true OR "pre_cadastrado" = true)
+                FROM users u
+                LEFT JOIN (
+                    SELECT "userId" AS user_id, COUNT(*)::int AS budgets_count
+                    FROM budgets
+                    GROUP BY "userId"
+                ) b ON b.user_id = u.id
+                WHERE u.role = 'ELETRICISTA'
+                  AND (u."isAvailableForWork" = true OR u.pre_cadastrado = true)
             ) ranked
             WHERE id = ${id}
             LIMIT 1
-        `;
+        `);
         const rank = rankResult[0]?.rank ?? null;
 
         // Hide fields that are not public
@@ -398,26 +404,33 @@ export class UsersService implements OnModuleInit {
 
         const rankResult = await this.prisma.$queryRaw<
             { rank: number }[]
-        >`
+        >(Prisma.sql`
             SELECT rank
             FROM (
                 SELECT
-                    id,
+                    u.id,
                     ROW_NUMBER() OVER (
                         ORDER BY
-                            CASE WHEN "is_ambassador" THEN 0 ELSE 1 END ASC,
-                            CASE WHEN "is_ambassador" THEN COALESCE("ambassador_rank", 9999) ELSE 9999 END ASC,
-                            "commercial_index" DESC NULLS LAST,
-                            "cadastro_finalizado" DESC,
-                            "name" ASC
+                            CASE WHEN u.is_ambassador THEN 0 ELSE 1 END ASC,
+                            CASE WHEN u.is_ambassador THEN COALESCE(u.ambassador_rank, 9999) ELSE 9999 END ASC,
+                            CASE WHEN u.cadastro_finalizado THEN 0 ELSE 1 END ASC,
+                            CASE WHEN u.logo_url IS NOT NULL THEN 0 ELSE 1 END ASC,
+                            COALESCE(b.budgets_count, 0) DESC,
+                            u.commercial_index DESC NULLS LAST,
+                            u.name ASC
                     ) AS rank
-                FROM users
-                WHERE role = 'ELETRICISTA'
-                  AND ("isAvailableForWork" = true OR "pre_cadastrado" = true)
+                FROM users u
+                LEFT JOIN (
+                    SELECT "userId" AS user_id, COUNT(*)::int AS budgets_count
+                    FROM budgets
+                    GROUP BY "userId"
+                ) b ON b.user_id = u.id
+                WHERE u.role = 'ELETRICISTA'
+                  AND (u."isAvailableForWork" = true OR u.pre_cadastrado = true)
             ) ranked
             WHERE id = ${id}
             LIMIT 1
-        `;
+        `);
         const rank = rankResult[0]?.rank ?? null;
 
         return {
