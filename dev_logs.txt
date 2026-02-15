@@ -1,0 +1,28 @@
+
+> portal-do-eletricista-monorepo@1.6.1 dev
+> turbo run dev
+
+• turbo 2.7.5
+• Packages in scope: api, web
+• Running dev in 2 packages
+• Remote caching disabled
+web:dev: cache bypass, force executing 0233e6dd0dbe2ef0
+api:dev: cache bypass, force executing 17a85195aa56fcf0
+web:dev: 
+web:dev: > web@1.6.3 dev
+web:dev: > next dev -H 0.0.0.0
+web:dev: 
+api:dev: 
+api:dev: > api@1.5.2 dev
+api:dev: > nest start --watch
+api:dev: 
+web:dev: ⚠ Port 3000 is in use by process 30007, using available port 3001 instead.
+api:dev: [2J[3J[H[[90m3:53:23 PM[0m] Starting compilation in watch mode...
+api:dev: 
+web:dev: ▲ Next.js 16.1.1 (Turbopack)
+web:dev: - Local:         http://localhost:3001
+web:dev: - Network:       http://0.0.0.0:3001
+web:dev: - Environments: .env.local
+web:dev: 
+web:dev: ✓ Starting...
+ ERROR  run failed: command  exited (1)

@@ -113,7 +113,9 @@ model Product {
   popularity_index Decimal      @default(0) @map("INDICE_POPULARIDADE") @db.Decimal(10, 4)
   type             ProductType  @default(MATERIAL)
   budgetItems      BudgetItem[]
-  feedbacks        Feedback[]
+  image_search_status ImageSearchStatus @default(PENDING)
+  imageCandidates      ProductImageCandidate[]
+  feedbacks            Feedback[]
 
   @@map("products")
 }
@@ -121,6 +123,13 @@ model Product {
 enum ProductType {
   MATERIAL
   SERVICE
+}
+
+enum ImageSearchStatus {
+  PENDING
+  SEARCHING
+  COMPLETED
+  IGNORED
 }
 
 model FailedSearch {
@@ -340,6 +349,18 @@ model SearchSynonym {
   createdAt DateTime @default(now())
 
   @@map("search_synonyms")
+}
+
+model ProductImageCandidate {
+  id        String   @id @default(uuid())
+  productId String
+  url       String
+  source    String?  // Ex: "DuckDuckGo"
+  createdAt DateTime @default(now())
+  
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_image_candidates")
 }
 
 enum ServiceStatus {

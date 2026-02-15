@@ -217,12 +217,12 @@ export default function RegisterPage() {
                                     }
                                     setCpf(v);
                                     const clean = v.replace(/\D/g, '');
-                            if (clean.length === 11 || clean.length === 14) {
-                                setCpfError(isValidCpfCnpjLocal(clean) ? '' : 'CPF/CNPJ inválido');
-                            } else {
-                                setCpfError('');
-                            }
-                        }}
+                                    if (clean.length === 11 || clean.length === 14) {
+                                        setCpfError(isValidCpfCnpjLocal(clean) ? '' : 'CPF/CNPJ inválido');
+                                    } else {
+                                        setCpfError('');
+                                    }
+                                }}
                                 className={`w-full p-3 border ${cpfError ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl mt-1 placeholder-gray-500 transition-colors`}
                                 required
                                 placeholder="000.000.000-00 ou 00.000.000/0000-00"
@@ -234,7 +234,7 @@ export default function RegisterPage() {
                             data-testid="continue-button"
                             onClick={handleCheckCpf}
                             disabled={loading || !cpf || !!cpfError}
-                            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-300 transition-all flex items-center justify-center gap-2"
+                            className="w-full bg-brand-primary text-white py-4 rounded-xl font-bold hover:bg-brand-primary-hover disabled:bg-gray-300 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                         >
                             {loading && <Spinner />}
                             Continuar
@@ -243,8 +243,8 @@ export default function RegisterPage() {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {isPreRegistered && (
-                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
-                                <p className="text-blue-700 text-xs font-bold leading-tight">
+                            <div className="bg-brand-primary-light p-3 rounded-xl border border-teal-100 mb-4">
+                                <p className="text-brand-primary text-xs font-bold leading-tight">
                                     Encontramos seu cadastro 🙂 <br />
                                     <span className="font-normal">Falta só finalizar para liberar tudo.</span>
                                 </p>
@@ -257,7 +257,7 @@ export default function RegisterPage() {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                                className="w-full p-4 border border-gray-300 rounded-xl mt-1 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary-light outline-none"
                                 required
                                 placeholder="Informe seu nome completo"
                             />
@@ -269,7 +269,7 @@ export default function RegisterPage() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                                className="w-full p-4 border border-gray-300 rounded-xl mt-1 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary-light outline-none"
                                 required
                                 placeholder="seu@email.com"
                             />
@@ -286,7 +286,7 @@ export default function RegisterPage() {
                                     v = v.replace(/(\d)(\d{4})$/, '$1-$2');
                                     setPhone(v);
                                 }}
-                                className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                                className="w-full p-4 border border-gray-300 rounded-xl mt-1 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary-light outline-none"
                                 required
                                 placeholder="(11) 99999-9999"
                                 maxLength={15}
@@ -299,7 +299,7 @@ export default function RegisterPage() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                                className="w-full p-4 border border-gray-300 rounded-xl mt-1 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary-light outline-none"
                                 required
                                 minLength={6}
                             />
@@ -311,7 +311,7 @@ export default function RegisterPage() {
                                 onClick={() => setAcceptedTerms(!acceptedTerms)}
                                 className={`
                                     w-5 h-5 mt-0.5 rounded border transition-all flex items-center justify-center shrink-0
-                                    ${acceptedTerms ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300'}
+                                    ${acceptedTerms ? 'bg-brand-primary border-brand-primary text-white' : 'bg-white border-gray-300'}
                                 `}
                             >
                                 {acceptedTerms && (
@@ -321,16 +321,16 @@ export default function RegisterPage() {
                                 )}
                             </button>
                             <label className="text-sm text-gray-600 leading-tight">
-                                Li e concordo com os <Link href="/termos" target="_blank" className="text-blue-600 hover:underline font-medium">Termos de Uso</Link> e Política de Privacidade.
+                                Li e concordo com os <Link href="/termos" target="_blank" className="text-brand-primary hover:underline font-bold">Termos de Uso</Link> e Política de Privacidade.
                             </label>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-3 mt-4">
                             <button
                                 data-testid="back-button"
                                 type="button"
                                 onClick={() => setStep(1)}
-                                className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg font-bold hover:bg-gray-200 transition"
+                                className="flex-1 bg-gray-50 text-gray-600 py-4 rounded-xl font-bold hover:bg-gray-100 transition-all active:scale-95"
                             >
                                 Voltar
                             </button>
@@ -338,7 +338,7 @@ export default function RegisterPage() {
                                 data-testid="submit-button"
                                 type="submit"
                                 disabled={loading}
-                                className="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition flex items-center justify-center gap-2"
+                                className="flex-[2] bg-brand-primary text-white py-4 rounded-xl font-bold hover:bg-brand-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                             >
                                 {loading && <Spinner />}
                                 {isPreRegistered ? 'Ativar Cadastro' : 'Finalizar Cadastro'}
@@ -346,8 +346,8 @@ export default function RegisterPage() {
                         </div>
                     </form>
                 )}
-                <div className="mt-4 text-center text-sm">
-                    Já tem conta? <Link href="/login" className="text-blue-600 hover:underline">Faça Login</Link>
+                <div className="mt-8 text-center text-sm">
+                    Já tem conta? <Link href="/login" className="text-brand-primary hover:underline font-bold">Faça Login</Link>
                 </div>
             </div>
         </div>

@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh root@5.161.247.240 "docker ps -a | grep portal"
+expect "password:"
+send "Lucas2311#\r"
+expect eof

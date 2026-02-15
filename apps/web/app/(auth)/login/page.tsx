@@ -69,7 +69,7 @@ export default function LoginPage() {
                             required
                         />
                         <div className="mt-1 text-right">
-                            <Link href="/esqueci-senha" className="text-sm text-blue-600 hover:text-blue-700">
+                            <Link href="/esqueci-senha" className="text-sm text-brand-primary hover:text-brand-primary-hover">
                                 Esqueci minha senha
                             </Link>
                         </div>
@@ -78,14 +78,14 @@ export default function LoginPage() {
                         data-testid="login-button"
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                        className="w-full bg-brand-primary text-white py-3 rounded-xl font-bold hover:bg-brand-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                     >
                         {loading && <Spinner />}
                         {loading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </form>
-                <div className="mt-4 text-center text-sm">
-                    Não tem conta? <Link href="/register" className="text-blue-600 hover:underline">Cadastre-se</Link>
+                <div className="mt-6 text-center text-sm">
+                    Não tem conta? <Link href="/register" className="text-brand-primary hover:underline font-bold">Cadastre-se</Link>
                 </div>
                 <div className="mt-2 text-center text-sm">
                     <Link href="/" className="text-gray-500 hover:gray-700">Voltar para Home</Link>

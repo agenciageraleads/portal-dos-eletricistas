@@ -41,7 +41,7 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
                         className="w-9 h-9 rounded-full object-cover border border-gray-200"
                     />
                 ) : (
-                    <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 border border-blue-200">
+                    <div className="w-9 h-9 rounded-full bg-brand-primary-light flex items-center justify-center text-brand-primary border border-teal-200">
                         <User size={20} />
                     </div>
                 )}
@@ -49,20 +49,20 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                    <div className="p-4 border-b border-gray-50 bg-gray-50/50">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300 origin-top-right">
+                    <div className="p-5 border-b border-gray-50 bg-brand-primary-light/30">
+                        <p className="text-sm font-black text-gray-900 truncate tracking-tight">{user.name}</p>
+                        <p className="text-[10px] font-bold text-brand-primary truncate uppercase tracking-widest mt-1 opacity-70">{user.email}</p>
                     </div>
 
-                    <div className="p-1">
+                    <div className="p-2">
                         <Link
                             href="/perfil"
-                            className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all active:scale-95 group"
                             onClick={() => setIsOpen(false)}
                         >
-                            <UserCircle size={18} className="text-blue-600" />
-                            Meus Dados
+                            <UserCircle size={20} className="text-brand-primary group-hover:scale-110 transition-transform" />
+                            <span className="font-bold">Meus Dados</span>
                         </Link>
 
                         <Link

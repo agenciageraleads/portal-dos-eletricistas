@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh root@5.161.247.240 "docker pull ghcr.io/agenciageraleads/portal-dos-eletricistas:web-1.6.2"
+expect "password:"
+send "Lucas2311#\r"
+expect eof

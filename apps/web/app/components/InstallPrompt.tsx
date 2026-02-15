@@ -95,10 +95,10 @@ export default function InstallPrompt() {
 
     return (
         <>
-            <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-violet-600 text-white p-4 shadow-2xl z-50 animate-slide-up pb-safe">
+            <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-brand-primary to-brand-accent text-white p-4 shadow-2xl z-50 animate-slide-up pb-safe">
                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
                     <div className="flex-1">
-                        <p className="text-sm font-semibold mb-1">Instalar PortalElétricos</p>
+                        <p className="text-sm font-semibold mb-1">Instalar Portal dos Eletricistas</p>
                         <p className="text-xs opacity-90">
                             Adicione à tela inicial para acesso rápido e recursos offline
                         </p>
@@ -112,7 +112,7 @@ export default function InstallPrompt() {
                         </button>
                         <button
                             onClick={handleInstallClick}
-                            className="px-6 py-2 bg-white text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl"
+                            className="px-6 py-2 bg-white text-brand-primary rounded-lg text-sm font-semibold hover:bg-brand-primary-light transition-all shadow-lg hover:shadow-xl"
                         >
                             {isIOS ? 'Como Instalar?' : 'Instalar'}
                         </button>
@@ -129,20 +129,20 @@ export default function InstallPrompt() {
                             <button onClick={() => setShowInstructions(false)} className="bg-gray-100 p-2 rounded-full hover:bg-gray-200"><span className="text-xl">×</span></button>
                         </div>
                         <ol className="space-y-4 text-sm">
-                            <li className="flex gap-3 items-center">
-                                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs">1</span>
-                                <span>Toque no botão <strong>Compartilhar</strong> <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Ios_share_icon.svg" className="inline w-4 h-4 mx-1" alt="Share" /> na barra inferior.</span>
+                            <li className="flex gap-4 items-center">
+                                <span className="w-8 h-8 shrink-0 bg-brand-primary-light text-brand-primary rounded-xl flex items-center justify-center font-black text-sm">1</span>
+                                <span className="text-gray-600 leading-tight">Toque no botão <strong>Compartilhar</strong> <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Ios_share_icon.svg" className="inline w-4 h-4 mx-1" alt="Share" /> na barra inferior.</span>
                             </li>
-                            <li className="flex gap-3 items-center">
-                                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs">2</span>
-                                <span>Role para cima e selecione <strong>Adicionar à Tela de Início</strong>.</span>
+                            <li className="flex gap-4 items-center">
+                                <span className="w-8 h-8 shrink-0 bg-brand-primary-light text-brand-primary rounded-xl flex items-center justify-center font-black text-sm">2</span>
+                                <span className="text-gray-600 leading-tight">Role para cima e selecione <strong>Adicionar à Tela de Início</strong>.</span>
                             </li>
-                            <li className="flex gap-3 items-center">
-                                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs">3</span>
-                                <span>Confirme clicando em <strong>Adicionar</strong> no canto superior.</span>
+                            <li className="flex gap-4 items-center">
+                                <span className="w-8 h-8 shrink-0 bg-brand-primary-light text-brand-primary rounded-xl flex items-center justify-center font-black text-sm">3</span>
+                                <span className="text-gray-600 leading-tight">Confirme clicando em <strong>Adicionar</strong> no canto superior.</span>
                             </li>
                         </ol>
-                        <button onClick={() => setShowInstructions(false)} className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Entendi</button>
+                        <button onClick={() => setShowInstructions(false)} className="mt-8 w-full bg-brand-primary hover:bg-brand-primary-hover text-white py-4 rounded-xl font-black text-lg shadow-xl shadow-teal-900/10 transition-all active:scale-95">Entendi</button>
                     </div>
                 </div>
             )}

@@ -1,0 +1,54 @@
+
+Running 2 tests using 2 workers
+
+  ✘  2 [chromium] › tests/e2e/03-login.spec.ts:140:9 › Logout › deve fazer logout com sucesso (1.2m)
+  ✘  1 [chromium] › tests/e2e/03-login.spec.ts:72:9 › Login e Autenticação › deve fazer login com sucesso (1.2m)
+
+
+  1) [chromium] › tests/e2e/03-login.spec.ts:72:9 › Login e Autenticação › deve fazer login com sucesso 
+
+    TimeoutError: page.waitForURL: Timeout 60000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/" until "load"
+    ============================================================
+
+      83 |
+      84 |         // Aguardar redirecionamento
+    > 85 |         await page.waitForURL('/', { timeout: 60000 });
+         |                    ^
+      86 |
+      87 |         // Verificar elementos da página autenticada
+      88 |         await expect(page.getByText(/Olá/i)).toBeVisible({ timeout: 5000 });
+        at /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/tests/e2e/03-login.spec.ts:85:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-login-Login-e-Autenticação-deve-fazer-login-com-sucesso-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/03-login-Login-e-Autenticação-deve-fazer-login-com-sucesso-chromium/error-context.md
+
+  2) [chromium] › tests/e2e/03-login.spec.ts:140:9 › Logout › deve fazer logout com sucesso ────────
+
+    TimeoutError: page.waitForURL: Timeout 60000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/" until "load"
+    ============================================================
+
+      147 |         await page.getByTestId('login-button').click();
+      148 |
+    > 149 |         await page.waitForURL('/', { timeout: 60000 });
+          |                    ^
+      150 |
+      151 |         // Procurar botão de logout (pode estar em menu dropdown)
+      152 |         // Tentar clicar no menu do usuário primeiro
+        at /Users/Lucas-Lenovo/Documents/Documentos/Portal dos Eletricistas/tests/e2e/03-login.spec.ts:149:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-login-Logout-deve-fazer-logout-com-sucesso-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/03-login-Logout-deve-fazer-logout-com-sucesso-chromium/error-context.md
+
+  2 failed
+    [chromium] › tests/e2e/03-login.spec.ts:72:9 › Login e Autenticação › deve fazer login com sucesso 
+    [chromium] › tests/e2e/03-login.spec.ts:140:9 › Logout › deve fazer logout com sucesso ─────────

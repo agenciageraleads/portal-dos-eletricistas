@@ -1,44 +1,66 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui;
+  
+  /* Primary Teal Palette */
+  --color-brand-primary: #0d9488;
+  --color-brand-primary-light: #f0fdfa;
+  --color-brand-primary-hover: #0f766e;
+  
+  /* Accent Cyan Palette */
+  --color-brand-accent: #0891b2;
+  --color-brand-accent-light: #ecfeff;
+  
+  /* Success Emerald Palette */
+  --color-brand-success: #10b981;
+}
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground: #0f172a;
+  
+  /* Fluid Typography Tokens */
+  --text-fluid-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-fluid-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --text-fluid-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-fluid-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
+  --text-fluid-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --text-fluid-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-fluid-3xl: clamp(2rem, 1.7rem + 1.5vw, 3rem);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-fluid-h1 { font-size: var(--text-fluid-3xl); }
+.text-fluid-h2 { font-size: var(--text-fluid-2xl); }
+.text-fluid-h3 { font-size: var(--text-fluid-xl); }
+.text-fluid-body { font-size: var(--text-fluid-base); }
 
 /* Force high contrast placeholders */
 ::placeholder {
-  color: #000000 !important;
+  color: #64748b !important;
   opacity: 1 !important;
 }
-
-/* Dark mode override removed as requested */
 
 @keyframes slide-up {
   from {
     transform: translateY(100%);
     opacity: 0;
   }
-
   to {
     transform: translateY(0);
     opacity: 1;
@@ -50,7 +72,6 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
-
   to {
     transform: translateX(0);
     opacity: 1;
@@ -58,9 +79,13 @@ body {
 }
 
 .animate-slideIn {
-  animation: slideIn 0.3s ease-out forwards;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }

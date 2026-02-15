@@ -65,27 +65,27 @@ export default function MyBudgetsPage() {
 
     const getStatusBadge = (status: string) => {
         const styles: Record<string, string> = {
-            SHARED: 'bg-blue-100 text-blue-800',
+            SHARED: 'bg-teal-50 text-brand-primary',
             DRAFT: 'bg-gray-100 text-gray-800',
-            APPROVED: 'bg-green-100 text-green-800',
-            REJECTED: 'bg-red-100 text-red-800',
-            NEGOTIATING: 'bg-yellow-100 text-yellow-800',
-            CONVERTED: 'bg-purple-100 text-purple-800',
-            EXPIRED: 'bg-red-100 text-red-800'
+            APPROVED: 'bg-emerald-50 text-emerald-700',
+            REJECTED: 'bg-red-50 text-red-700',
+            NEGOTIATING: 'bg-amber-50 text-amber-700',
+            CONVERTED: 'bg-brand-primary text-white border-brand-primary',
+            EXPIRED: 'bg-gray-200 text-gray-600'
         };
 
         const labels: Record<string, string> = {
-            SHARED: 'Criado',
+            SHARED: 'Enviado',
             DRAFT: 'Rascunho',
             APPROVED: 'Aprovado',
             REJECTED: 'Recusado',
-            NEGOTIATING: 'Em negociação',
-            CONVERTED: 'Vendido',
-            EXPIRED: 'Expirado'
+            NEGOTIATING: 'Negociando',
+            CONVERTED: 'Fechado ✅',
+            EXPIRED: 'Perdido'
         };
 
         return (
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status] || 'bg-gray-100'}`}>
+            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-transparent ${styles[status] || 'bg-gray-100'}`}>
                 {labels[status] || status}
             </span>
         );
@@ -93,18 +93,21 @@ export default function MyBudgetsPage() {
 
     if (authLoading || (loading && user)) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 uppercase tracking-[0.2em] font-bold text-[10px] text-gray-400">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-primary border-t-transparent"></div>
+                    Carregando Propostas
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
+            <header className="bg-white shadow-sm sticky top-0 z-20">
+                <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/" className="text-gray-500 hover:text-gray-700">
+                        <Link href="/" className="text-gray-400 hover:text-gray-600 transition-colors">
                             <ChevronLeft size={24} />
                         </Link>
                         <h1 className="text-xl font-bold text-gray-800">Meus Orçamentos</h1>
@@ -113,7 +116,7 @@ export default function MyBudgetsPage() {
                     <div className="flex items-center gap-3">
                         <Link
                             href="/orcamento/novo"
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
+                            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-lg active:scale-95"
                         >
                             + Novo
                         </Link>
@@ -122,25 +125,20 @@ export default function MyBudgetsPage() {
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto px-4 py-6">
+            <main className="flex-1 max-w-md mx-auto px-4 py-6 w-full">
 
-                {/* Mini Dashboard v1.1.0 */}
-                {/* Mini Dashboard v1.1.0 - Simplified */}
+                {/* Mini Dashboard Brand Evolution */}
                 {budgets.length > 0 && (
-                    <div className="flex overflow-x-auto gap-4 mb-6 pb-2 scrollbar-hide">
-                        <div className="bg-white p-3 pr-8 rounded-xl shadow-sm border border-gray-100 min-w-max">
-                            <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total</h3>
-                            <p className="text-xl font-bold text-gray-900">{budgets.length} <span className="text-sm font-normal text-gray-400">orçamentos</span></p>
-                        </div>
-                        <div className="bg-white p-3 pr-8 rounded-xl shadow-sm border border-gray-100 min-w-max">
-                            <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Em Negociação</h3>
-                            <p className="text-xl font-bold text-blue-600">
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1">Em Negociação</h3>
+                            <p className="text-lg font-bold text-brand-primary">
                                 {formatCurrency(budgets.filter(b => b.status !== 'CONVERTED' && b.status !== 'EXPIRED').reduce((acc, curr) => acc + Number(curr.total_price), 0))}
                             </p>
                         </div>
-                        <div className="bg-white p-3 pr-8 rounded-xl shadow-sm border border-gray-100 min-w-max">
-                            <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Fechados</h3>
-                            <p className="text-xl font-bold text-green-600">
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1">Fechados</h3>
+                            <p className="text-lg font-bold text-emerald-600">
                                 {formatCurrency(budgets.filter(b => b.status === 'CONVERTED').reduce((acc, curr) => acc + Number(curr.total_price), 0))}
                             </p>
                         </div>
@@ -148,21 +146,23 @@ export default function MyBudgetsPage() {
                 )}
 
                 {budgets.length === 0 ? (
-                    <div className="text-center py-12">
-                        <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900">Nenhum orçamento encontrado</h3>
-                        <p className="text-gray-500 mt-2">Você ainda não criou nenhum orçamento.</p>
+                    <div className="text-center py-20">
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FileText size={40} className="text-gray-300" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800">Nenhum orçamento</h3>
+                        <p className="text-gray-500 mt-2 text-sm">Comece criando sua primeira <br />proposta profissional.</p>
                         <Link
                             href="/orcamento/novo"
-                            className="mt-6 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+                            className="mt-8 inline-block bg-brand-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-primary-hover transition-all shadow-xl active:scale-95"
                         >
-                            Criar Novo Orçamento
+                            Criar Agora
                         </Link>
                     </div>
                 ) : (
                     <div className="grid gap-4">
                         {budgets.map((budget) => (
-                            <div key={budget.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:shadow-md transition">
+                            <div key={budget.id} data-testid="budget-card" className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:shadow-md transition">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                         <Calendar size={14} />
@@ -185,7 +185,7 @@ export default function MyBudgetsPage() {
                                 <div className="flex gap-2 mt-2 sm:mt-0">
                                     <Link
                                         href={`/o/${budget.id}`}
-                                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg font-medium text-sm hover:bg-blue-100 transition"
+                                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-brand-primary-light text-brand-primary px-3 py-2 rounded-lg font-bold text-xs hover:bg-teal-100 transition shadow-sm"
                                     >
                                         <Eye size={16} /> Ver
                                     </Link>

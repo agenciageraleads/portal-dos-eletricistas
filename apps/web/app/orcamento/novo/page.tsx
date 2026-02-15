@@ -18,15 +18,15 @@ export default function BudgetTypeSelection() {
                     {/* Option 1: Full Budget */}
                     <Link
                         href="/orcamento?mode=full"
-                        className="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer flex flex-row md:flex-col items-center text-left md:text-center gap-4 min-h-[6.5rem] md:min-h-[12rem]"
+                        className="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-brand-primary hover:shadow-md transition-all cursor-pointer flex flex-row md:flex-col items-center text-left md:text-center gap-4 min-h-[6.5rem] md:min-h-[12rem]"
                     >
-                        <div className="w-12 h-12 md:w-14 md:h-14 bg-blue-50 text-blue-600 rounded-xl md:rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-primary-light text-brand-primary rounded-xl md:rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                             <PackagePlus className="w-6 h-6 md:w-7 md:h-7" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                                 <h2 className="text-base font-bold text-gray-900 leading-tight">Completo</h2>
-                                <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                <span className="text-brand-primary font-bold text-[10px] bg-brand-primary-light px-2 py-0.5 rounded-full whitespace-nowrap">
                                     Recomendado
                                 </span>
                             </div>
@@ -39,9 +39,9 @@ export default function BudgetTypeSelection() {
                     {/* Option 2: Labor Only */}
                     <Link
                         href="/orcamento?mode=labor"
-                        className="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-green-500 hover:shadow-md transition-all cursor-pointer flex flex-row md:flex-col items-center text-left md:text-center gap-4 min-h-[6.5rem] md:min-h-[12rem]"
+                        className="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-brand-success hover:shadow-md transition-all cursor-pointer flex flex-row md:flex-col items-center text-left md:text-center gap-4 min-h-[6.5rem] md:min-h-[12rem]"
                     >
-                        <div className="w-12 h-12 md:w-14 md:h-14 bg-green-50 text-green-600 rounded-xl md:rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-emerald-50 text-brand-success rounded-xl md:rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                             <HardHat className="w-6 h-6 md:w-7 md:h-7" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -55,9 +55,9 @@ export default function BudgetTypeSelection() {
                     {/* Option 3: Products Only */}
                     <Link
                         href="/catalogo?mode=product"
-                        className="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-purple-500 hover:shadow-md transition-all cursor-pointer flex flex-row md:flex-col items-center text-left md:text-center gap-4 min-h-[6.5rem] md:min-h-[12rem]"
+                        className="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-brand-accent hover:shadow-md transition-all cursor-pointer flex flex-row md:flex-col items-center text-left md:text-center gap-4 min-h-[6.5rem] md:min-h-[12rem]"
                     >
-                        <div className="w-12 h-12 md:w-14 md:h-14 bg-purple-50 text-purple-600 rounded-xl md:rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-accent-light text-brand-accent rounded-xl md:rounded-full flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                             <PackagePlus className="w-6 h-6 md:w-7 md:h-7" />
                         </div>
                         <div className="flex-1 min-w-0">

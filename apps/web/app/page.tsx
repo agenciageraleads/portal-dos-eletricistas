@@ -48,25 +48,25 @@ export default function Home() {
         {
             title: 'Novo Orçamento',
             description: 'Criar proposta',
-            icon: <FileText size={20} className="text-blue-600" />,
+            icon: <FileText size={20} className="text-brand-primary" />,
             href: '/orcamento/novo'
         },
         {
             title: 'Meus Orçamentos',
             description: 'Ver histórico',
-            icon: <ShoppingCart size={20} className="text-emerald-600" />,
+            icon: <ShoppingCart size={20} className="text-brand-success" />,
             href: '/orcamentos'
         },
         {
             title: 'Catálogo',
             description: 'Consultar preços',
-            icon: <PackageSearch size={20} className="text-cyan-600" />,
+            icon: <PackageSearch size={20} className="text-brand-accent" />,
             href: '/catalogo'
         },
         {
             title: 'Calculadoras',
             description: 'Ferramentas',
-            icon: <Calculator size={20} className="text-orange-600" />,
+            icon: <Calculator size={20} className="text-orange-500" />,
             href: '/ferramentas'
         }
     ];
@@ -135,12 +135,12 @@ export default function Home() {
             <header className="bg-white py-3 px-4 shadow-sm sticky top-0 z-20">
                 <div className="max-w-md mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 flex items-center justify-center text-blue-600">
+                        <div className="w-8 h-8 flex items-center justify-center text-brand-primary">
                             {/* Keep it simple or use the App Icon */}
                             <Zap size={28} fill="currentColor" />
                         </div>
-                        <span className="font-bold text-lg text-blue-900 tracking-tight">
-                            Portal<span className="text-blue-600">Elétricos</span>
+                        <span className="font-bold text-lg text-gray-900 tracking-tight">
+                            Portal<span className="text-brand-primary">Elétricos</span>
                         </span>
                     </div>
 
@@ -153,7 +153,7 @@ export default function Home() {
 
                         {/* Admin Panel Access */}
                         {user?.role === 'ADMIN' && (
-                            <Link href="/admin" className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="Painel Administrativo">
+                            <Link href="/admin" className="p-2 text-brand-primary hover:bg-brand-primary-light rounded-full transition-colors" title="Painel Administrativo">
                                 <ShieldCheck size={22} />
                             </Link>
                         )}
@@ -164,8 +164,8 @@ export default function Home() {
                 </div>
             </header>
 
-            {/* 2. BLUE BANNER (Greeting & Account Level) */}
-            <div className="bg-blue-600 text-white pt-6 pb-12 px-4 rounded-b-[2rem] shadow-md mb-[-2rem] relative z-0">
+            {/* 2. BRAND BANNER (Greeting & Account Level) */}
+            <div className="bg-brand-primary text-white pt-6 pb-12 px-4 rounded-b-[2rem] shadow-xl shadow-teal-900/10 mb-[-2rem] relative z-0">
                 <div className="max-w-md mx-auto">
                     {user ? (
                         <>
@@ -173,24 +173,24 @@ export default function Home() {
                                 Olá, {user.name.split(' ')[0]}
                             </h2>
                             <div className="flex items-center gap-2 opacity-90">
-                                <span className="text-sm font-medium bg-blue-700/50 px-2 py-0.5 rounded text-blue-100 border border-blue-500/30">
+                                <span className="text-sm font-medium bg-white/20 px-2 py-0.5 rounded text-white border border-white/30 backdrop-blur-sm">
                                     Conta Profissional
                                 </span>
                             </div>
                         </>
                     ) : (
                         <div className="text-center py-2">
-                            <h2 className="text-2xl font-bold mb-2">
+                            <h2 className="text-2xl font-bold mb-2 text-fluid-2xl">
                                 Bem-vindo ao Portal!
                             </h2>
-                            <p className="text-blue-100 text-sm mb-4">
+                            <p className="text-teal-50 text-sm mb-4">
                                 A ferramenta completa para eletricistas profissionais.
                             </p>
                             <div className="flex gap-3 justify-center">
-                                <Link href="/login" className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors shadow-sm border border-blue-500/30">
+                                <Link href="/login" className="bg-brand-primary-hover hover:bg-teal-700 text-white px-6 py-2 rounded-full font-semibold text-sm transition-all shadow-lg active:scale-95 border border-white/10">
                                     Entrar
                                 </Link>
-                                <Link href="/register" className="bg-white text-blue-600 px-6 py-2 rounded-full font-semibold text-sm hover:bg-gray-100 transition-colors shadow-sm">
+                                <Link href="/register" className="bg-white text-brand-primary px-6 py-2 rounded-full font-semibold text-sm hover:bg-gray-100 transition-all shadow-lg active:scale-95">
                                     Cadastrar Grátis
                                 </Link>
                             </div>
@@ -200,13 +200,8 @@ export default function Home() {
             </div>
 
             <main className="flex-1 max-w-md mx-auto px-4 w-full relative z-10">
-
-
-
-                {/* 4. CONTENT SECTIONS */}
-
                 {user && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden mb-6">
                         <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Trophy size={16} className="text-yellow-500" />
@@ -214,7 +209,7 @@ export default function Home() {
                             </div>
                             <button
                                 id="jornada-trigger"
-                                className="text-xs font-bold text-blue-600 hover:underline"
+                                className="text-xs font-bold text-brand-primary hover:underline"
                             >
                                 Ver detalhes
                             </button>
@@ -233,12 +228,12 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
-                                <div className="p-2 bg-white rounded-lg border border-blue-100">
-                                    <Trophy size={18} className="text-blue-600" />
+                            <div className="bg-brand-primary-light border border-teal-100 rounded-xl p-4 flex items-start gap-3">
+                                <div className="p-2 bg-white rounded-lg border border-teal-100 shadow-sm">
+                                    <Trophy size={18} className="text-brand-primary" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Próxima Missão</p>
+                                    <p className="text-xs font-bold text-brand-primary uppercase tracking-wide mb-1">Próxima Missão</p>
                                     {nextTask ? (
                                         <>
                                             <p className="font-semibold text-gray-800 text-sm">{nextTask.title}</p>
@@ -247,14 +242,14 @@ export default function Home() {
                                                 nextTask.action === '#install-trigger' ? (
                                                     <button
                                                         onClick={triggerInstall}
-                                                        className="mt-3 inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
+                                                        className="mt-3 inline-flex items-center text-sm font-bold text-brand-primary hover:underline"
                                                     >
                                                         Salvar na tela inicial <ChevronRight size={16} />
                                                     </button>
                                                 ) : (
                                                     <Link
                                                         href={nextTask.action}
-                                                        className="mt-3 inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
+                                                        className="mt-3 inline-flex items-center text-sm font-bold text-brand-primary hover:underline"
                                                     >
                                                         Vamos lá <ChevronRight size={16} />
                                                     </Link>

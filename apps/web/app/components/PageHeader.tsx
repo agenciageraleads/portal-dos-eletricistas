@@ -34,8 +34,8 @@ export default function PageHeader({
                     </button>
                 )}
 
-                <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    {icon && <span className="text-blue-600">{icon}</span>}
+                <h1 className="text-xl font-black text-gray-800 flex items-center gap-3 tracking-tight">
+                    {icon && <span className="text-brand-primary">{icon}</span>}
                     {title}
                 </h1>
             </div>

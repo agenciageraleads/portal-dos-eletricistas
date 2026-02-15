@@ -7,11 +7,11 @@ import { test as base } from '@playwright/test';
 
 export const testUser = {
     // Usuário principal para testes
-    email: 'teste.e2e@portaleletricos.com.br',
-    cpf: '12345678900', // CPF de teste (sem formatação)
-    cpfFormatted: '123.456.789-00',
-    password: 'Teste@E2E123',
-    name: 'Usuário de Teste E2E',
+    email: 'lucasborgessb@gmail.com',
+    cpf: '74881360124', // CPF de teste (sem formatação)
+    cpfFormatted: '748.813.601-24',
+    password: 'Lucas2311#',
+    name: 'Lucas Borges',
     phone: '11999999999',
     phoneFormatted: '(11) 99999-9999',
 };

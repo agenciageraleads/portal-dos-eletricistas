@@ -2,12 +2,12 @@
 
 export default function OfflinePage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-700 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-brand-primary via-brand-accent to-blue-700 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full text-center">
                 <div className="mb-6">
-                    <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-24 h-24 bg-brand-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg
-                            className="w-12 h-12 text-purple-600"
+                            className="w-12 h-12 text-brand-primary"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -30,7 +30,7 @@ export default function OfflinePage() {
 
                 <button
                     onClick={() => window.location.reload()}
-                    className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                    className="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-primary-hover hover:to-brand-accent text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl"
                 >
                     Tentar Novamente
                 </button>

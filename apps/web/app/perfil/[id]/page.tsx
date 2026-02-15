@@ -76,8 +76,11 @@ export default function PublicProfilePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 uppercase tracking-[0.2em] font-bold text-[10px] text-gray-400">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-primary border-t-transparent"></div>
+                    Carregando Perfil
+                </div>
             </div>
         );
     }
@@ -86,15 +89,15 @@ export default function PublicProfilePage() {
     if (!profile) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-                <div className="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                <div className="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-primary to-brand-accent"></div>
 
                     <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300 relative">
                         <UserIcon size={48} />
-                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 rounded-full border-4 border-white"></div>
+                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 rounded-full border-4 border-white shadow-sm"></div>
                     </div>
 
-                    <h2 className="text-xl font-black text-gray-800 mb-2">Perfil em Construção</h2>
+                    <h2 className="text-2xl font-black text-gray-800 mb-2 tracking-tight">Canteiro de Obras</h2>
                     <p className="text-gray-500 text-sm leading-relaxed mb-8">
                         Este profissional ainda está preparando o perfil, mas já faz parte da nossa comunidade.
                     </p>
@@ -102,21 +105,21 @@ export default function PublicProfilePage() {
                     <div className="space-y-3">
                         <Link
                             href="/services"
-                            className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-200"
+                            className="block w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-bold py-4 rounded-xl transition-all shadow-xl shadow-teal-900/10 active:scale-95"
                         >
-                            Criar Pedido de Orçamento
+                            Ver Mural de Pedidos
                         </Link>
                         <button
                             onClick={() => router.back()}
-                            className="block w-full bg-white border-2 border-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+                            className="block w-full bg-gray-50 text-gray-400 font-bold py-4 rounded-xl hover:bg-gray-100 transition-all active:scale-95"
                         >
                             Voltar
                         </button>
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-100">
-                        <p className="text-xs text-center text-gray-400 font-medium">
-                            Portal do Eletricista © {new Date().getFullYear()}
+                        <p className="text-[10px] text-center text-gray-300 font-bold uppercase tracking-widest">
+                            Portal do Eletricista • {new Date().getFullYear()}
                         </p>
                     </div>
                 </div>
@@ -129,10 +132,11 @@ export default function PublicProfilePage() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
             {/* Cover / Header */}
-            <div className="bg-blue-600 h-32 relative">
+            <div className="bg-brand-primary h-40 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
                 <button
                     onClick={() => router.back()}
-                    className="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors"
+                    className="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all active:scale-90 z-10"
                 >
                     <ArrowLeft size={24} />
                 </button>
@@ -140,59 +144,59 @@ export default function PublicProfilePage() {
 
             {/* Profile Info Card */}
             <div className="px-4 -mt-16 flex-1 max-w-2xl mx-auto w-full">
-                <div className="bg-white rounded-2xl shadow-xl p-6 relative">
+                <div className="bg-white rounded-3xl shadow-2xl p-6 relative border border-white/50 backdrop-blur-xl">
                     {/* Photo */}
-                    <div className="absolute -top-12 left-6">
-                        <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-lg border-4 border-white overflow-hidden">
+                    <div className="absolute -top-16 left-6">
+                        <div className="w-32 h-32 rounded-[2rem] bg-white p-1 shadow-2xl border-4 border-white overflow-hidden transition-transform hover:scale-105">
                             {profile.logo_url ? (
                                 <img
                                     src={getImageUrl(profile.logo_url) || undefined}
                                     alt={profile.name}
-                                    className="w-full h-full object-cover rounded-xl"
+                                    className="w-full h-full object-cover rounded-[1.5rem]"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-600 rounded-xl">
-                                    <UserIcon size={40} />
+                                <div className="w-full h-full bg-brand-primary-light flex items-center justify-center text-brand-primary rounded-[1.5rem]">
+                                    <UserIcon size={48} />
                                 </div>
                             )}
                         </div>
                     </div>
 
                     {/* Basic Info */}
-                    <div className="mt-12">
+                    <div className="mt-16">
                         <div className="flex justify-between items-start">
-                            <div>
-                                <h1 className="text-2xl font-black text-gray-900 leading-tight">
+                            <div className="flex-1">
+                                <h1 className="text-3xl font-black text-gray-900 leading-tight tracking-tight">
                                     {profile.business_name || profile.name}
                                 </h1>
                                 {profile.business_name && (
-                                    <p className="text-sm text-gray-500 font-medium">{profile.name}</p>
+                                    <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">{profile.name}</p>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-col items-end gap-2">
                                 {profile.is_ambassador && (
-                                    <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                                    <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200">
                                         Embaixador
                                     </div>
                                 )}
                                 {profile.cadastro_finalizado && (
-                                    <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1">
+                                    <div className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-emerald-200">
                                         <ShieldCheck size={12} /> Verificado
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+                        <div className="flex flex-wrap gap-4 mt-6 text-sm">
                             {profile.city && (
-                                <span className="flex items-center gap-1 font-bold">
-                                    <MapPin size={16} className="text-blue-500" />
+                                <span className="flex items-center gap-1.5 font-bold text-gray-600">
+                                    <MapPin size={18} className="text-brand-primary" />
                                     {profile.city}/{profile.state}
                                 </span>
                             )}
-                            <span className="flex items-center gap-1 font-bold">
-                                <Calendar size={16} className="text-blue-500" />
-                                No Portal desde {new Date(profile.createdAt).getFullYear()}
+                            <span className="flex items-center gap-1.5 font-bold text-gray-600">
+                                <Calendar size={18} className="text-brand-primary" />
+                                Ativo desde {new Date(profile.createdAt).getFullYear()}
                             </span>
                         </div>
                     </div>

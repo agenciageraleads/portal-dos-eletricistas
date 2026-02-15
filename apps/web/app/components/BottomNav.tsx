@@ -61,12 +61,13 @@ export default function BottomNav() {
 
                     if (isSpecial) {
                         return (
-                            <div key={index} className="relative -top-5">
+                            <div key={index} className="relative -top-6">
                                 <Link
                                     href={item.href}
-                                    className="flex flex-col items-center justify-center w-16 h-16 bg-blue-600 rounded-full shadow-lg border-4 border-gray-50 text-white transform hover:scale-105 transition-transform"
+                                    className="flex flex-col items-center justify-center w-16 h-16 bg-brand-primary rounded-[1.5rem] shadow-xl shadow-teal-900/20 border-4 border-white text-white transform hover:scale-110 active:scale-90 transition-all group"
                                 >
-                                    <Zap size={28} fill="currentColor" />
+                                    <div className="absolute inset-0 bg-white/10 rounded-[1.5rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <Zap size={28} fill="currentColor" className="relative" />
                                 </Link>
                             </div>
                         );
@@ -77,12 +78,12 @@ export default function BottomNav() {
                             key={index}
                             href={item.href}
                             className={`
-                                flex flex-col items-center justify-center py-2 px-1 w-16 flex-1
-                                ${item.isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}
+                                flex flex-col items-center justify-center py-3 px-1 w-16 flex-1 transition-all active:scale-90
+                                ${item.isActive ? 'text-brand-primary' : 'text-gray-400 hover:text-gray-600'}
                             `}
                         >
-                            <Icon size={24} strokeWidth={item.isActive ? 2.5 : 2} />
-                            <span className="text-[10px] font-medium mt-1">
+                            <Icon size={24} strokeWidth={item.isActive ? 3 : 2} className={item.isActive ? 'scale-110 transition-transform' : ''} />
+                            <span className={`text-[9px] font-bold mt-1 uppercase tracking-wider ${item.isActive ? 'opacity-100' : 'opacity-60'}`}>
                                 {item.label}
                             </span>
                         </Link>

@@ -1,96 +1,176 @@
 ---
-description: Workflow para deploy em VPS (Docker/Portainer)
+description: Deployment command for production releases. Pre-flight checks and deployment execution.
 ---
 
-# Workflow de Deploy - Portal dos Eletricistas (VPS)
+# /deploy - Production Deployment
 
-## 🚨 REGRA DE OURO
-
-**NUNCA fazer push direto na `main` sem validação prévia na `dev`.**
-
-- 🟠 **Branch `dev`**: Ambiente de Staging (Testes/Homologação).
-- 🟢 **Branch `main`**: Ambiente de Produção (Oficial/Clientes).
+$ARGUMENTS
 
 ---
 
-## 📋 Fluxo de Desenvolvimento
+## Purpose
 
-### 1. Desenvolvimento Local
+This command handles production deployment with pre-flight checks, deployment execution, and verification.
 
-```bash
-git checkout -b dev
-# ... código ...
-git add .
-git commit -m "feat: nova funcionalidade"
+---
+
+## Sub-commands
+
 ```
-
-### 2. Testar Localmente
-
-```bash
-npm run build
+/deploy            - Interactive deployment wizard
+/deploy check      - Run pre-deployment checks only
+/deploy preview    - Deploy to preview/staging
+/deploy production - Deploy to production
+/deploy rollback   - Rollback to previous version
 ```
 
 ---
 
-## 🚀 Deploy para Staging (Dev)
+## Pre-Deployment Checklist
 
-Objetivo: Validar funcionalidades novas em um ambiente idêntico ao de produção.
+Before any deployment:
 
-1. **Push para Dev:**
+```markdown
+## 🚀 Pre-Deploy Checklist
 
-    ```bash
-    git push origin dev
-    ```
+### Code Quality
+- [ ] No TypeScript errors (`npx tsc --noEmit`)
+- [ ] ESLint passing (`npx eslint .`)
+- [ ] All tests passing (`npm test`)
 
-2. **Build & Update (VPS):**
-    - O Portainer (ou CI/CD) deve puxar a imagem/código da branch `dev`.
-    - Ou manualmente: Pull da branch `dev` e rebuild dos containers de staging.
+### Security
+- [ ] No hardcoded secrets
+- [ ] Environment variables documented
+- [ ] Dependencies audited (`npm audit`)
 
----
+### Performance
+- [ ] Bundle size acceptable
+- [ ] No console.log statements
+- [ ] Images optimized
 
-## 🚀 Deploy para Produção (Main)
+### Documentation
+- [ ] README updated
+- [ ] CHANGELOG updated
+- [ ] API docs current
 
-Objetivo: Lançar versão estável para os clientes.
-
-### Passo 1: Merge Dev -> Main
-
-Só faça isso após validar que tudo funciona em Staging.
-
-```bash
-git checkout main
-git pull origin main
-git merge dev
-git push origin main
-```
-
-### Passo 2: Atualizar VPS (Produção)
-
-1. Acessar Portainer ou Terminal da VPS.
-2. Puxar nova imagem Docker (tag `latest` ou versão específica).
-3. Recriar containers.
-
----
-
-## 📦 Versionamento (Tags)
-
-Sempre crie uma tag ao lançar em produção:
-
-```bash
-git tag v1.5.0
-git push origin v1.5.0
+### Ready to deploy? (y/n)
 ```
 
 ---
 
-## 🔄 Rollback
+## Deployment Flow
 
-Se produção quebrar:
+```
+┌─────────────────┐
+│  /deploy        │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Pre-flight     │
+│  checks         │
+└────────┬────────┘
+         │
+    Pass? ──No──► Fix issues
+         │
+        Yes
+         │
+         ▼
+┌─────────────────┐
+│  Build          │
+│  application    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Deploy to      │
+│  platform       │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Health check   │
+│  & verify       │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  ✅ Complete    │
+└─────────────────┘
+```
 
-```bash
-# Voltar código
-git revert HEAD
-git push origin main
+---
 
-# No Portainer:
-# Redeploy usando a imagem da versão anterior (ex: v1.4.0)
+## Output Format
+
+### Successful Deploy
+
+```markdown
+## 🚀 Deployment Complete
+
+### Summary
+- **Version:** v1.2.3
+- **Environment:** production
+- **Duration:** 47 seconds
+- **Platform:** Vercel
+
+### URLs
+- 🌐 Production: https://app.example.com
+- 📊 Dashboard: https://vercel.com/project
+
+### What Changed
+- Added user profile feature
+- Fixed login bug
+- Updated dependencies
+
+### Health Check
+✅ API responding (200 OK)
+✅ Database connected
+✅ All services healthy
+```
+
+### Failed Deploy
+
+```markdown
+## ❌ Deployment Failed
+
+### Error
+Build failed at step: TypeScript compilation
+
+### Details
+```
+error TS2345: Argument of type 'string' is not assignable...
+```
+
+### Resolution
+1. Fix TypeScript error in `src/services/user.ts:45`
+2. Run `npm run build` locally to verify
+3. Try `/deploy` again
+
+### Rollback Available
+Previous version (v1.2.2) is still active.
+Run `/deploy rollback` if needed.
+```
+
+---
+
+## Platform Support
+
+| Platform | Command | Notes |
+|----------|---------|-------|
+| Vercel | `vercel --prod` | Auto-detected for Next.js |
+| Railway | `railway up` | Needs Railway CLI |
+| Fly.io | `fly deploy` | Needs flyctl |
+| Docker | `docker compose up -d` | For self-hosted |
+
+---
+
+## Examples
+
+```
+/deploy
+/deploy check
+/deploy preview
+/deploy production --skip-tests
+/deploy rollback
 ```

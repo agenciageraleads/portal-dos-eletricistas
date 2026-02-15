@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
     },
     brandBar: {
         height: 6,
-        backgroundColor: '#1D4ED8',
+        backgroundColor: '#0D9488',
         borderRadius: 4,
         marginBottom: 10,
     },
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     logoText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1D4ED8',
+        color: '#0D9488',
         marginBottom: 5,
     },
     companyDetails: {
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     grandTotal: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#1D4ED8',
+        color: '#0D9488',
         marginTop: 2,
     },
     footer: {
@@ -325,7 +325,7 @@ export const BudgetPdf = ({ budget }: BudgetPdfProps) => {
                         return (
                             <>
                                 {hasConditions && (
-                                    <View style={{ marginBottom: 10, padding: 5, backgroundColor: '#F9FAFB', borderRadius: 4, borderLeftWidth: 2, borderLeftColor: '#2563EB' }}>
+                                    <View style={{ marginBottom: 10, padding: 5, backgroundColor: '#F9FAFB', borderRadius: 4, borderLeftWidth: 2, borderLeftColor: '#0D9488' }}>
                                         <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#111827', marginBottom: 4, borderBottomWidth: 1, borderBottomColor: '#E5E7EB', paddingBottom: 2 }}>
                                             CONDIÇÕES COMERCIAIS
                                         </Text>

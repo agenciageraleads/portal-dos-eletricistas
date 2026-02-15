@@ -32,10 +32,6 @@ export class SankhyaImageService {
         }
     }
 
-    /**
-     * Baixa a imagem de um produto usando o endpoint oficial .dbimage
-     * Documentação: https://ajuda.sankhya.com.br/hc/pt-br/articles/36396748479383
-     */
     async downloadProductImage(codprod: number): Promise<Buffer | null> {
         try {
             // Autenticar primeiro (se sankhyaClient estiver disponível)
@@ -89,6 +85,40 @@ export class SankhyaImageService {
             this.logger.error(`Erro ao baixar imagem do produto ${codprod}`, error.message);
             return null;
         }
+    }
+
+    /**
+     * Baixa qualquer imagem de uma URL externa para um Buffer
+     */
+    async downloadExternalImage(url: string): Promise<Buffer | null> {
+        try {
+            this.logger.debug(`Baixando imagem externa: ${url}`);
+            const response = await axios.get(url, {
+                responseType: 'arraybuffer',
+                timeout: 30000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            });
+
+            const contentType = response.headers['content-type'];
+            if (response.data && response.data.byteLength > 0 && contentType?.includes('image')) {
+                return Buffer.from(response.data);
+            }
+            return null;
+        } catch (error) {
+            this.logger.error(`Erro ao baixar imagem externa de ${url}`, error.message);
+            return null;
+        }
+    }
+
+    /**
+     * Baixa uma imagem externa e salva para o produto especificado
+     */
+    async saveExternalImageForProduct(codprod: number, url: string): Promise<string | null> {
+        const buffer = await this.downloadExternalImage(url);
+        if (!buffer) return null;
+        return this.saveProductImage(codprod, buffer);
     }
 
     /**

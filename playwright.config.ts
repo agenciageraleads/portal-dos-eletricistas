@@ -33,7 +33,7 @@ export default defineConfig({
     // Configurações compartilhadas entre todos os testes
     use: {
         // URL base para os testes
-        baseURL: process.env.TEST_URL || 'https://beta.portaleletricos.com.br',
+        baseURL: process.env.TEST_URL || 'http://localhost:3042',
 
         // Capturar screenshot apenas em falhas
         screenshot: 'only-on-failure',
@@ -85,10 +85,11 @@ export default defineConfig({
         },
     ],
 
-    // Servidor web local (opcional - para testes locais)
-    // webServer: {
-    //   command: 'npm run dev',
-    //   url: 'http://localhost:3000',
-    //   reuseExistingServer: !process.env.CI,
-    // },
+    // Servidor web local
+    webServer: {
+        command: 'npm run dev',
+        url: 'http://localhost:3042',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+    },
 });

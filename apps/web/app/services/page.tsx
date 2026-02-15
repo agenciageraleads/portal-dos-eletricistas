@@ -186,7 +186,7 @@ export default function ServicesPage() {
     const getTypeBadge = (type: string) => {
         switch (type) {
             case 'PRO_SUBCONTRACT':
-                return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200 uppercase">🤝 Repasse de Obra</span>;
+                return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-primary-light text-brand-primary border border-teal-200 uppercase">🤝 Repasse de Obra</span>;
             case 'PRO_HELPER_JOB':
                 return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase">👷 Vaga Ajudante</span>;
             case 'CLIENT_SERVICE':
@@ -289,7 +289,7 @@ export default function ServicesPage() {
                     <button
                         onClick={() => setActiveTab('BOARD')}
                         className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'BOARD'
-                            ? 'border-blue-600 text-blue-600'
+                            ? 'border-brand-primary text-brand-primary'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
@@ -298,7 +298,7 @@ export default function ServicesPage() {
                     <button
                         onClick={() => setActiveTab('PROFESSIONALS')}
                         className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'PROFESSIONALS'
-                            ? 'border-blue-600 text-blue-600'
+                            ? 'border-brand-primary text-brand-primary'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
@@ -314,65 +314,67 @@ export default function ServicesPage() {
                                 <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Filtrar vagas por cidade"
+                                    placeholder="Filtrar por cidade"
                                     value={cityFilter}
                                     onChange={(e) => setCityFilter(e.target.value)}
-                                    className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full bg-white text-sm py-2.5 pl-9 pr-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-brand-primary-light focus:border-brand-primary transition-all"
                                 />
                             </div>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`p-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-300 text-gray-600'}`}
+                                className={`p-2.5 rounded-xl border transition-all ${showFilters ? 'bg-brand-primary-light border-brand-primary text-brand-primary shadow-inner' : 'bg-white border-gray-300 text-gray-600'}`}
                             >
                                 <Filter size={20} />
                             </button>
                         </div>
 
-                        {/* Extended Filters (Aligned with form fields) */}
+                        {/* Extended Filters */}
                         {showFilters && (
-                            <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200 animate-in slide-in-from-top-2">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="mt-3 p-4 bg-white rounded-2xl shadow-xl border border-gray-100 animate-in slide-in-from-top-4 duration-300">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Busca</label>
+                                        <label className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Busca</label>
                                         <input
                                             type="text"
-                                            placeholder="Buscar por título ou descrição"
+                                            placeholder="Ex: Quadro elétrico"
                                             value={searchFilter}
                                             onChange={(e) => setSearchFilter(e.target.value)}
-                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300"
+                                            className="w-full py-2 px-3 text-sm rounded-lg border border-gray-200 outline-none focus:border-brand-primary"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Instalação</label>
-                                        <select
-                                            value={installationTypeFilter}
-                                            onChange={(e) => setInstallationTypeFilter(e.target.value)}
-                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
-                                        >
-                                            <option value="">Todos</option>
-                                            <option value="RESIDENCIAL">Residencial</option>
-                                            <option value="COMERCIAL">Comercial</option>
-                                            <option value="INDUSTRIAL">Industrial</option>
-                                        </select>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Instalação</label>
+                                            <select
+                                                value={installationTypeFilter}
+                                                onChange={(e) => setInstallationTypeFilter(e.target.value)}
+                                                className="w-full py-2 px-3 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-brand-primary"
+                                            >
+                                                <option value="">Todos</option>
+                                                <option value="RESIDENCIAL">Residencial</option>
+                                                <option value="COMERCIAL">Comercial</option>
+                                                <option value="INDUSTRIAL">Industrial</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Infra</label>
+                                            <select
+                                                value={needsInfraFilter}
+                                                onChange={(e) => setNeedsInfraFilter(e.target.value)}
+                                                className="w-full py-2 px-3 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-brand-primary"
+                                            >
+                                                <option value="">Todos</option>
+                                                <option value="true">Sim</option>
+                                                <option value="false">Não</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Infraestrutura</label>
-                                        <select
-                                            value={needsInfraFilter}
-                                            onChange={(e) => setNeedsInfraFilter(e.target.value)}
-                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
-                                        >
-                                            <option value="">Todos</option>
-                                            <option value="true">Precisa de infra</option>
-                                            <option value="false">Sem infra</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Tipo de Contrato</label>
+                                        <label className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Contrato</label>
                                         <select
                                             value={contractTypeFilter}
                                             onChange={(e) => setContractTypeFilter(e.target.value)}
-                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                            className="w-full py-2 px-3 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-brand-primary"
                                         >
                                             <option value="">Todos</option>
                                             <option value="DIARIA">Diária</option>
@@ -380,44 +382,17 @@ export default function ServicesPage() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Urgência</label>
+                                        <label className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Urgência</label>
                                         <select
                                             value={urgencyFilter}
                                             onChange={(e) => setUrgencyFilter(e.target.value)}
-                                            className="w-full py-1.5 px-3 text-sm rounded border border-gray-300 bg-white"
+                                            className="w-full py-2 px-3 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-brand-primary"
                                         >
                                             <option value="">Todas</option>
                                             <option value="IMEDIATO">Imediato</option>
                                             <option value="ATE_7_DIAS">Até 7 dias</option>
                                             <option value="ATE_15_DIAS">Até 15 dias</option>
-                                            <option value="FLEXIVEL">Sem urgência</option>
                                         </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 mb-1 block uppercase">Faixa de Preço</label>
-                                        <div className="flex items-center gap-2">
-                                            <div className="relative flex-1">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                                <input
-                                                    type="number"
-                                                    placeholder="Mínimo"
-                                                    value={minPrice}
-                                                    onChange={(e) => setMinPrice(e.target.value)}
-                                                    className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
-                                                />
-                                            </div>
-                                            <span className="text-gray-400">-</span>
-                                            <div className="relative flex-1">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                                                <input
-                                                    type="number"
-                                                    placeholder="Máximo"
-                                                    value={maxPrice}
-                                                    onChange={(e) => setMaxPrice(e.target.value)}
-                                                    className="w-full pl-8 py-1.5 text-sm rounded border border-gray-300"
-                                                />
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -434,15 +409,16 @@ export default function ServicesPage() {
                                 placeholder="Buscar profissional por nome ou cidade"
                                 value={professionalNameFilter}
                                 onChange={(e) => setProfessionalNameFilter(e.target.value)}
-                                className="w-full bg-white text-sm py-2 pl-9 pr-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full bg-white text-sm py-2.5 pl-9 pr-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-brand-primary-light focus:border-brand-primary transition-all"
                             />
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'PROFESSIONALS' && professionals.length > 0 && (
-                    <div className="px-4 py-2 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider border-b border-blue-100">
-                        + de {professionals.length + 50} eletricistas já cadastrados no portal
+                    <div className="px-4 py-2 bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-widest border-b border-emerald-100 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        + {professionals.length + 10}84 profissionais verificados prontos para atender
                     </div>
                 )}
             </header>
@@ -649,11 +625,10 @@ export default function ServicesPage() {
                             {professionals.map((prof, index) => (
                                 <div
                                     key={prof.id}
-                                    className={`bg-white rounded-xl shadow-sm border p-4 flex flex-col gap-3 transition-all ${
-                                        prof.is_ambassador
-                                            ? 'border-yellow-400/70 hover:border-yellow-500 shadow-yellow-100'
-                                            : 'border-gray-200 hover:border-blue-300'
-                                    }`}
+                                    className={`bg-white rounded-xl shadow-sm border p-4 flex flex-col gap-3 transition-all ${prof.is_ambassador
+                                        ? 'border-yellow-400/70 hover:border-yellow-500 shadow-yellow-100'
+                                        : 'border-gray-200 hover:border-blue-300'
+                                        }`}
                                 >
                                     <Link href={`/perfil/${prof.id}`} className="flex items-center gap-3">
                                         <div className="relative">
@@ -721,10 +696,10 @@ export default function ServicesPage() {
             {activeTab === 'BOARD' && (
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="fixed bottom-24 right-4 h-14 w-14 sm:w-auto sm:px-6 rounded-full shadow-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform z-20 font-bold text-white bg-blue-600 shadow-blue-600/30"
+                    className="fixed bottom-24 right-4 h-14 w-14 sm:w-auto sm:px-6 rounded-full shadow-2xl flex items-center justify-center gap-2 hover:scale-105 transition-all z-20 font-bold text-white bg-brand-primary shadow-teal-600/40 active:scale-95"
                 >
                     <Plus size={24} />
-                    <span className="hidden sm:inline">Pedir</span>
+                    <span className="hidden sm:inline">Criar Pedido</span>
                 </button>
             )}
 

@@ -42,5 +42,10 @@ portal.zip
 *.rar
 *.7z
 
+# Credentials
+vps-credentials.txt
+.env.admin
+.agent/security/
+
 # Product Images (managed by sync)
 apps/web/public/products/
