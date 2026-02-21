@@ -134,8 +134,8 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                                                 <label
                                                     key={opt.id}
                                                     className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${type === opt.id
-                                                            ? `bg-${opt.color}-light border-teal-500 shadow-sm`
-                                                            : 'bg-white border-gray-100 hover:border-gray-200'
+                                                        ? `bg-${opt.color}-light border-teal-500 shadow-sm`
+                                                        : 'bg-white border-gray-100 hover:border-gray-200'
                                                         }`}
                                                 >
                                                     <input
@@ -211,8 +211,8 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, needsInfra: val })}
                                                     className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${formData.needsInfra === val
-                                                            ? 'border-brand-primary bg-brand-primary-light text-brand-primary'
-                                                            : 'border-gray-100 text-gray-500 hover:border-gray-200'
+                                                        ? 'border-brand-primary bg-brand-primary-light text-brand-primary'
+                                                        : 'border-gray-100 text-gray-500 hover:border-gray-200'
                                                         }`}
                                                 >
                                                     {val === 'YES' ? 'Sim, precisa' : 'Não precisa'}
@@ -345,9 +345,5 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
                 </div>
             </div>
         </div>
-    );
-}
-
-        </div >
     );
 }
