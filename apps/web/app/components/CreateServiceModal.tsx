@@ -347,7 +347,7 @@ export default function CreateServiceModal({ onClose, onSuccess, initialType = '
         </div>
     );
 }
-            </div >
+
         </div >
     );
 }
