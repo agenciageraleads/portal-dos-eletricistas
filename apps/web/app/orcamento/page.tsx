@@ -98,6 +98,9 @@ function OrcamentoContent() {
     const [editId, setEditId] = useState('');
     const isSavingRef = useRef(false);
 
+    // Offline State
+    const [isOffline, setIsOffline] = useState(false);
+
     // Manual Item Form
     const [manualName, setManualName] = useState('');
     const [manualPrice, setManualPrice] = useState('');
@@ -200,7 +203,7 @@ function OrcamentoContent() {
             alert('Preencha o nome e o preço do item.');
             return;
         }
-        
+
         const price = parseFloat(manualPrice.replace(',', '.'));
         if (isNaN(price)) {
             alert('Preço inválido.');
@@ -283,6 +286,62 @@ function OrcamentoContent() {
     }, [clientQuery, clientMenuOpen]);
 
     const { showToast } = useToast();
+
+    // Offline listener and Sync
+    useEffect(() => {
+        setIsOffline(!navigator.onLine);
+
+        const handleOnline = () => {
+            setIsOffline(false);
+            syncOfflineBudgets();
+        };
+        const handleOffline = () => setIsOffline(true);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        // Tentativa de sincronização imediata
+        if (navigator.onLine) {
+            syncOfflineBudgets();
+        }
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    const syncOfflineBudgets = async () => {
+        const temp = localStorage.getItem('offline_budgets');
+        if (!temp) return;
+        const offlineBudgets = JSON.parse(temp);
+        if (offlineBudgets.length === 0) return;
+
+        let remaining = [];
+        let synchronized = 0;
+
+        for (const item of offlineBudgets) {
+            try {
+                // Tentaremos postar todos novamente. (Apenas criação original pra simplificar a lógica de Sync)
+                await api.post('/budgets', item.payload);
+                synchronized++;
+            } catch (error) {
+                console.error('Erro ao sincronizar orçamento', error);
+                remaining.push(item);
+            }
+        }
+
+        if (remaining.length > 0) {
+            localStorage.setItem('offline_budgets', JSON.stringify(remaining));
+        } else {
+            localStorage.removeItem('offline_budgets');
+        }
+
+        if (synchronized > 0) {
+            showToast(`${synchronized} orçamento(s) sincronizado(s) com sucesso!`, 'success');
+            refreshUser().catch(() => { });
+        }
+    };
 
     const handleFinish = async (type: 'DRAFT' | 'SHARED') => {
         if (loading || isSavingRef.current) return;
@@ -369,11 +428,43 @@ function OrcamentoContent() {
             }
         } catch (error: any) {
             console.error('Erro ao salvar orçamento:', error);
-            const errorMsg = error.response?.data?.message || 'Erro ao salvar orçamento. Tente novamente.';
-            showToast(errorMsg, 'error');
+            const isNetworkError =
+                !navigator.onLine ||
+                error?.code === 'ERR_NETWORK' ||
+                error?.message === 'Network Error' ||
+                !error.response;
 
-            // Backup save in case of error (already in effect via useEffect, but good to know)
-            alert(`Houve um erro: ${errorMsg}. Seus dados estão salvos localmente.`);
+            if (isNetworkError) {
+                // Save to offline queue
+                const offlineBudgets = JSON.parse(localStorage.getItem('offline_budgets') || '[]');
+                const tempId = `offline-${Date.now()}`;
+
+                offlineBudgets.push({
+                    tempId,
+                    payload,
+                    type,
+                    createdAt: new Date().toISOString()
+                });
+
+                localStorage.setItem('offline_budgets', JSON.stringify(offlineBudgets));
+
+                // Clear active draft safety and cart
+                localStorage.removeItem('budget_draft_backup');
+                clearCart();
+
+                showToast('Salvo no dispositivo! Será sincronizado assim que a rede voltar.', 'success');
+
+                if (type === 'SHARED') {
+                    showToast('O link será gerado assim que o sinal de internet voltar.', 'warning');
+                } else {
+                    router.push('/orcamentos');
+                }
+            } else {
+                const errorMsg = error.response?.data?.message || 'Erro ao salvar orçamento. Tente novamente.';
+                showToast(errorMsg, 'error');
+                // Backup save in case of error (already in effect via useEffect)
+                alert(`Houve um erro: ${errorMsg}. Seus dados estão salvos localmente.`);
+            }
         } finally {
             setLoading(false);
             isSavingRef.current = false;
@@ -399,6 +490,12 @@ function OrcamentoContent() {
                     </h1>
                     <div className="w-10"></div>
                 </header>
+
+                {isOffline && (
+                    <div className="bg-orange-500 text-white text-xs text-center py-2 font-bold px-4 flex items-center justify-center gap-2">
+                        <Loader2 className="animate-spin w-4 h-4" /> Sem sinal. Alterações serão salvas e enviadas automaticamente.
+                    </div>
+                )}
 
                 <div className="max-w-3xl mx-auto p-4 space-y-6 mt-4">
 

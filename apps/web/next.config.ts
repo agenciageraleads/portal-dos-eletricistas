@@ -10,6 +10,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
     {
       urlPattern: /\/api\/.*/i,
       handler: "NetworkFirst",
+      method: "GET",
       options: {
         cacheName: "api-cache",
         networkTimeoutSeconds: 2,

@@ -185,27 +185,27 @@ When auto-applying an agent, inform the user:
 
 ## 📁 QUICK REFERENCE (Workflows)
 
-- `/brainstorm`: Structured brainstorming for projects and features.
-- `/create`: Create new application command.
-- `/debug`: Debugging command.
-- `/deploy`: Deployment command.
-- `/enhance`: Add or update features.
-- `/orchestrate`: Coordinate multiple agents.
-- `/plan`: Create project plan.
-- `/preview`: Preview server start/stop.
-- `/status`: Display agent and project status.
-- `/test`: Test generation and running.
-- `/checklist`: Run priority-based project audit.
-- `/verify`: Full pre-deployment verification suite.
-- `/audit-ui`: UX, Accessibility, and React performance audit.
-- `/geo`: AI Optimization (Generative Engine Optimization).
-- `/security`: Deep security and vulnerability scan.
-- `/mobile`: Mobile experience and PWA audit.
-- `/seo`: Google search optimization audit.
-- `/api`: API standard and structure validation.
-- `/i18n`: Localization and hardcoded string scan.
-- `/seed`: Populate local database with dev data.
+- `/api`: API design and consistency validation (REST/NestJS).
+- `/audit-ui`: Comprehensive UI/UX audit including accessibility and React performance.
+- `/brainstorm`: Structured brainstorming for projects and features. Explores multiple options before implementation.
+- `/checklist`: Run Antigravity Kit validation checklist. Priority-based project audit.
+- `/create`: Create new application command. Triggers App Builder skill and starts interactive dialogue with user.
+- `/debug`: Debugging command. Activates DEBUG mode for systematic problem investigation.
+- `/deploy`: Deployment command for production releases. Pre-flight checks and deployment execution.
+- `/enhance`: Add or update features in existing application. Used for iterative development.
+- `/geo`: Generative Engine Optimization. Optimize for AI search/answers.
+- `/i18n`: Localization and internationalization scanner.
+- `/mobile`: Mobile UX and performance audit. PWA readiness.
+- `/orchestrate`: Coordinate multiple agents for complex tasks. Use for multi-perspective analysis, comprehensive reviews, or tasks requiring different domain expertise.
+- `/plan`: Create project plan using project-planner agent. No code writing - only plan file generation.
+- `/preview`: Preview server start, stop, and status check. Local development server management.
+- `/security`: Deep security audit. Vulnerabilities, secrets, and OWASP compliance.
+- `/seed`: Seed local database with real development data.
+- `/seo`: Search Engine Optimization fundamentals and E-E-A-T audit.
+- `/status`: Display agent and project status. Progress tracking and status board.
+- `/test`: Test generation and test running command. Creates and executes tests for code.
 - `/ui-ux-pro-max`: Plan and implement UI.
+- `/verify`: Full project verification suite. Pre-deployment final check.
 
 ---
 
@@ -226,3 +226,44 @@ When auto-applying an agent, inform the user:
 
 - **Completion:** A task is NOT finished until `checklist.py` returns success.
 - **Reporting:** If it fails, fix the **Critical** blockers first (Security/Lint).
+
+---
+
+## 🛠️ Available Skills
+
+- **api-patterns**: API design principles and decision-making. REST vs GraphQL vs tRPC selection, response formats, versioning, pagination.
+- **app-builder**: Main application building orchestrator. Creates full-stack applications from natural language requests. Determines project type, selects tech stack, coordinates agents.
+- **architecture**: Architectural decision-making framework. Requirements analysis, trade-off evaluation, ADR documentation. Use when making architecture decisions or analyzing system design.
+- **bash-linux**: Bash/Linux terminal patterns. Critical commands, piping, error handling, scripting. Use when working on macOS or Linux systems.
+- **behavioral-modes**: AI operational modes (brainstorm, implement, debug, review, teach, ship, orchestrate). Use to adapt behavior based on task type.
+- **brainstorming**: Socratic questioning protocol + user communication. MANDATORY for complex requests, new features, or unclear requirements. Includes progress reporting and error handling.
+- **clean-code**: Pragmatic coding standards - concise, direct, no over-engineering, no unnecessary comments.
+- **code-review-checklist**: Code review guidelines covering code quality, security, and best practices.
+- **database-design**: Database design principles and decision-making. Schema design, indexing strategy, ORM selection, serverless databases.
+- **deployment-procedures**: Production deployment principles and decision-making. Safe deployment workflows, rollback strategies, and verification. Teaches thinking, not scripts.
+- **documentation-templates**: Documentation templates and structure guidelines. README, API docs, code comments, and AI-friendly documentation.
+- **frontend-design**: Design thinking and decision-making for web UI. Use when designing components, layouts, color schemes, typography, or creating aesthetic interfaces. Teaches principles, not fixed values.
+- **game-development**: Game development orchestrator. Routes to platform-specific skills based on project needs.
+- **geo-fundamentals**: Generative Engine Optimization for AI search engines (ChatGPT, Claude, Perplexity).
+- **i18n-localization**: Internationalization and localization patterns. Detecting hardcoded strings, managing translations, locale files, RTL support.
+- **intelligent-routing**: Automatic agent selection and intelligent task routing. Analyzes user requests and automatically selects the best specialist agent(s) without requiring explicit user mentions.
+- **mcp-builder**: MCP (Model Context Protocol) server building principles. Tool design, resource patterns, best practices.
+- **mobile-design**: Mobile-first design thinking and decision-making for iOS and Android apps. Touch interaction, performance patterns, platform conventions. Teaches principles, not fixed values. Use when building React Native, Flutter, or native mobile apps.
+- **nodejs-best-practices**: Node.js development principles and decision-making. Framework selection, async patterns, security, and architecture. Teaches thinking, not copying.
+- **parallel-agents**: Multi-agent orchestration patterns. Use when multiple independent tasks can run with different domain expertise or when comprehensive analysis requires multiple perspectives.
+- **performance-profiling**: Performance profiling principles. Measurement, analysis, and optimization techniques.
+- **plan-writing**: Structured task planning with clear breakdowns, dependencies, and verification criteria. Use when implementing features, refactoring, or any multi-step work.
+- **powershell-windows**: PowerShell Windows patterns. Critical pitfalls, operator syntax, error handling.
+- **python-patterns**: Python development principles and decision-making. Framework selection, async patterns, type hints, project structure. Teaches thinking, not copying.
+- **react-best-practices**: React and Next.js performance optimization from Vercel Engineering. Use when building React components, optimizing performance, eliminating waterfalls, reducing bundle size, reviewing code for performance issues, or implementing server/client-side optimizations.
+- **red-team-tactics**: Red team tactics principles based on MITRE ATT&CK. Attack phases, detection evasion, reporting.
+- **rust-pro**: Master Rust 1.75+ with modern async patterns, advanced type system features, and production-ready systems programming. Expert in the latest Rust ecosystem including Tokio, axum, and cutting-edge crates. Use PROACTIVELY for Rust development, performance optimization, or systems programming.
+- **seo-fundamentals**: SEO fundamentals, E-E-A-T, Core Web Vitals, and Google algorithm principles.
+- **server-management**: Server management principles and decision-making. Process management, monitoring strategy, and scaling decisions. Teaches thinking, not commands.
+- **systematic-debugging**: 4-phase systematic debugging methodology with root cause analysis and evidence-based verification. Use when debugging complex issues.
+- **tailwind-patterns**: Tailwind CSS v4 principles. CSS-first configuration, container queries, modern patterns, design token architecture.
+- **tdd-workflow**: Test-Driven Development workflow principles. RED-GREEN-REFACTOR cycle.
+- **testing-patterns**: Testing patterns and principles. Unit, integration, mocking strategies.
+- **vulnerability-scanner**: Advanced vulnerability analysis principles. OWASP 2025, Supply Chain Security, attack surface mapping, risk prioritization.
+- **web-design-guidelines**: Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".
+- **webapp-testing**: Web application testing principles. E2E, Playwright, deep audit strategies.
