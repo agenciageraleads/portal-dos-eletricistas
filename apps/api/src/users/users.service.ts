@@ -222,6 +222,11 @@ export class UsersService implements OnModuleInit {
             filters.push(Prisma.sql`(u.name ILIKE ${`%${searchTerm}%`} OR u.city ILIKE ${`%${searchTerm}%`})`);
         }
 
+        // Monta cláusula WHERE condicional para filtros de busca
+        const whereClause = filters.length
+            ? Prisma.sql`WHERE ${Prisma.join(filters, Prisma.sql` AND `)}`
+            : Prisma.sql``;
+
         const users = await this.prisma.$queryRaw<
             Array<{
                 id: string;
@@ -276,7 +281,7 @@ export class UsersService implements OnModuleInit {
             )
             SELECT *
             FROM base
-            ${filters.length ? Prisma.sql`WHERE ${Prisma.join(filters, Prisma.sql` AND `)}` : Prisma.empty}
+            ${whereClause}
             ORDER BY rank ASC
         `);
 
