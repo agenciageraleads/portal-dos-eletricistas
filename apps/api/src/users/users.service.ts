@@ -224,7 +224,7 @@ export class UsersService implements OnModuleInit {
 
         // Monta cláusula WHERE condicional para filtros de busca
         const whereClause = filters.length
-            ? Prisma.sql`WHERE ${Prisma.join(filters, Prisma.sql` AND `)}`
+            ? Prisma.sql`WHERE ${Prisma.join(filters, ' AND ')}`
             : Prisma.sql``;
 
         const users = await this.prisma.$queryRaw<
