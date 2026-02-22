@@ -108,7 +108,7 @@ export default function UserMenu({ user, logout }: UserMenuProps) {
 
                         <div className="pt-2 pb-1 text-center">
                             <span className="text-[10px] text-gray-400 font-mono">
-                                v1.6.3
+                                v1.7.0
                             </span>
                         </div>
                     </div>
