@@ -12,6 +12,8 @@ const publicRoutes = [
     '/services', // Mural de Vagas é público para visualização
     '/ferramentas', // Calculadoras
     '/catalogo', // Catálogo de Materiais
+    '/download', // Página pública de download do APK (Android e iOS)
+    '/ranking', // Página pública de rankings dos eletricistas
 ];
 
 // Rotas que começam com estes prefixos são públicas
