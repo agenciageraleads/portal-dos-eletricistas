@@ -22,8 +22,9 @@ async function runMigrations() {
 }
 
 async function bootstrap() {
-  // Run migrations before starting the app
-  await runMigrations();
+  // Migrations are pre-applied in production via baseline
+  // Desabilitar migrações automáticas para evitar conflitos em produção
+  // await runMigrations();
 
   const app = await NestFactory.create(AppModule);
 
