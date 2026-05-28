@@ -44,32 +44,54 @@ export default function Home() {
     }, []);
 
     // Gov.br style often uses lists or simpler cards for "Frequent Services"
-    const quickAccess = [
-        {
-            title: 'Novo Orçamento',
-            description: 'Criar proposta',
-            icon: <FileText size={20} className="text-brand-primary" />,
-            href: '/orcamento/novo'
-        },
-        {
-            title: 'Meus Orçamentos',
-            description: 'Ver histórico',
-            icon: <ShoppingCart size={20} className="text-brand-success" />,
-            href: '/orcamentos'
-        },
-        {
-            title: 'Catálogo',
-            description: 'Consultar preços',
-            icon: <PackageSearch size={20} className="text-brand-accent" />,
-            href: '/catalogo'
-        },
-        {
-            title: 'Calculadoras',
-            description: 'Ferramentas',
-            icon: <Calculator size={20} className="text-orange-500" />,
-            href: '/ferramentas'
+    const quickAccess = useMemo(() => {
+        const items = [
+            {
+                title: 'Novo Orçamento',
+                description: 'Criar proposta',
+                icon: <FileText size={20} className="text-brand-primary" />,
+                href: '/orcamento/novo'
+            },
+            {
+                title: 'Meus Orçamentos',
+                description: 'Ver histórico',
+                icon: <ShoppingCart size={20} className="text-brand-success" />,
+                href: '/orcamentos'
+            },
+            {
+                title: 'Catálogo',
+                description: 'Consultar preços',
+                icon: <PackageSearch size={20} className="text-brand-accent" />,
+                href: '/catalogo'
+            },
+            {
+                title: 'Calculadoras',
+                description: 'Ferramentas',
+                icon: <Calculator size={20} className="text-orange-500" />,
+                href: '/ferramentas'
+            }
+        ];
+
+        // Se estiver logado, adiciona as novas abas de parceiros
+        if (user) {
+            items.push(
+                {
+                    title: 'Minhas Comissões',
+                    description: 'Extrato & Resgate Pix',
+                    icon: <Zap size={20} className="text-yellow-500" />,
+                    href: '/dashboard/comissoes'
+                },
+                {
+                    title: 'Ranking Geral',
+                    description: 'Liga dos Embaixadores',
+                    icon: <Trophy size={20} className="text-amber-500" />,
+                    href: '/ranking'
+                }
+            );
         }
-    ];
+
+        return items;
+    }, [user]);
 
     const jornadaTasks = useMemo(() => {
         if (!user) return [];
@@ -264,6 +286,20 @@ export default function Home() {
                         </div>
                     </div>
                 )}
+
+                {/* Banner do APK Oficial */}
+                <div className="bg-gradient-to-r from-amber-500/20 to-yellow-500/10 rounded-2xl p-5 border border-amber-500/20 shadow-sm mb-6 relative overflow-hidden">
+                    <div className="relative z-10 flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                            <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-wide">Aplicativo Oficial</span>
+                            <h3 className="text-base font-extrabold text-slate-900 mt-2 leading-snug">Tenha o Portal no seu Celular!</h3>
+                            <p className="text-gray-600 text-xs mt-1 leading-normal">Acesse orçamentos e comissões 10x mais rápido com nosso app Android.</p>
+                        </div>
+                        <Link href="/download" className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-xl transition-all shadow-md active:scale-95 shrink-0">
+                            Instalar App
+                        </Link>
+                    </div>
+                </div>
 
                 {/* Quick Access List */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">

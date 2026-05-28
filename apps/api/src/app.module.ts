@@ -20,6 +20,8 @@ import { ServicesModule } from './services/services.module';
 import { AssistantModule } from './assistant/assistant.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ClientsModule } from './clients/clients.module';
+import { CommissionsModule } from './commissions/commissions.module';
+import { RankingsModule } from './rankings/rankings.module';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -57,6 +59,8 @@ import { ConfigModule } from '@nestjs/config';
     AssistantModule,
     NotificationsModule,
     ClientsModule,
+    CommissionsModule,
+    RankingsModule,
   ], controllers: [AppController],
   providers: [
     AppService,
