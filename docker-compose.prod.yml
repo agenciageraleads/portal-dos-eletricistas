@@ -1,10 +1,10 @@
 version: "3.8"
 services:
   # ==========================================
-  # 1. FRONTEND WEB (v1.6.3)
+  # 1. FRONTEND WEB
   # ==========================================
   web:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:web-1.6.3
+    image: portal-eletricistas-web:latest
     deploy:
       mode: replicated
       replicas: 1
@@ -23,10 +23,12 @@ services:
       - Portainer
 
   # ==========================================
-  # 2. BACKEND API (v1.6.3)
+  # 2. BACKEND API
   # ==========================================
   api:
-    image: ghcr.io/agenciageraleads/portal-dos-eletricistas:api-1.6.3
+    image: portal-eletricistas-api:latest
+    env_file:
+      - /opt/portal-eletricistas/.env
     deploy:
       mode: replicated
       replicas: 1
@@ -40,33 +42,6 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      JWT_SECRET: super_chave_secreta_mude_depois
-      DATABASE_URL: postgres://portal:portal_senha_forte@db:5432/portal_eletricistas?schema=public
-
-      # S3 / MinIO Configuration
-      S3_ENDPOINT: https://s3.gera-leads.com
-      S3_ACCESS_KEY: admin
-      S3_SECRET_KEY: Lucas132395
-      S3_BUCKET: portal-produtos
-      S3_REGION: us-east-1
-
-      # Sankhya Integration
-      SANKHYA_CLIENT_ID: "e0e93f83-aa7c-4d38-a911-944b25365430"
-      SANKHYA_CLIENT_SECRET: "LHTBJC5TFVXB8IQ4TRxbrUwopxjk1zak"
-      SANKHYA_X_TOKEN: "c12fd66b-e030-4d80-9b92-7daf82d0d11f"
-
-      # Email Configuration
-      EMAIL_USER: "contato@portaldistribuidora.com.br"
-      EMAIL_PASSWORD: "fugs zisa vlmm phir"
-
-      # Evolution API (WhatsApp)
-      EVOLUTION_API_URL: https://evolutionapi.gera-leads.com
-      EVOLUTION_API_KEY: cb988b940da16208625675ba7be69465
-      EVOLUTION_INSTANCE_NAME: WhatsAppPortal
-
-      # OpenAI
-      OPENAI_API_KEY: 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
-
     networks:
       - portal_overlay
       - Portainer
