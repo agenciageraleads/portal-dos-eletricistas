@@ -38,8 +38,24 @@ export default function DashboardPage() {
         return new Date(date).toLocaleDateString('pt-BR');
     };
 
-    if (authLoading) return <div className="p-8">Carregando...</div>;
-    if (!user) return <div className="p-8">Redirecionando para login...</div>;
+    if (authLoading || (loading && budgets.length === 0)) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <header className="bg-white shadow-sm border-b border-gray-100">
+                    <div className="max-w-5xl mx-auto px-4 py-4 h-16 animate-pulse bg-gray-50"></div>
+                </header>
+                <main className="max-w-5xl mx-auto px-4 py-8">
+                    <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-6"></div>
+                    <div className="grid gap-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="h-32 bg-white rounded-xl border border-gray-100 animate-pulse"></div>
+                        ))}
+                    </div>
+                </main>
+            </div>
+        );
+    }
+    if (!user) return null;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -62,7 +78,7 @@ export default function DashboardPage() {
             <main className="max-w-5xl mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Meus Orçamentos</h2>
-                    <Link href="/" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2 transition-colors">
+                    <Link href="/orcamento/novo" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2 transition-colors">
                         <PlusCircle size={20} />
                         Novo Orçamento
                     </Link>
@@ -77,7 +93,7 @@ export default function DashboardPage() {
                 ) : budgets.length === 0 ? (
                     <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
                         <p className="text-gray-500 mb-4">Você ainda não criou nenhum orçamento.</p>
-                        <Link href="/" className="text-blue-600 font-medium hover:underline">
+                        <Link href="/orcamento/novo" className="text-blue-600 font-medium hover:underline">
                             Começar agora
                         </Link>
                     </div>

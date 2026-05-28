@@ -27,8 +27,10 @@ export class BudgetsController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.budgetsService.findOne(id);
+    async findOne(@Request() req: any, @Param('id') id: string) {
+        // Se estiver logado, passamos o userId para validar a propriedade
+        const userId = req.user?.userId;
+        return this.budgetsService.findOne(id, userId);
     }
 
     // Public: Client decision (accept/reject/negotiate)

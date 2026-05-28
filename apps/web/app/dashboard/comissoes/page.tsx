@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../../lib/api';
-import Spinner from '../../components/Spinner';
+import { Spinner } from '../../components/Spinner';
 
 interface CommissionSummary {
     totalIndications: number;

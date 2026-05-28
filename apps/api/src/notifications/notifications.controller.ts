@@ -17,4 +17,9 @@ export class NotificationsController {
     markAsRead(@Param('id') id: string, @Request() req) {
         return this.notificationsService.markAsRead(id, req.user.id);
     }
+
+    @Post('fcm-token')
+    saveFcmToken(@Body() body: { token: string; deviceType?: string }, @Request() req) {
+        return this.notificationsService.saveFcmToken(req.user.id, body.token, body.deviceType);
+    }
 }

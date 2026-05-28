@@ -25,6 +25,17 @@ Plataforma completa de gestão de orçamentos e vendas para eletricistas parceir
 
 ---
 
+## 🤝 Governança e Colaboração (AI-First)
+
+Para manter a ordem neste workspace, especialmente com **desenvolvedores IA**, siga estes documentos:
+
+1. **[Guia de Contribuição](./CONTRIBUTING.md)**: Regras de commits, branches e padrões de código.
+2. **[Protocolos IA](./.cursorrules)**: Regras de ouro para agentes de IA (Context Rules).
+3. **[Guia de Desenvolvimento](./docs/guia_dev.md)**: Setup local e onboarding técnico.
+4. **[Diretrizes Técnicas](./docs/DIRECTIVES.md)**: Padrões de arquitetura.
+
+---
+
 ## 📚 Documentação e Governança
 
 Para manter a qualidade e performance do projeto, siga nossos guias:
@@ -41,11 +52,11 @@ Para manter a qualidade e performance do projeto, siga nossos guias:
 
 Certifique-se de ter o **Docker** e **Node.js v18+** instalados.
 
-1.  **Instalação**: `npm install`
-2.  **Infra (Banco/Redis)**: `docker-compose up -d`
-3.  **Env Vars**: Configure os arquivos `.env` seguindo os exemplos em cada pasta.
-4.  **Execução**: `npm run dev`
-5.  **Verificação**: `npm run verify:local`
+1. **Instalação**: `npm install`
+2. **Infra (Banco/Redis)**: `docker-compose up -d`
+3. **Env Vars**: Configure os arquivos `.env` seguindo os exemplos em cada pasta.
+4. **Execução**: `npm run dev`
+5. **Verificação**: `npm run verify:local`
 
 ---
 

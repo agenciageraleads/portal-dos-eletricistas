@@ -10,10 +10,13 @@ Este diretório contém toda a documentação técnica e estratégica do projeto
 - **[ROADMAP.md](./ROADMAP.md)** - Plano estratégico Q1-Q2 2026 com marcos e funcionalidades planejadas
 
 ### 🏗 Arquitetura e Desenvolvimento
+
 - **[arquitetura.md](./arquitetura.md)** - Arquitetura atual do sistema (v1.1.0), stack tecnológica, modelo de dados e fluxos
 - **[DIRECTIVES.md](./DIRECTIVES.md)** - Padrões de código, Git workflow, e definição de "done"
 - **[RELEASE_PROCESS.md](./RELEASE_PROCESS.md)** - Como criar versões e gerenciar Releases no GitHub
 - **[guia_dev.md](./guia_dev.md)** - Guia de onboarding para desenvolvedores (setup local, estrutura do projeto)
+- **[DATABASE.md](./DATABASE.md)** - Detalhamento do esquema Prisma, relacionamentos e estratégias de migração.
+- **[TESTING.md](./testing/TESTING.md)** - Guia de como escrever testes Unitários (Jest/NestJS) e E2E (Playwright).
 
 ---
 

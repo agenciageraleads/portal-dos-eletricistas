@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import * as React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -54,7 +55,9 @@ export default function RootLayout({
             <AuthProvider>
               <CartProvider>
                 <InstallProvider>
-                  {children}
+                  <React.Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-bold animate-pulse uppercase tracking-wider">Carregando Portal...</div>}>
+                    {children}
+                  </React.Suspense>
                   {/* <InstallPrompt /> */}
                 </InstallProvider>
               </CartProvider>

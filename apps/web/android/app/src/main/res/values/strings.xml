@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Portal Elétricos</string>
+    <string name="title_activity_main">Portal Elétricos</string>
+    <string name="package_name">com.portaleletricos.app</string>
+    <string name="custom_url_scheme">com.portaleletricos.app</string>
+</resources>

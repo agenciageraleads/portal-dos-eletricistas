@@ -50,7 +50,7 @@ export default function TermosPage() {
 
         <div className="pt-8 border-t">
           <p className="text-sm text-muted-foreground">
-            Última atualização: {new Date().toLocaleDateString('pt-BR')}
+            Última atualização: Março de 2026
           </p>
         </div>
       </div>

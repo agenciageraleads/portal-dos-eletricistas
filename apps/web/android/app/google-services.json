@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "929197408485",
+    "project_id": "portal-eletricos",
+    "storage_bucket": "portal-eletricos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929197408485:android:b6642a4b1f01b72944940c",
+        "android_client_info": {
+          "package_name": "com.portaleletricos.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVm5L-6s3oZWLVxtvLkHcRkB2q67MksMQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

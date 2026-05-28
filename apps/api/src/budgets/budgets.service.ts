@@ -2,10 +2,14 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BudgetsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService
+    ) { }
 
     private normalizeClientName(name?: string) {
         return (name || '').trim().toUpperCase();
@@ -137,6 +141,15 @@ export class BudgetsService {
 
         await this.upsertClientContact(userId, clientName, clientPhone);
 
+        // Disparar Notificação (Async)
+        this.notificationsService.create(
+            userId,
+            'Novo Orçamento Criado',
+            `O orçamento para ${clientName || 'Cliente'} foi gerado com sucesso!`,
+            'BUDGET_CREATED',
+            `/orcamentos/${budget.id}`
+        ).catch(err => console.error('[BUDGET] Erro ao criar notificação:', err));
+
         return budget;
     }
 
@@ -152,8 +165,8 @@ export class BudgetsService {
         });
     }
 
-    async findOne(id: string) {
-        return this.prisma.budget.findUnique({
+    async findOne(id: string, userId?: string) {
+        const budget = await this.prisma.budget.findUnique({
             where: { id },
             include: {
                 items: {
@@ -174,6 +187,22 @@ export class BudgetsService {
                 },
             },
         });
+
+        if (!budget) throw new NotFoundException('Orçamento não encontrado');
+
+        // Proteção de PII: Se o visualizador não for o dono nem ADMIN (ou se for público), higienizamos dados sensíveis
+        const isOwnerOrAdmin = userId && (budget.userId === userId || (await this.prisma.user.findUnique({ where: { id: userId } }))?.role === 'ADMIN');
+
+        if (!isOwnerOrAdmin) {
+            // Oculta dados sensíveis para visualização pública/terceiros
+            budget.client_accept_cpf = budget.client_accept_cpf ? '***.***.***-**' : null;
+            budget.client_accept_signature = null; // Remodela assinatura
+            
+            // Opcional: Ocultar telefone do cliente se desejar privacidade extra
+            // budget.client_phone = budget.client_phone ? budget.client_phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) *****-$3') : null;
+        }
+
+        return budget;
     }
 
     async update(id: string, userId: string, updateBudgetDto: UpdateBudgetDto) {
@@ -258,7 +287,7 @@ export class BudgetsService {
             if (!name || !cpf || !signature) {
                 throw new BadRequestException('Nome, CPF e assinatura são obrigatórios para aceitar.');
             }
-            return this.prisma.budget.update({
+            const updated = await this.prisma.budget.update({
                 where: { id },
                 data: {
                     status: 'APPROVED',
@@ -272,10 +301,21 @@ export class BudgetsService {
                     client_negotiation_at: null
                 }
             });
+
+            // Notificar Eletricista
+            this.notificationsService.create(
+                updated.userId,
+                'Orçamento Aprovado! 🎉',
+                `O cliente ${name} aprovou o orçamento. Confira os detalhes!`,
+                'BUDGET_APPROVED',
+                `/orcamentos/${id}`
+            ).catch(err => console.error('[BUDGET] Erro ao notificar aprovação:', err));
+
+            return updated;
         }
 
         if (decision === 'REJECT') {
-            return this.prisma.budget.update({
+            const updated = await this.prisma.budget.update({
                 where: { id },
                 data: {
                     status: 'REJECTED',
@@ -284,15 +324,37 @@ export class BudgetsService {
                     client_reject_at: new Date()
                 }
             });
+
+            // Notificar Eletricista
+            this.notificationsService.create(
+                updated.userId,
+                'Orçamento Recusado',
+                `O cliente recusou o orçamento. Veja o motivo.`,
+                'BUDGET_REJECTED',
+                `/orcamentos/${id}`
+            ).catch(err => console.error('[BUDGET] Erro ao notificar recusa:', err));
+
+            return updated;
         }
 
-        return this.prisma.budget.update({
+        const updated = await this.prisma.budget.update({
             where: { id },
             data: {
                 status: 'NEGOTIATING',
                 client_negotiation_at: new Date()
             }
         });
+
+        // Notificar Eletricista
+        this.notificationsService.create(
+            updated.userId,
+            'Cliente quer negociar',
+            `O cliente solicitou uma revisão no orçamento.`,
+            'BUDGET_NEGOTIATING',
+            `/orcamentos/${id}`
+        ).catch(err => console.error('[BUDGET] Erro ao notificar negociação:', err));
+
+        return updated;
     }
 
     async remove(id: string, userId: string) {

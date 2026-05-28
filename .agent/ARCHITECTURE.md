@@ -9,8 +9,8 @@
 Antigravity Kit is a modular system consisting of:
 
 - **20 Specialist Agents** - Role-based AI personas
-- **36 Skills** - Domain-specific knowledge modules
-- **21 Workflows** - Slash command procedures
+- **44 Skills** - Domain-specific knowledge modules (incluindo skills globais)
+- **23 Workflows** - Slash command procedures
 
 ---
 
@@ -86,6 +86,7 @@ Modular knowledge domains that agents can load on-demand. based on task context.
 | ----------------- | --------------------------- |
 | `database-design` | Schema design, optimization |
 | `prisma-expert`   | Prisma ORM, migrations      |
+| `summi-db-connection` | Prod DB management (Summi)  |
 
 ### TypeScript/JavaScript
 
@@ -158,9 +159,12 @@ Modular knowledge domains that agents can load on-demand. based on task context.
 | Skill                     | Description               |
 | ------------------------- | ------------------------- |
 | `clean-code`              | Coding standards (Global) |
+| `agent-memory`            | Context persistence      |
 | `behavioral-modes`        | Agent personas            |
+| `claude-toolkit`          | Claude ecosystem tools    |
 | `parallel-agents`         | Multi-agent patterns      |
 | `mcp-builder`             | Model Context Protocol    |
+| `n8n-automation`          | n8n workflows via MCP     |
 | `documentation-templates` | Doc formats               |
 | `i18n-localization`       | Internationalization      |
 | `performance-profiling`   | Web Vitals, optimization  |
@@ -195,6 +199,8 @@ Slash command procedures. Invoke with `/command`.
 | `/i18n`          | Localization scan        |
 | `/seed`          | Populates dev database   |
 | `/ui-ux-pro-max` | Design with 50 styles    |
+| `/conectar-gera-leads-vps` | VPS Gera-Leads SSH       |
+| `/portaleletricos-vps` | VPS Portal SSH           |
 
 ---
 
@@ -277,8 +283,8 @@ For details, see [scripts/README.md](scripts/README.md)
 | Metric              | Value                         |
 | ------------------- | ----------------------------- |
 | **Total Agents**    | 20                            |
-| **Total Skills**    | 36                            |
-| **Total Workflows** | 21                            |
+| **Total Skills**    | 44                            |
+| **Total Workflows** | 23                            |
 | **Total Scripts**   | 2 (master) + 18 (skill-level) |
 | **Coverage**        | ~90% web/mobile development   |
 

@@ -22,6 +22,9 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ClientsModule } from './clients/clients.module';
 import { CommissionsModule } from './commissions/commissions.module';
 import { RankingsModule } from './rankings/rankings.module';
+import { PostsModule } from './posts/posts.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { EventsModule } from './events/events.module';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -61,6 +64,9 @@ import { ConfigModule } from '@nestjs/config';
     ClientsModule,
     CommissionsModule,
     RankingsModule,
+    PostsModule,
+    ReviewsModule,
+    EventsModule,
   ], controllers: [AppController],
   providers: [
     AppService,

@@ -1,19 +1,20 @@
-# Base stage
+# 1. Estágio Base (Base Stage)
 FROM node:20-slim AS base
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies
-RUN apt-get update -y && apt-get install -y \
-    openssl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# 2. Estágio de Poda (Pruner Stage - Isola a API e o Prisma do monorepo)
+FROM base AS pruner
+WORKDIR /app
+RUN npm install -g turbo
+COPY . .
+RUN turbo prune --scope=api --docker
 
-# Dependencies stage
+# 3. Estágio de Dependências (Dependencies Stage - Instala apenas pacotes necessários do backend)
 FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json turbo.json ./
-COPY apps ./apps
+COPY --from=pruner /app/out/json/ .
 RUN npm ci
-# Install sharp based on architecture
+# Instala pacote sharp nativo baseado na arquitetura da máquina
 RUN arch="$(uname -m)" && \
     if [ "$arch" = "x86_64" ]; then \
     npm install sharp @img/sharp-linux-x64; \
@@ -23,30 +24,30 @@ RUN arch="$(uname -m)" && \
     npm install sharp; \
     fi
 
-# Builder stage
+# 4. Estágio do Builder (Builder Stage - Gera o cliente Prisma e compila NestJS)
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-# Generate Prisma Client
+COPY --from=pruner /app/out/full/ .
+COPY --from=pruner /app/out/json/ .
+
+# Gera o Prisma Client com base no schema.prisma da API
 WORKDIR /app/apps/api
 RUN npx prisma generate
 WORKDIR /app
-# Build API
+# Instala pacotes NestJS auxiliares globais de compilação
 RUN npm install -g @nestjs/cli
 RUN npm install dotenv @types/dotenv
 RUN npm run build --workspace=apps/api
 
-# Runner stage
+# 5. Estágio de Execução (Runner Stage - Executa o servidor NestJS na VPS)
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Don't run as root
+# Rodar como usuário não-root (segurança de infraestrutura)
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
-
-# Create home directory for nestjs user to avoid npm EACCES errors
 RUN mkdir -p /home/nestjs && chown nestjs:nodejs /home/nestjs
 ENV HOME=/home/nestjs
 
@@ -55,7 +56,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/package.json ./package.json
 COPY --from=builder /app/apps/api/prisma ./prisma
 
-# Install sharp based on architecture
+# Garante dependência nativa do Sharp em produção
 RUN arch="$(uname -m)" && \
     if [ "$arch" = "x86_64" ]; then \
     npm install sharp @img/sharp-linux-x64; \
@@ -65,7 +66,7 @@ RUN arch="$(uname -m)" && \
     npm install sharp; \
     fi
 
-# Criar script de startup que roda db push + migrations + inicia app
+# Script de Inicialização (db push + migrations + main start)
 RUN echo '#!/bin/sh\n\
     echo "🔄 Syncing database schema..."\n\
     npx prisma db push --skip-generate --accept-data-loss || echo "⚠️  Schema already synced"\n\
@@ -75,11 +76,9 @@ RUN echo '#!/bin/sh\n\
     node dist/main.js\n\
     ' > /app/start.sh && chmod +x /app/start.sh
 
-# Fix: Ensure nestjs user owns the cache created by the previous root command
 RUN chown -R nestjs:nodejs /home/nestjs
-
 USER nestjs
-
 EXPOSE 3333
+ENV PORT=3333
 
 CMD ["/app/start.sh"]

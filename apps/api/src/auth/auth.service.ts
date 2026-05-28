@@ -88,7 +88,7 @@ export class AuthService {
                         console.log('[REGISTER] Encontrado pré-cadastro para CPF:', data.cpf_cnpj);
 
                         // Atualiza o pré-cadastro para um cadastro completo
-                        const hashedPassword = await bcrypt.hash(data.password, 10);
+                        const hashedPassword = await bcrypt.hash(data.password, 8);
                         let termsDate = null;
                         if (data.termsAccepted) {
                             termsDate = new Date();
@@ -119,7 +119,7 @@ export class AuthService {
                 }
             }
 
-            const hashedPassword = await bcrypt.hash(data.password, 10);
+            const hashedPassword = await bcrypt.hash(data.password, 8);
 
             // Tratamento LGPD
             let termsDate = null;
@@ -128,9 +128,16 @@ export class AuthService {
                 delete data.termsAccepted; // Remove para não quebrar o Prisma
             }
 
-            const protectedEmail = process.env.ADMIN_EMAIL || 'lucasborgessb@gmail.com';
-            const protectedCpf = process.env.ADMIN_CPF || '03312918197';
-            const shouldBeAdmin = data.email === protectedEmail || data.cpf_cnpj === protectedCpf;
+            const protectedEmail = process.env.ADMIN_EMAIL;
+            const protectedCpf = process.env.ADMIN_CPF;
+
+            // Segurança: Se as variáveis de ambiente não estiverem definidas em produção, não permitir promoção automática
+            if (!protectedEmail || !protectedCpf) {
+                console.error('[SECURITY] [CRITICAL] ADMIN_EMAIL ou ADMIN_CPF não configurados no ambiente!');
+            }
+
+            const shouldBeAdmin = (protectedEmail && data.email === protectedEmail) || 
+                                 (protectedCpf && data.cpf_cnpj === protectedCpf);
 
             const userData = {
                 ...data,

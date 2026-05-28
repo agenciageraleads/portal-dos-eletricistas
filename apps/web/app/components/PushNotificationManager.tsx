@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import api from '@/lib/api';
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -23,43 +25,93 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export default function PushNotificationManager() {
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isNative, setIsNative] = useState(false);
     const [subscription, setSubscription] = useState<PushSubscription | null>(null);
     const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && (window as any).workbox !== undefined) {
-            // Wait for service worker to be ready
-            navigator.serviceWorker.ready.then(reg => {
-                setRegistration(reg);
-                reg.pushManager.getSubscription().then(sub => {
-                    if (sub && !(sub.expirationTime && Date.now() > sub.expirationTime)) {
-                        setSubscription(sub);
+        const checkPlatform = () => {
+            const isCapacitor = Capacitor.isNativePlatform();
+            setIsNative(isCapacitor);
+
+            if (isCapacitor) {
+                // Capacitor: Check if already have permission or token
+                PushNotifications.checkPermissions().then((res) => {
+                    if (res.receive === 'granted') {
                         setIsSubscribed(true);
+                        // Optional: Re-register to ensure token is fresh
+                        registerCapacitorPush();
                     }
                 });
-            });
-        }
+            } else if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                // PWA: Check existing SW registration
+                navigator.serviceWorker.ready.then(reg => {
+                    setRegistration(reg);
+                    reg.pushManager.getSubscription().then(sub => {
+                        if (sub && !(sub.expirationTime && Date.now() > sub.expirationTime)) {
+                            setIsSubscribed(true);
+                        }
+                    });
+                });
+            }
+        };
+
+        checkPlatform();
     }, []);
 
+    const registerCapacitorPush = async () => {
+        try {
+            let permStatus = await PushNotifications.checkPermissions();
+
+            if (permStatus.receive === 'prompt') {
+                permStatus = await PushNotifications.requestPermissions();
+            }
+
+            if (permStatus.receive !== 'granted') {
+                throw new Error('User denied permissions!');
+            }
+
+            await PushNotifications.register();
+
+            // Handle token registration
+            PushNotifications.addListener('registration', async (token) => {
+                console.log('FCM Token:', token.value);
+                await api.post('/notifications/fcm-token', {
+                    token: token.value,
+                    deviceType: Capacitor.getPlatform()
+                });
+                setIsSubscribed(true);
+            });
+
+            PushNotifications.addListener('registrationError', (error) => {
+                console.error('Registration error: ', error.error);
+            });
+
+        } catch (e) {
+            console.error('Error in Capacitor Push register:', e);
+        }
+    };
+
     const subscribeToPush = async () => {
+        if (isNative) {
+            await registerCapacitorPush();
+            return;
+        }
+
         if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
             alert('Para ativar notificações, acesse via HTTPS ou localhost.');
             return;
         }
 
         if (!registration || !VAPID_PUBLIC_KEY) {
-            console.error('Registration or Key missing');
-            // Check if service worker is supported
             if (!('serviceWorker' in navigator)) {
                 alert('Seu navegador não suporta Service Workers/Notificações.');
                 return;
             }
-            // If just key missing
             if (!VAPID_PUBLIC_KEY) {
                 console.error('VAPID Key missing in env');
                 return;
             }
-            // If registration missing, maybe it's still loading or failed
             alert('Aguarde o carregamento do sistema e tente novamente.');
             return;
         }
@@ -73,7 +125,6 @@ export default function PushNotificationManager() {
             // Send to backend
             await api.post('/notifications/subscribe', sub);
 
-            setSubscription(sub);
             setIsSubscribed(true);
             alert('Notificações ativadas com sucesso!');
         } catch (error: any) {

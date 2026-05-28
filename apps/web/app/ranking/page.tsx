@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../../lib/api';
 import PageHeader from '../components/PageHeader';
-import Spinner from '../components/Spinner';
+import { Spinner } from '../components/Spinner';
 
 interface RankingUser {
     position: number;

@@ -1,0 +1,37 @@
+# Protocolos de Desenvolvimento para Agentes de IA 🤖
+
+Este arquivo define as regras de ouro que todos os agentes de IA devem seguir ao contribuir para o **Portal dos Eletricistas**. O não cumprimento destas regras resultará em rejeição imediata do código.
+
+## 🎯 Princípios Gerais
+
+1. **Pense antes de Codar**: Antes de qualquer mudança, analise as dependências no `turbo.json` e nos arquivos de arquitetura em `docs/`.
+2. **Linguagem**: 
+   - Documentação: PT/BR.
+   - Comentários em código: PT/BR.
+   - Variáveis e Lógica: Inglês.
+
+## 🏗 Arquitetura
+- **Monorepo**: Turbo + pnpm/npm.
+- **Frontend**: `apps/web` (Next.js 14, TailwindCSS).
+- **Backend**: `apps/api` (NestJS, Prisma).
+- **Database**: PostgreSQL. As migrações devem ser sempre revisadas.
+
+## 🛠 Regras de Implementação
+- **Tipagem**: Use TypeScript de forma rigorosa. Evite `any`.
+- **Segurança**: Nunca remova o `helmet()` ou as pipes de validação no backend sem justificativa crítica.
+- **Testes**: Toda funcionalidade nova deve vir acompanhada de um teste unitário (`.spec.ts`) ou E2E (Playwright).
+- **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/).
+
+## 🚦 Guardrails Específicos
+- **Portas**: 
+  - API: 3342
+  - WEB: 3042
+  - Não mude estas portas.
+- **Prisma**: Sempre use `npx prisma generate` após mudar o `schema.prisma`.
+
+## 📚 Documentação
+- Se criar uma nova feature, atualize o `docs/ROADMAP.md` e crie um arquivo técnico em `docs/` se necessário.
+- Mantenha o Swagger atualizado através dos decorators do NestJS (@ApiProperty, etc).
+
+---
+*Assinado: Antigravity (IA Lead Architect)*

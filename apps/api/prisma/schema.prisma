@@ -42,6 +42,7 @@ model User {
   feedbacks            Feedback[]
   notifications        Notification[]
   push_subscriptions   PushSubscription[]
+  fcm_tokens           FcmToken[]
   client_contacts      ClientContact[]
   pre_cadastrado       Boolean    @default(false)
   cadastro_finalizado  Boolean    @default(false)
@@ -63,6 +64,12 @@ model User {
   serviceLeads       ServiceLead[]
   chatMessages       ChatMessage[]
   chatSessions       ChatSession[]
+  posts              Post[]
+  postLikes          PostLike[]
+  postComments       PostComment[]
+  receivedReviews    Review[]          @relation("ReceivedReviews")
+  writtenReviews     Review[]          @relation("WrittenReviews")
+  eventCheckins      EventCheckin[]
 
   @@map("users")
 }
@@ -406,6 +413,17 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
+model FcmToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  deviceType String? // 'android', 'ios'
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("fcm_tokens")
+}
+
 model ServiceLead {
   id              String         @id @default(uuid())
   serviceListingId String
@@ -417,4 +435,95 @@ model ServiceLead {
   
   @@unique([serviceListingId, userId])
   @@map("service_leads")
+}
+
+// 1. Rede Social: Posts de Portfólio (Trabalhos Realizados)
+model Post {
+  id          String    @id @default(uuid())
+  userId      String
+  title       String
+  description String?   @db.Text
+  imageUrl    String    // Caminho da imagem do trabalho realizado
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes       PostLike[]
+  comments    PostComment[]
+
+  @@map("posts")
+}
+
+// 2. Curtidas nos Posts
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_likes")
+}
+
+// 3. Comentários nos Posts
+model PostComment {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("post_comments")
+}
+
+// 4. Avaliações de Profissionais (Estilo Google Meu Negócio)
+model Review {
+  id           String   @id @default(uuid())
+  targetUserId String   // Eletricista que está recebendo a avaliação
+  authorId     String?  // Usuário que avaliou (nulo se for 100% anônimo sem login)
+  isAnonymous  Boolean  @default(false)
+  authorName   String?  // Nome exibido (Ex: "Cliente Satisfeito" ou nome real)
+  rating       Int      // 1 a 5 estrelas
+  comment      String   @db.Text
+  createdAt    DateTime @default(now())
+
+  targetUser   User     @relation("ReceivedReviews", fields: [targetUserId], references: [id], onDelete: Cascade)
+  author       User?    @relation("WrittenReviews", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@map("reviews")
+}
+
+// 5. Eventos criados pela Administração
+model Event {
+  id           String         @id @default(uuid())
+  title        String
+  description  String?        @db.Text
+  date         DateTime
+  questions    Json           // Array de perguntas personalizadas ex: [{"id": "q1", "label": "Qual sua especialidade?", "type": "select", "options": ["Residencial", "Industrial"]}]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  checkins     EventCheckin[]
+
+  @@map("events")
+}
+
+// 6. Registro de Presença/Check-in com respostas
+model EventCheckin {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  answers   Json     // Respostas do participante ex: {"q1": "Industrial"}
+  createdAt DateTime @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_checkins")
 }
